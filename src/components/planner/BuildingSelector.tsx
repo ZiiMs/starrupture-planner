@@ -1,34 +1,30 @@
 'use client'
 
-import { memo } from 'react'
-import { useReactFlow } from '@xyflow/react'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import type { Building, Recipe, Item } from '@/types/planner'
-import { calculateOutputRate, calculatePowerConsumption } from '@/lib/calculations'
-import { nanoid } from 'nanoid'
+import { usePlannerData, type PlannerData } from '@/hooks/use-planner-data'
+import {
+  calculateOutputRate,
+  calculatePowerConsumption,
+} from '@/lib/calculations'
 import { getIcon } from '@/lib/icons'
-import { useState } from 'react'
-import { usePlannerData } from '@/hooks/use-planner-data'
+import type { Building, Item, Recipe } from '@/types/planner'
+import { useReactFlow } from '@xyflow/react'
+import { nanoid } from 'nanoid'
+import { memo, useState } from 'react'
 
-interface PlannerDataProps {
-  buildings: Record<string, Building>
-  recipes: Record<string, Recipe>
-}
-
-function PlannerDataComponent({
-  buildings,
-  recipes,
-}: PlannerDataProps) {
+function BuildingSelectorComponent() {
   const { addNodes } = useReactFlow()
+  const data = usePlannerData()
   const [activeTab, setActiveTab] = useState<'buildings' | 'items'>('buildings')
+  const [nodeCounter, setNodeCounter] = useState(0)
 
   const addBuildingNode = (buildingId: string) => {
-    const building = buildings[buildingId]
-    const firstRecipe = Object.values(recipes).find(r =>
-      r.producers.includes(buildingId)
+    const building = data.buildings[buildingId]
+    const firstRecipe = Object.values(data.recipes).find((r) =>
+      r.producers.includes(buildingId),
     )
 
     if (!firstRecipe) {
@@ -39,10 +35,13 @@ function PlannerDataComponent({
     const outputRate = calculateOutputRate(firstRecipe, building, 1)
     const powerConsumption = calculatePowerConsumption(building, 1)
 
+    const x = 200 + (nodeCounter % 3) * 350
+    const y = 300 + Math.floor(nodeCounter / 3) * 250
+
     addNodes({
       id: nanoid(),
       type: 'planner-node',
-      position: { x: Math.random() * 400, y: Math.random() * 400 },
+      position: { x, y },
       data: {
         buildingId,
         recipeId: firstRecipe.id,
@@ -51,12 +50,14 @@ function PlannerDataComponent({
         powerConsumption,
       },
     })
+
+    setNodeCounter((c) => c + 1)
   }
 
-  const addChainFromItem = (itemId: string, items: Record<string, Item>, buildings: Record<string, Building>, recipes: Record<string, Recipe>) => {
-    const item = items[itemId]
-    const recipesProducingItem = Object.values(recipes).filter(r =>
-      r.outputs.some(o => o.itemId === itemId)
+  const addChainFromItem = (itemId: string, data: PlannerData) => {
+    const item = data.items[itemId]
+    const recipesProducingItem = Object.values(data.recipes).filter((r) =>
+      r.outputs.some((o) => o.itemId === itemId),
     )
 
     if (recipesProducingItem.length === 0) {
@@ -65,10 +66,10 @@ function PlannerDataComponent({
     }
 
     const nodesToAdd = []
-    let currentPosition = { x: 200, y: 300 }
+    let positionCounter = nodeCounter
 
     for (const recipe of recipesProducingItem) {
-      const building = buildings[recipe.producers[0]]
+      const building = data.buildings[recipe.producers[0]]
       if (!building) continue
 
       const outputRate = calculateOutputRate(recipe, building, 1)
@@ -77,7 +78,10 @@ function PlannerDataComponent({
       nodesToAdd.push({
         id: nanoid(),
         type: 'planner-node',
-        position: { ...currentPosition },
+        position: {
+          x: 200 + (positionCounter % 3) * 350,
+          y: 300 + Math.floor(positionCounter / 3) * 250,
+        },
         data: {
           buildingId: building.id,
           recipeId: recipe.id,
@@ -87,22 +91,18 @@ function PlannerDataComponent({
         },
       })
 
-      currentPosition.x += 350
-      if (currentPosition.x > 800) {
-        currentPosition.x = 200
-        currentPosition.y += 250
-      }
+      positionCounter += 1
     }
 
     addNodes(nodesToAdd)
+    setNodeCounter((c) => c + nodesToAdd.length)
   }
 
   const categories = Array.from(
-    new Set(Object.values(buildings).map(b => b.category))
+    new Set(Object.values(data.buildings).map((b) => b.category)),
   )
-
   const itemCategories = Array.from(
-    new Set(Object.values(items).map(i => i.category))
+    new Set(Object.values(data.items).map((i) => i.category)),
   )
 
   return (
@@ -113,12 +113,8 @@ function PlannerDataComponent({
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="w-full">
-            <TabsTrigger value="buildings">
-              Buildings
-            </TabsTrigger>
-            <TabsTrigger value="items">
-              Items
-            </TabsTrigger>
+            <TabsTrigger value="buildings">Buildings</TabsTrigger>
+            <TabsTrigger value="items">Items</TabsTrigger>
           </TabsList>
 
           <TabsContent value="buildings">
@@ -129,8 +125,8 @@ function PlannerDataComponent({
                     {category}
                   </h4>
                   <div className="flex flex-col gap-2">
-                    {Object.values(buildings)
-                      .filter(b => b.category === category)
+                    {Object.values(data.buildings)
+                      .filter((b) => b.category === category)
                       .map((building) => {
                         const BuildingIcon = getIcon(building.icon)
                         return (
@@ -144,7 +140,8 @@ function PlannerDataComponent({
                             <div
                               className="w-6 h-6 rounded-sm flex items-center justify-center bg-accent"
                               style={{
-                                color: building.iconColor || 'var(--foreground)',
+                                color:
+                                  building.iconColor || 'var(--foreground)',
                               }}
                             >
                               <BuildingIcon className="w-4 h-4" />
@@ -167,31 +164,23 @@ function PlannerDataComponent({
                     {category}
                   </h4>
                   <div className="flex flex-col gap-2">
-                    {Object.values(items)
-                      .filter(i => i.category === category)
-                      .map((item) => (
+                    {Object.values(data.items) // Changed from 'items' to 'data.items'
+                      .filter((i) => i.category === category)
+                      .map((item) => {
                         const ItemIcon = getIcon(item.icon)
                         return (
                           <Button
                             key={item.id}
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => addChainFromItem(item.id, items, buildings, recipes)}
+                            variant="outline"
+                            onClick={() => addChainFromItem(item.id, data)} // Changed to just pass 'data'
                             className="justify-start gap-2 h-auto py-2"
                             title={`Click to add ${item.name} production chain`}
                           >
-                            <div
-                              className="w-6 h-6 rounded-sm flex items-center justify-center bg-accent"
-                              style={{
-                                color: item.iconColor || 'var(--foreground)',
-                              }}
-                            >
-                              <ItemIcon className="w-4 h-4" />
-                            </div>
-                            <span className="text-xs">{item.name}</span>
+                            <ItemIcon className="h-4 w-4" />
+                            {item.name}
                           </Button>
                         )
-                      )}
+                      })}
                   </div>
                 </div>
               ))}
@@ -203,4 +192,4 @@ function PlannerDataComponent({
   )
 }
 
-export default memo(PlannerDataComponent)
+export default memo(BuildingSelectorComponent)
