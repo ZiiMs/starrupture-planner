@@ -1,0 +1,149 @@
+{
+  "recipes": [
+    {
+      "id": "mine-wolfram-ore",
+      "name": "Mine Wolfram Ore",
+      "category": "extraction",
+      "time": 1.0,
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "wolfram-ore",
+          "amount": 1
+        }
+      ],
+      "producers": ["ore-excavator", "mining-drill"],
+      "outputRate": 120
+    },
+    {
+      "id": "smelt-wolfram-bar",
+      "name": "Smelt Wolfram Bar",
+      "category": "smelting",
+      "time": 2.0,
+      "inputs": [
+        {
+          "itemId": "wolfram-ore",
+          "amount": 1
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "wolfram-bar",
+          "amount": 1
+        }
+      ],
+      "producers": ["smelter", "furnace"],
+      "outputRate": 60
+    },
+    {
+      "id": "mine-iron-ore",
+      "name": "Mine Iron Ore",
+      "category": "extraction",
+      "time": 1.0,
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "iron-ore",
+          "amount": 1
+        }
+      ],
+      "producers": ["ore-excavator", "mining-drill"],
+      "outputRate": 120
+    },
+    {
+      "id": "smelt-iron-plate",
+      "name": "Smelt Iron Plate",
+      "category": "smelting",
+      "time": 3.2,
+      "inputs": [
+        {
+          "itemId": "iron-ore",
+          "amount": 1
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "iron-plate",
+          "amount": 1
+        }
+      ],
+      "producers": ["smelter", "furnace"],
+      "outputRate": 60
+    },
+    {
+      "id": "craft-iron-gear",
+      "name": "Craft Iron Gear",
+      "category": "crafting",
+      "time": 0.5,
+      "inputs": [
+        {
+          "itemId": "iron-plate",
+          "amount": 2
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "iron-gear",
+          "amount": 1
+        }
+      ],
+      "producers": ["assembler", "constructor", "manufacturer"],
+      "outputRate": 120
+    },
+    {
+      "id": "mine-copper-ore",
+      "name": "Mine Copper Ore",
+      "category": "extraction",
+      "time": 1.0,
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "copper-ore",
+          "amount": 1
+        }
+      ],
+      "producers": ["ore-excavator", "mining-drill"],
+      "outputRate": 120
+    },
+    {
+      "id": "smelt-copper-plate",
+      "name": "Smelt Copper Plate",
+      "category": "smelting",
+      "time": 3.2,
+      "inputs": [
+        {
+          "itemId": "copper-ore",
+          "amount": 1
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "copper-plate",
+          "amount": 1
+        }
+      ],
+      "producers": ["smelter", "furnace"],
+      "outputRate": 60
+    },
+    {
+      "id": "craft-copper-wire",
+      "name": "Craft Copper Wire",
+      "category": "crafting",
+      "time": 0.5,
+      "inputs": [
+        {
+          "itemId": "copper-plate",
+          "amount": 1
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "copper-wire",
+          "amount": 2
+        }
+      ],
+      "producers": ["assembler", "constructor", "manufacturer"],
+      "outputRate": 120
+    }
+  ]
+}

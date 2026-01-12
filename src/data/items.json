@@ -1,0 +1,68 @@
+{
+  "items": [
+    {
+      "id": "wolfram-ore",
+      "name": "Wolfram Ore",
+      "category": "raw-resource",
+      "description": "Raw wolfram ore extracted from deposits",
+      "icon": "Package",
+      "iconColor": "#8B4513"
+    },
+    {
+      "id": "wolfram-bar",
+      "name": "Wolfram Bar",
+      "category": "processed-material",
+      "description": "Smelted wolfram bar",
+      "icon": "Square",
+      "iconColor": "#C0C0C0"
+    },
+    {
+      "id": "iron-ore",
+      "name": "Iron Ore",
+      "category": "raw-resource",
+      "description": "Raw iron ore extracted from deposits",
+      "icon": "Package",
+      "iconColor": "#8B4513"
+    },
+    {
+      "id": "iron-plate",
+      "name": "Iron Plate",
+      "category": "processed-material",
+      "description": "Smelted iron plate",
+      "icon": "Square",
+      "iconColor": "#C0C0C0"
+    },
+    {
+      "id": "iron-gear",
+      "name": "Iron Gear",
+      "category": "component",
+      "description": "Basic mechanical component",
+      "icon": "Cog",
+      "iconColor": "#4A4A4A"
+    },
+    {
+      "id": "copper-ore",
+      "name": "Copper Ore",
+      "category": "raw-resource",
+      "description": "Raw copper ore extracted from deposits",
+      "icon": "Package",
+      "iconColor": "#B87333"
+    },
+    {
+      "id": "copper-plate",
+      "name": "Copper Plate",
+      "category": "processed-material",
+      "description": "Smelted copper plate",
+      "icon": "Square",
+      "iconColor": "#FF7F50"
+    },
+    {
+      "id": "copper-wire",
+      "name": "Copper Wire",
+      "category": "component",
+      "description": "Conductive copper wiring",
+      "icon": "Cable",
+      "iconColor": "#FFA500"
+    }
+  ]
+}

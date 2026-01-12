@@ -1,0 +1,103 @@
+{
+  "buildings": [
+    {
+      "id": "ore-excavator",
+      "name": "Ore Excavator",
+      "category": "extraction",
+      "speed": 1.0,
+      "powerUsage": 120,
+      "powerDrain": 10,
+      "size": { "width": 3, "height": 3 },
+      "icon": "Package",
+      "iconColor": "#8B4513"
+    },
+    {
+      "id": "mining-drill",
+      "name": "Mining Drill",
+      "category": "extraction",
+      "speed": 1.0,
+      "powerUsage": 90,
+      "powerDrain": 5,
+      "size": { "width": 2, "height": 2 },
+      "icon": "Drill",
+      "iconColor": "#8B4513"
+    },
+    {
+      "id": "smelter",
+      "name": "Smelter",
+      "category": "smelting",
+      "speed": 1.0,
+      "powerUsage": 60,
+      "powerDrain": 5,
+      "size": { "width": 2, "height": 2 },
+      "icon": "Factory",
+      "iconColor": "#FF6B35"
+    },
+    {
+      "id": "furnace",
+      "name": "Furnace",
+      "category": "smelting",
+      "speed": 0.8,
+      "powerUsage": 45,
+      "powerDrain": 3,
+      "size": { "width": 2, "height": 2 },
+      "icon": "Flame",
+      "iconColor": "#FF4500"
+    },
+    {
+      "id": "assembler",
+      "name": "Assembler",
+      "category": "crafting",
+      "speed": 1.0,
+      "powerUsage": 75,
+      "powerDrain": 5,
+      "size": { "width": 3, "height": 3 },
+      "icon": "Wrench",
+      "iconColor": "#4ECDC4"
+    },
+    {
+      "id": "constructor",
+      "name": "Constructor",
+      "category": "crafting",
+      "speed": 1.2,
+      "powerUsage": 60,
+      "powerDrain": 3,
+      "size": { "width": 2, "height": 2 },
+      "icon": "Hammer",
+      "iconColor": "#4ECDC4"
+    },
+    {
+      "id": "manufacturer",
+      "name": "Manufacturer",
+      "category": "crafting",
+      "speed": 1.5,
+      "powerUsage": 150,
+      "powerDrain": 10,
+      "size": { "width": 4, "height": 4 },
+      "icon": "Cog",
+      "iconColor": "#4ECDC4"
+    },
+    {
+      "id": "generator",
+      "name": "Generator",
+      "category": "power",
+      "speed": 1.0,
+      "powerUsage": 0,
+      "powerDrain": 0,
+      "size": { "width": 2, "height": 2 },
+      "icon": "Bolt",
+      "iconColor": "#FFD700"
+    },
+    {
+      "id": "container",
+      "name": "Container",
+      "category": "storage",
+      "speed": 0,
+      "powerUsage": 0,
+      "powerDrain": 2,
+      "size": { "width": 1, "height": 1 },
+      "icon": "Box",
+      "iconColor": "#95A5A6"
+    }
+  ]
+}
