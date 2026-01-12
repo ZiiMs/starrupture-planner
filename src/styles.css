@@ -127,3 +127,65 @@
     @apply font-sans;
     }
 }
+
+.planner-node {
+  --node-bg: var(--card);
+  --node-border: var(--border);
+  --node-text: var(--card-foreground);
+}
+
+[data-handleid] {
+  width: 12px;
+  height: 12px;
+  transition: all 0.2s;
+}
+
+[data-handleid]:hover {
+  width: 16px;
+  height: 16px;
+}
+
+.react-flow__edge-path {
+  stroke-width: 2;
+}
+
+.react-flow__node.selected {
+  outline: 2px solid var(--primary);
+}
+
+.react-flow__background {
+  background-color: var(--background);
+}
+
+.react-flow__minimap {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+}
+
+.react-flow__controls-button {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+}
+
+.react-flow__controls-button:hover {
+  background-color: var(--accent);
+}
+
+.dark .react-flow__background {
+  background-color: var(--background);
+}
+
+.dark .react-flow__minimap {
+  background-color: var(--card);
+}
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply font-sans bg-background text-foreground;
+    }
+  html {
+    @apply font-sans;
+    }
+}
