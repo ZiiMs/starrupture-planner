@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { usePlannerData, type PlannerData } from '@/hooks/use-planner-data'
 import {
   calculateOutputRate,
   calculatePowerConsumption,
@@ -14,16 +13,26 @@ import type { Building, Item, Recipe } from '@/types/planner'
 import { useReactFlow } from '@xyflow/react'
 import { nanoid } from 'nanoid'
 import { memo, useState } from 'react'
+import type { Edge, Node } from '@xyflow/react'
 
-function BuildingSelectorComponent() {
-  const { addNodes } = useReactFlow()
-  const data = usePlannerData()
+interface BuildingSelectorProps {
+  buildings: Record<string, Building>
+  recipes: Record<string, Recipe>
+  items: Record<string, Item>
+}
+
+function BuildingSelectorComponent({
+  buildings,
+  recipes,
+  items,
+}: BuildingSelectorProps) {
+  const { addNodes, addEdges } = useReactFlow()
   const [activeTab, setActiveTab] = useState<'buildings' | 'items'>('buildings')
   const [nodeCounter, setNodeCounter] = useState(0)
 
   const addBuildingNode = (buildingId: string) => {
-    const building = data.buildings[buildingId]
-    const firstRecipe = Object.values(data.recipes).find((r) =>
+    const building = buildings[buildingId]
+    const firstRecipe = Object.values(recipes).find((r) =>
       r.producers.includes(buildingId),
     )
 
@@ -54,55 +63,121 @@ function BuildingSelectorComponent() {
     setNodeCounter((c) => c + 1)
   }
 
-  const addChainFromItem = (itemId: string, data: PlannerData) => {
-    const item = data.items[itemId]
-    const recipesProducingItem = Object.values(data.recipes).filter((r) =>
-      r.outputs.some((o) => o.itemId === itemId),
-    )
+  const addChainFromItem = (itemId: string) => {
+    const nodesToAdd: Node[] = []
+    const edgesToAdd: Edge[] = []
+    const visitedRecipes = new Set<string>()
+    const levelCounts = new Map<number, number>()
+    const nodeRecipeMap = new Map<string, Recipe>()
 
-    if (recipesProducingItem.length === 0) {
-      console.error(`No recipes found that produce item: ${itemId}`)
-      return
+    const buildProductionChain = (
+      targetItemId: string,
+      level: number = 0,
+      parentNodeId?: string,
+      inputItemId?: string,
+    ): void => {
+      if (level > 10) return
+
+      const recipesProducingItem = Object.values(recipes).filter((r) =>
+        r.outputs.some((o) => o.itemId === targetItemId),
+      )
+
+      if (recipesProducingItem.length === 0) return
+
+      const countAtLevel = levelCounts.get(level) || 0
+
+      for (const recipe of recipesProducingItem) {
+        const recipeKey = `${recipe.id}-${level}`
+        if (visitedRecipes.has(recipeKey)) continue
+        visitedRecipes.add(recipeKey)
+
+        const building = buildings[recipe.producers[0]]
+        if (!building) continue
+
+        const outputRate = calculateOutputRate(recipe, building, 1)
+        const powerConsumption = calculatePowerConsumption(building, 1)
+
+        const nodeId = nanoid()
+        nodeRecipeMap.set(nodeId, recipe)
+
+        const x = 1200 - level * 350
+        const y = 200 + countAtLevel * 250
+
+        nodesToAdd.push({
+          id: nodeId,
+          type: 'planner-node',
+          position: { x, y },
+          data: {
+            buildingId: building.id,
+            recipeId: recipe.id,
+            count: 1,
+            outputRate,
+            powerConsumption,
+          },
+        })
+
+        if (parentNodeId && inputItemId) {
+          const consumerRecipe = nodeRecipeMap.get(parentNodeId)
+          const producerRate = outputRate
+
+          let usageRate = 0
+          let isWarning = false
+
+          if (consumerRecipe && consumerRecipe.time > 0) {
+            const inputAmount = consumerRecipe.inputs.find(
+              (i) => i.itemId === inputItemId,
+            )?.amount || 1
+
+            usageRate = (inputAmount / consumerRecipe.time) * 60
+            isWarning = producerRate > usageRate
+          }
+
+          edgesToAdd.push({
+            id: nanoid(),
+            source: nodeId,
+            target: parentNodeId,
+            type: 'smoothstep',
+            animated: true,
+            label: `${Math.round(usageRate)}/min`,
+            labelStyle: {
+              fontSize: 10,
+              color: isWarning ? '#ef4444' : '#000',
+              fontWeight: isWarning ? 'bold' : 'normal',
+            },
+            labelBgStyle: {
+              fill: isWarning ? '#fef2f2' : '#fff',
+            },
+            data: {
+              itemId: inputItemId,
+              amount: 1,
+              usageRate,
+              isWarning,
+            },
+          })
+        }
+
+        levelCounts.set(level, countAtLevel + 1)
+
+        for (const input of recipe.inputs) {
+          buildProductionChain(input.itemId, level + 1, nodeId, input.itemId)
+        }
+      }
     }
 
-    const nodesToAdd = []
-    let positionCounter = nodeCounter
+    buildProductionChain(itemId, 0)
 
-    for (const recipe of recipesProducingItem) {
-      const building = data.buildings[recipe.producers[0]]
-      if (!building) continue
-
-      const outputRate = calculateOutputRate(recipe, building, 1)
-      const powerConsumption = calculatePowerConsumption(building, 1)
-
-      nodesToAdd.push({
-        id: nanoid(),
-        type: 'planner-node',
-        position: {
-          x: 200 + (positionCounter % 3) * 350,
-          y: 300 + Math.floor(positionCounter / 3) * 250,
-        },
-        data: {
-          buildingId: building.id,
-          recipeId: recipe.id,
-          count: 1,
-          outputRate,
-          powerConsumption,
-        },
-      })
-
-      positionCounter += 1
+    if (nodesToAdd.length > 0) {
+      addNodes(nodesToAdd)
+      addEdges(edgesToAdd)
+      setNodeCounter((c) => c + nodesToAdd.length)
     }
-
-    addNodes(nodesToAdd)
-    setNodeCounter((c) => c + nodesToAdd.length)
   }
 
   const categories = Array.from(
-    new Set(Object.values(data.buildings).map((b) => b.category)),
+    new Set(Object.values(buildings).map((b) => b.category)),
   )
   const itemCategories = Array.from(
-    new Set(Object.values(data.items).map((i) => i.category)),
+    new Set(Object.values(items).map((i) => i.category)),
   )
 
   return (
@@ -111,7 +186,10 @@ function BuildingSelectorComponent() {
         <CardTitle className="text-sm">Add Elements</CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as 'buildings' | 'items')}
+        >
           <TabsList className="w-full">
             <TabsTrigger value="buildings">Buildings</TabsTrigger>
             <TabsTrigger value="items">Items</TabsTrigger>
@@ -125,7 +203,7 @@ function BuildingSelectorComponent() {
                     {category}
                   </h4>
                   <div className="flex flex-col gap-2">
-                    {Object.values(data.buildings)
+                    {Object.values(buildings)
                       .filter((b) => b.category === category)
                       .map((building) => {
                         const BuildingIcon = getIcon(building.icon)
@@ -164,7 +242,7 @@ function BuildingSelectorComponent() {
                     {category}
                   </h4>
                   <div className="flex flex-col gap-2">
-                    {Object.values(data.items) // Changed from 'items' to 'data.items'
+                    {Object.values(items)
                       .filter((i) => i.category === category)
                       .map((item) => {
                         const ItemIcon = getIcon(item.icon)
@@ -172,7 +250,7 @@ function BuildingSelectorComponent() {
                           <Button
                             key={item.id}
                             variant="outline"
-                            onClick={() => addChainFromItem(item.id, data)} // Changed to just pass 'data'
+                            onClick={() => addChainFromItem(item.id)}
                             className="justify-start gap-2 h-auto py-2"
                             title={`Click to add ${item.name} production chain`}
                           >

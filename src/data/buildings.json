@@ -5,20 +5,9 @@
       "name": "Ore Excavator",
       "category": "extraction",
       "speed": 1.0,
-      "powerUsage": 120,
-      "powerDrain": 10,
+      "powerUsage": 0,
+      "powerDrain": 0,
       "size": { "width": 3, "height": 3 },
-      "icon": "Package",
-      "iconColor": "#8B4513"
-    },
-    {
-      "id": "mining-drill",
-      "name": "Mining Drill",
-      "category": "extraction",
-      "speed": 1.0,
-      "powerUsage": 90,
-      "powerDrain": 5,
-      "size": { "width": 2, "height": 2 },
       "icon": "Drill",
       "iconColor": "#8B4513"
     },
@@ -34,19 +23,8 @@
       "iconColor": "#FF6B35"
     },
     {
-      "id": "furnace",
-      "name": "Furnace",
-      "category": "smelting",
-      "speed": 0.8,
-      "powerUsage": 45,
-      "powerDrain": 3,
-      "size": { "width": 2, "height": 2 },
-      "icon": "Flame",
-      "iconColor": "#FF4500"
-    },
-    {
-      "id": "assembler",
-      "name": "Assembler",
+      "id": "fabricator",
+      "name": "Fabricator",
       "category": "crafting",
       "speed": 1.0,
       "powerUsage": 75,
@@ -56,21 +34,21 @@
       "iconColor": "#4ECDC4"
     },
     {
-      "id": "constructor",
-      "name": "Constructor",
-      "category": "crafting",
-      "speed": 1.2,
-      "powerUsage": 60,
+      "id": "furnace",
+      "name": "Furnace",
+      "category": "smelting",
+      "speed": 1.0,
+      "powerUsage": 45,
       "powerDrain": 3,
       "size": { "width": 2, "height": 2 },
-      "icon": "Hammer",
-      "iconColor": "#4ECDC4"
+      "icon": "Flame",
+      "iconColor": "#FF4500"
     },
     {
-      "id": "manufacturer",
-      "name": "Manufacturer",
+      "id": "megapress",
+      "name": "Megapress",
       "category": "crafting",
-      "speed": 1.5,
+      "speed": 1.0,
       "powerUsage": 150,
       "powerDrain": 10,
       "size": { "width": 4, "height": 4 },
@@ -78,26 +56,59 @@
       "iconColor": "#4ECDC4"
     },
     {
-      "id": "generator",
-      "name": "Generator",
-      "category": "power",
+      "id": "refinery",
+      "name": "Refinery",
+      "category": "refining",
+      "speed": 1.0,
+      "powerUsage": 90,
+      "powerDrain": 5,
+      "size": { "width": 3, "height": 3 },
+      "icon": "Package",
+      "iconColor": "#00CED1"
+    },
+    {
+      "id": "helium-3-extractor",
+      "name": "Helium-3 Extractor",
+      "category": "extraction",
       "speed": 1.0,
       "powerUsage": 0,
       "powerDrain": 0,
       "size": { "width": 2, "height": 2 },
-      "icon": "Bolt",
-      "iconColor": "#FFD700"
+      "icon": "Wind",
+      "iconColor": "#00BFFF"
     },
     {
-      "id": "container",
-      "name": "Container",
-      "category": "storage",
-      "speed": 0,
+      "id": "sulfur-extractor",
+      "name": "Sulfur Extractor",
+      "category": "extraction",
+      "speed": 1.0,
       "powerUsage": 0,
-      "powerDrain": 2,
-      "size": { "width": 1, "height": 1 },
-      "icon": "Box",
-      "iconColor": "#95A5A6"
+      "powerDrain": 0,
+      "size": { "width": 2, "height": 2 },
+      "icon": "Package",
+      "iconColor": "#FFFF00"
+    },
+    {
+      "id": "assembler",
+      "name": "Assembler",
+      "category": "crafting",
+      "speed": 1.0,
+      "powerUsage": 75,
+      "powerDrain": 5,
+      "size": { "width": 3, "height": 3 },
+      "icon": "Hammer",
+      "iconColor": "#4ECDC4"
+    },
+    {
+      "id": "compounder",
+      "name": "Compounder",
+      "category": "crafting",
+      "speed": 1.0,
+      "powerUsage": 120,
+      "powerDrain": 8,
+      "size": { "width": 3, "height": 3 },
+      "icon": "Package",
+      "iconColor": "#4ECDC4"
     }
   ]
 }

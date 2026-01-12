@@ -1,11 +1,10 @@
 'use client'
 
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState, memo } from 'react'
 import {
   ReactFlow,
   Background,
   Connection,
-  addEdge,
   useNodesState,
   useEdgesState,
 } from '@xyflow/react'
@@ -16,18 +15,41 @@ import { BuildingNode } from './BuildingNode'
 import Controls from './Controls'
 import Minimap from './Minimap'
 import BuildingSelector from './BuildingSelector'
-import type { Node, Edge } from '@xyflow/react'
+import { NodeContextMenu } from './NodeContextMenu'
+
+interface EnhancedBuildingNodeProps {
+  items: Record<string, any>
+  buildings: Record<string, any>
+  recipes: Record<string, any>
+}
+
+const EnhancedBuildingNode = memo(({ items, buildings, recipes, ...props }: EnhancedBuildingNodeProps & any) => (
+  <BuildingNode
+    {...props}
+    items={items}
+    buildings={buildings}
+    recipes={recipes}
+  />
+))
+
+EnhancedBuildingNode.displayName = 'EnhancedBuildingNode'
 
 function PlannerCanvas() {
   const { data: plannerData, isLoading } = usePlannerData()
   const { saveToLocalStorage } = usePlannerStore()
 
-  const [nodes, setNodes, onNodesChange] = useNodesState([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState([])
+  const [nodes, setNodes, onNodesChange] = useNodesState<any>([])
+  const [edges, setEdges, onEdgesChange] = useEdgesState<any>([])
+  const [contextMenu, setContextMenu] = useState<{
+    visible: boolean
+    x: number
+    y: number
+    nodeId: string | null
+  }>({ visible: false, x: 0, y: 0, nodeId: null })
 
   const onConnect = useCallback((params: Connection) => {
     const newEdge = { ...params, type: 'smoothstep' as const }
-    setEdges((eds: any) => [...eds, newEdge])
+    setEdges((eds) => [...eds, newEdge] as any)
   }, [])
 
   const handleNodesChange = useCallback(
@@ -45,6 +67,50 @@ function PlannerCanvas() {
     },
     [onEdgesChange, saveToLocalStorage],
   )
+
+  const onNodeContextMenu = useCallback(
+    (event: any, node: any) => {
+      event.preventDefault()
+      setContextMenu({
+        visible: true,
+        x: event.clientX,
+        y: event.clientY,
+        nodeId: node.id,
+      })
+    },
+    [],
+  )
+
+  const onPaneClick = useCallback(() => {
+    setContextMenu((prev) => ({ ...prev, visible: false, nodeId: null }))
+  }, [])
+
+  const handleDeleteNode = useCallback(() => {
+    if (contextMenu.nodeId) {
+      setNodes((nds) => nds.filter((n: any) => n.id !== contextMenu.nodeId))
+      setEdges((eds) =>
+        eds.filter(
+          (e: any) => e.source !== contextMenu.nodeId && e.target !== contextMenu.nodeId,
+        ),
+      )
+      setContextMenu((prev) => ({ ...prev, visible: false, nodeId: null }))
+      setTimeout(() => saveToLocalStorage(), 500)
+    }
+  }, [contextMenu.nodeId, setNodes, setEdges, saveToLocalStorage])
+
+  const handleAddInputConnector = useCallback(() => {
+    console.log('Add input connector for node:', contextMenu.nodeId)
+    setContextMenu((prev) => ({ ...prev, visible: false, nodeId: null }))
+  }, [contextMenu.nodeId])
+
+  const handleAddOutputConnector = useCallback(() => {
+    console.log('Add output connector for node:', contextMenu.nodeId)
+    setContextMenu((prev) => ({ ...prev, visible: false, nodeId: null }))
+  }, [contextMenu.nodeId])
+
+  const handleMenuClose = useCallback(() => {
+    setContextMenu((prev) => ({ ...prev, visible: false, nodeId: null }))
+  }, [])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -89,19 +155,6 @@ function PlannerCanvas() {
     )
   }
 
-  const EnhancedBuildingNode = (props: any) => (
-    <BuildingNode
-      {...props}
-      items={plannerData.items}
-      buildings={plannerData.buildings}
-      recipes={plannerData.recipes}
-    />
-  )
-
-  const enhancedNodeTypes = {
-    'planner-node': EnhancedBuildingNode,
-  }
-
   return (
     <div className="flex h-screen w-full">
       <div className="flex-shrink-0 p-4 border-r border-border bg-background">
@@ -119,7 +172,18 @@ function PlannerCanvas() {
           onNodesChange={handleNodesChange}
           onEdgesChange={handleEdgesChange}
           onConnect={onConnect}
-          nodeTypes={enhancedNodeTypes}
+          onNodeContextMenu={onNodeContextMenu}
+          onPaneClick={onPaneClick}
+          nodeTypes={{
+            'planner-node': (props: any) => (
+              <EnhancedBuildingNode
+                {...props}
+                items={plannerData.items}
+                buildings={plannerData.buildings}
+                recipes={plannerData.recipes}
+              />
+            ),
+          }}
           fitView
           className="bg-background"
           defaultEdgeOptions={{
@@ -131,6 +195,25 @@ function PlannerCanvas() {
           <Controls />
           <Minimap />
         </ReactFlow>
+
+        {contextMenu.visible && (
+          <div
+            style={{
+              position: 'absolute',
+              left: contextMenu.x,
+              top: contextMenu.y,
+              zIndex: 9999,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <NodeContextMenu
+              onMenuClose={handleMenuClose}
+              onDeleteNode={handleDeleteNode}
+              onAddInputConnector={handleAddInputConnector}
+              onAddOutputConnector={handleAddOutputConnector}
+            />
+          </div>
+        )}
       </div>
     </div>
   )
