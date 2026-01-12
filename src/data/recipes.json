@@ -1,45 +1,55 @@
 {
   "recipes": [
     {
-      "id": "mine-wolfram-ore",
-      "name": "Mine Wolfram Ore",
+      "id": "mine-tungsten-ore",
+      "name": "Mine Tungsten Ore",
       "category": "extraction",
-      "time": 1.0,
+      "time": 1,
       "inputs": [],
       "outputs": [
         {
-          "itemId": "wolfram-ore",
+          "itemId": "tungsten-ore",
           "amount": 1
         }
       ],
-      "producers": ["ore-excavator", "mining-drill"],
+      "producers": ["ore-excavator"],
       "outputRate": 120
     },
     {
-      "id": "smelt-wolfram-bar",
-      "name": "Smelt Wolfram Bar",
-      "category": "smelting",
-      "time": 2.0,
-      "inputs": [
-        {
-          "itemId": "wolfram-ore",
-          "amount": 1
-        }
-      ],
+      "id": "mine-titanium-ore",
+      "name": "Mine Titanium Ore",
+      "category": "extraction",
+      "time": 1,
+      "inputs": [],
       "outputs": [
         {
-          "itemId": "wolfram-bar",
+          "itemId": "titanium-ore",
           "amount": 1
         }
       ],
-      "producers": ["smelter", "furnace"],
-      "outputRate": 60
+      "producers": ["ore-excavator"],
+      "outputRate": 120
+    },
+    {
+      "id": "mine-magnetite-ore",
+      "name": "Mine Magnetite Ore",
+      "category": "extraction",
+      "time": 1,
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "magnetite-ore",
+          "amount": 1
+        }
+      ],
+      "producers": ["ore-excavator"],
+      "outputRate": 120
     },
     {
       "id": "mine-iron-ore",
       "name": "Mine Iron Ore",
       "category": "extraction",
-      "time": 1.0,
+      "time": 1,
       "inputs": [],
       "outputs": [
         {
@@ -47,8 +57,128 @@
           "amount": 1
         }
       ],
-      "producers": ["ore-excavator", "mining-drill"],
+      "producers": ["ore-excavator"],
       "outputRate": 120
+    },
+    {
+      "id": "mine-sulfur-ore",
+      "name": "Mine Sulfur Ore",
+      "category": "extraction",
+      "time": 1,
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "sulfur-ore",
+          "amount": 1
+        }
+      ],
+      "producers": ["ore-excavator"],
+      "outputRate": 120
+    },
+    {
+      "id": "mine-calcium-ore",
+      "name": "Mine Calcium Ore",
+      "category": "extraction",
+      "time": 1,
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "calcium-ore",
+          "amount": 1
+        }
+      ],
+      "producers": ["ore-excavator"],
+      "outputRate": 120
+    },
+    {
+      "id": "mine-carbon-ore",
+      "name": "Mine Carbon Ore",
+      "category": "extraction",
+      "time": 1,
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "carbon-ore",
+          "amount": 1
+        }
+      ],
+      "producers": ["ore-excavator"],
+      "outputRate": 120
+    },
+    {
+      "id": "mine-silica-ore",
+      "name": "Mine Silica Ore",
+      "category": "extraction",
+      "time": 1,
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "silica-ore",
+          "amount": 1
+        }
+      ],
+      "producers": ["ore-excavator"],
+      "outputRate": 120
+    },
+    {
+      "id": "smelt-tungsten-ingot",
+      "name": "Smelt Tungsten Ingot",
+      "category": "smelting",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "tungsten-ore",
+          "amount": 1
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "tungsten-ingot",
+          "amount": 1
+        }
+      ],
+      "producers": ["smelter", "foundry"],
+      "outputRate": 60
+    },
+    {
+      "id": "smelt-titanium-ingot",
+      "name": "Smelt Titanium Ingot",
+      "category": "smelting",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "titanium-ore",
+          "amount": 1
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "titanium-ingot",
+          "amount": 1
+        }
+      ],
+      "producers": ["smelter", "foundry"],
+      "outputRate": 60
+    },
+    {
+      "id": "smelt-magnetite-ingot",
+      "name": "Smelt Magnetite Ingot",
+      "category": "smelting",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "magnetite-ore",
+          "amount": 1
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "magnetite-ingot",
+          "amount": 1
+        }
+      ],
+      "producers": ["smelter", "foundry"],
+      "outputRate": 60
     },
     {
       "id": "smelt-iron-plate",
@@ -67,8 +197,48 @@
           "amount": 1
         }
       ],
-      "producers": ["smelter", "furnace"],
+      "producers": ["smelter", "foundry"],
       "outputRate": 60
+    },
+    {
+      "id": "smelt-titanium-sheet",
+      "name": "Smelt Titanium Sheet",
+      "category": "smelting",
+      "time": 4,
+      "inputs": [
+        {
+          "itemId": "titanium-ingot",
+          "amount": 1
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "titanium-sheet",
+          "amount": 1
+        }
+      ],
+      "producers": ["smelter", "foundry"],
+      "outputRate": 30
+    },
+    {
+      "id": "craft-titanium-powder",
+      "name": "Craft Titanium Powder",
+      "category": "crafting",
+      "time": 3,
+      "inputs": [
+        {
+          "itemId": "titanium-sheet",
+          "amount": 1
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "titanium-powder",
+          "amount": 1
+        }
+      ],
+      "producers": ["manufacturer"],
+      "outputRate": 40
     },
     {
       "id": "craft-iron-gear",
@@ -87,63 +257,172 @@
           "amount": 1
         }
       ],
-      "producers": ["assembler", "constructor", "manufacturer"],
+      "producers": ["assembler"],
       "outputRate": 120
     },
     {
-      "id": "mine-copper-ore",
-      "name": "Mine Copper Ore",
-      "category": "extraction",
-      "time": 1.0,
-      "inputs": [],
-      "outputs": [
-        {
-          "itemId": "copper-ore",
-          "amount": 1
-        }
-      ],
-      "producers": ["ore-excavator", "mining-drill"],
-      "outputRate": 120
-    },
-    {
-      "id": "smelt-copper-plate",
-      "name": "Smelt Copper Plate",
-      "category": "smelting",
-      "time": 3.2,
-      "inputs": [
-        {
-          "itemId": "copper-ore",
-          "amount": 1
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "copper-plate",
-          "amount": 1
-        }
-      ],
-      "producers": ["smelter", "furnace"],
-      "outputRate": 60
-    },
-    {
-      "id": "craft-copper-wire",
-      "name": "Craft Copper Wire",
+      "id": "craft-circuit-board",
+      "name": "Craft Circuit Board",
       "category": "crafting",
-      "time": 0.5,
+      "time": 1,
       "inputs": [
         {
-          "itemId": "copper-plate",
-          "amount": 1
-        }
-      ],
-      "outputs": [
+          "itemId": "iron-plate",
+          "amount": 2
+        },
         {
           "itemId": "copper-wire",
           "amount": 2
         }
       ],
-      "producers": ["assembler", "constructor", "manufacturer"],
-      "outputRate": 120
+      "outputs": [
+        {
+          "itemId": "circuit-board",
+          "amount": 1
+        }
+      ],
+      "producers": ["assembler", "manufacturer"],
+      "outputRate": 60
+    },
+    {
+      "id": "craft-helium-3-gas",
+      "name": "Craft Helium-3 Gas",
+      "category": "crafting",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "helium-3",
+          "amount": 2
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "helium-3",
+          "amount": 1
+        }
+      ],
+      "producers": ["assembler", "manufacturer"],
+      "outputRate": 60
+    },
+    {
+      "id": "craft-inductor",
+      "name": "Craft Inductor",
+      "category": "crafting",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "copper-wire",
+          "amount": 2
+        },
+        {
+          "itemId": "iron-gear",
+          "amount": 2
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "inductor",
+          "amount": 1
+        }
+      ],
+      "producers": ["assembler"],
+      "outputRate": 60
+    },
+    {
+      "id": "craft-superconducting-coil",
+      "name": "Craft Superconducting Coil",
+      "category": "crafting",
+      "time": 3,
+      "inputs": [
+        {
+          "itemId": "copper-wire",
+          "amount": 4
+        },
+        {
+          "itemId": "helium-3",
+          "amount": 2
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "superconducting-coil",
+          "amount": 1
+        }
+      ],
+      "producers": ["assembler", "manufacturer"],
+      "outputRate": 40
+    },
+    {
+      "id": "craft-fusion-core",
+      "name": "Craft Fusion Core",
+      "category": "crafting",
+      "time": 4,
+      "inputs": [
+        {
+          "itemId": "helium-3",
+          "amount": 10
+        },
+        {
+          "itemId": "superconducting-coil",
+          "amount": 2
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "fusion-core",
+          "amount": 1
+        }
+      ],
+      "producers": ["manufacturer"],
+      "outputRate": 30
+    },
+    {
+      "id": "craft-synthetic-oil",
+      "name": "Craft Synthetic Oil",
+      "category": "crafting",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "helium-3",
+          "amount": 10
+        },
+        {
+          "itemId": "titanium-powder",
+          "amount": 5
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "synthetic-oil",
+          "amount": 1
+        }
+      ],
+      "producers": ["refinery"],
+      "outputRate": 60
+    },
+    {
+      "id": "craft-rocket-engine",
+      "name": "Craft Rocket Engine",
+      "category": "crafting",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "fusion-core",
+          "amount": 1
+        },
+        {
+          "itemId": "basic-structure",
+          "amount": 10
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "rocket-engine",
+          "amount": 1
+        }
+      ],
+      "producers": ["manufacturer"],
+      "outputRate": 60
     }
   ]
 }

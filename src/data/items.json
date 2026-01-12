@@ -1,20 +1,28 @@
 {
   "items": [
     {
-      "id": "wolfram-ore",
-      "name": "Wolfram Ore",
+      "id": "tungsten-ore",
+      "name": "Tungsten Ore",
       "category": "raw-resource",
-      "description": "Raw wolfram ore extracted from deposits",
+      "description": "Raw tungsten ore extracted from deposits",
       "icon": "Package",
       "iconColor": "#8B4513"
     },
     {
-      "id": "wolfram-bar",
-      "name": "Wolfram Bar",
-      "category": "processed-material",
-      "description": "Smelted wolfram bar",
-      "icon": "Square",
-      "iconColor": "#C0C0C0"
+      "id": "titanium-ore",
+      "name": "Titanium Ore",
+      "category": "raw-resource",
+      "description": "Raw titanium ore extracted from deposits",
+      "icon": "Package",
+      "iconColor": "#708090"
+    },
+    {
+      "id": "magnetite-ore",
+      "name": "Magnetite Ore",
+      "category": "raw-resource",
+      "description": "Raw magnetite ore extracted from deposits",
+      "icon": "Package",
+      "iconColor": "#2F4F4F"
     },
     {
       "id": "iron-ore",
@@ -25,44 +33,364 @@
       "iconColor": "#8B4513"
     },
     {
+      "id": "sulfur-ore",
+      "name": "Sulfur Ore",
+      "category": "raw-resource",
+      "description": "Raw sulfur ore extracted from deposits",
+      "icon": "Package",
+      "iconColor": "#FFFF00"
+    },
+    {
+      "id": "calcium-ore",
+      "name": "Calcium Ore",
+      "category": "raw-resource",
+      "description": "Raw calcium ore extracted from deposits",
+      "icon": "Package",
+      "iconColor": "#FFFFFF"
+    },
+    {
+      "id": "carbon-ore",
+      "name": "Carbon Ore",
+      "category": "raw-resource",
+      "description": "Raw carbon ore extracted from deposits",
+      "icon": "Package",
+      "iconColor": "#1a1a1a"
+    },
+    {
+      "id": "silica-ore",
+      "name": "Silica Ore",
+      "category": "raw-resource",
+      "description": "Raw silica ore extracted from deposits",
+      "icon": "Package",
+      "iconColor": "#F5F5DC"
+    },
+    {
+      "id": "tungsten-ingot",
+      "name": "Tungsten Ingot",
+      "category": "processed-material",
+      "description": "Smelted tungsten ingot",
+      "icon": "Square",
+      "iconColor": "#C0C0C0"
+    },
+    {
+      "id": "titanium-ingot",
+      "name": "Titanium Ingot",
+      "category": "processed-material",
+      "description": "Smelted titanium ingot",
+      "icon": "Square",
+      "iconColor": "#A0A0A0"
+    },
+    {
+      "id": "magnetite-ingot",
+      "name": "Magnetite Ingot",
+      "category": "processed-material",
+      "description": "Smelted magnetite ingot",
+      "icon": "Square",
+      "iconColor": "#4A4A4A"
+    },
+    {
       "id": "iron-plate",
       "name": "Iron Plate",
       "category": "processed-material",
       "description": "Smelted iron plate",
       "icon": "Square",
+      "iconColor": "#A9A9A9"
+    },
+    {
+      "id": "titanium-sheet",
+      "name": "Titanium Sheet",
+      "category": "processed-material",
+      "description": "Processed titanium sheet",
+      "icon": "Square",
       "iconColor": "#C0C0C0"
     },
     {
-      "id": "iron-gear",
-      "name": "Iron Gear",
+      "id": "titanium-powder",
+      "name": "Titanium Powder",
+      "category": "processed-material",
+      "description": "Ground titanium powder",
+      "icon": "Square",
+      "iconColor": "#D3D3D3"
+    },
+    {
+      "id": "sulfur-powder",
+      "name": "Sulfur Powder",
+      "category": "processed-material",
+      "description": "Ground sulfur powder",
+      "icon": "Square",
+      "iconColor": "#FFFFE0"
+    },
+    {
+      "id": "calcium-powder",
+      "name": "Calcium Powder",
+      "category": "processed-material",
+      "description": "Ground calcium powder",
+      "icon": "Square",
+      "iconColor": "#F0F0F0"
+    },
+    {
+      "id": "carbon-powder",
+      "name": "Carbon Powder",
+      "category": "processed-material",
+      "description": "Ground carbon powder",
+      "icon": "Square",
+      "iconColor": "#2a2a2a"
+    },
+    {
+      "id": "helium-3",
+      "name": "Helium-3",
       "category": "component",
-      "description": "Basic mechanical component",
-      "icon": "Cog",
+      "description": "Helium-3 gas",
+      "icon": "Wind",
+      "iconColor": "#00BFFF"
+    },
+    {
+      "id": "inductor",
+      "name": "Inductor",
+      "category": "component",
+      "description": "Inductor component",
+      "icon": "Zap",
+      "iconColor": "#FF6B00"
+    },
+    {
+      "id": "circuit-board",
+      "name": "Circuit Board",
+      "category": "component",
+      "description": "Printed circuit board",
+      "icon": "Cpu",
+      "iconColor": "#00FF00"
+    },
+    {
+      "id": "heatsink",
+      "name": "Heatsink",
+      "category": "component",
+      "description": "Thermal heatsink",
+      "icon": "Package",
+      "iconColor": "#FF4500"
+    },
+    {
+      "id": "casing",
+      "name": "Casing",
+      "category": "component",
+      "description": "Ammunition casing",
+      "icon": "Package",
+      "iconColor": "#696969"
+    },
+    {
+      "id": "superconducting-coil",
+      "name": "Superconducting Coil",
+      "category": "component",
+      "description": "Superconducting electromagnetic coil",
+      "icon": "Zap",
+      "iconColor": "#00CED1"
+    },
+    {
+      "id": "battery-casing",
+      "name": "Battery Casing",
+      "category": "component",
+      "description": "Storage battery casing",
+      "icon": "BatteryCharging",
+      "iconColor": "#32CD32"
+    },
+    {
+      "id": "bullet-fragment",
+      "name": "Bullet Fragment",
+      "category": "component",
+      "description": "Shrapnel fragment",
+      "icon": "Package",
+      "iconColor": "#B22222"
+    },
+    {
+      "id": "sulfur",
+      "name": "Sulfur",
+      "category": "component",
+      "description": "Sulfur component",
+      "icon": "Package",
+      "iconColor": "#FFFF00"
+    },
+    {
+      "id": "hardener",
+      "name": "Hardener",
+      "category": "component",
+      "description": "Chemical hardener",
+      "icon": "Package",
+      "iconColor": "#FF1493"
+    },
+    {
+      "id": "tungsten",
+      "name": "Tungsten",
+      "category": "component",
+      "description": "Tungsten component",
+      "icon": "Square",
+      "iconColor": "#C0C0C0"
+    },
+    {
+      "id": "superconductor",
+      "name": "Superconductor",
+      "category": "component",
+      "description": "Superconducting material",
+      "icon": "Zap",
+      "iconColor": "#00BFFF"
+    },
+    {
+      "id": "industrial-solenoid",
+      "name": "Industrial Solenoid",
+      "category": "component",
+      "description": "Large industrial electromagnet",
+      "icon": "Zap",
+      "iconColor": "#DC143C"
+    },
+    {
+      "id": "lens",
+      "name": "Lens",
+      "category": "component",
+      "description": "Optical lens component",
+      "icon": "Search",
+      "iconColor": "#87CEEB"
+    },
+    {
+      "id": "mirror",
+      "name": "Mirror",
+      "category": "component",
+      "description": "Reflective mirror",
+      "icon": "Package",
+      "iconColor": "#708090"
+    },
+    {
+      "id": "nuclear-fuel-rod",
+      "name": "Nuclear Fuel Rod",
+      "category": "component",
+      "description": "Nuclear fuel assembly",
+      "icon": "Package",
+      "iconColor": "#FF0000"
+    },
+    {
+      "id": "rocket-engine",
+      "name": "Rocket Engine",
+      "category": "component",
+      "description": "Rocket propulsion engine",
+      "icon": "Package",
+      "iconColor": "#FF4500"
+    },
+    {
+      "id": "turbine",
+      "name": "Turbine",
+      "category": "component",
+      "description": "Steam turbine",
+      "icon": "Package",
+      "iconColor": "#4682B4"
+    },
+    {
+      "id": "rocket-engine-s",
+      "name": "Rocket Engine S",
+      "category": "component",
+      "description": "Steam rocket engine S",
+      "icon": "Package",
+      "iconColor": "#FF6347"
+    },
+    {
+      "id": "fusion-core",
+      "name": "Fusion Core",
+      "category": "component",
+      "description": "Fusion reactor core",
+      "icon": "Zap",
+      "iconColor": "#9932CC"
+    },
+    {
+      "id": "magnetic-confinement",
+      "name": "Magnetic Confinement",
+      "category": "component",
+      "description": "Fusion magnetic confinement",
+      "icon": "Zap",
+      "iconColor": "#FF1493"
+    },
+    {
+      "id": "synthetic-oil",
+      "name": "Synthetic Oil",
+      "category": "component",
+      "description": "Synthetic liquid oil",
+      "icon": "Droplet",
+      "iconColor": "#FF8C00"
+    },
+    {
+      "id": "wire",
+      "name": "Wire",
+      "category": "component",
+      "description": "Electrical wire",
+      "icon": "Cable",
+      "iconColor": "#FFD700"
+    },
+    {
+      "id": "coil",
+      "name": "Coil",
+      "category": "component",
+      "description": "Wire coil",
+      "icon": "Zap",
+      "iconColor": "#FFA500"
+    },
+    {
+      "id": "pressure-tank",
+      "name": "Pressure Tank",
+      "category": "component",
+      "description": "Pressurized storage tank",
+      "icon": "Package",
+      "iconColor": "#1E90FF"
+    },
+    {
+      "id": "generator",
+      "name": "Generator",
+      "category": "component",
+      "description": "Electrical generator",
+      "icon": "Bolt",
+      "iconColor": "#FFD700"
+    },
+    {
+      "id": "battery-pack",
+      "name": "Battery Pack",
+      "category": "component",
+      "description": "Storage battery pack",
+      "icon": "BatteryCharging",
+      "iconColor": "#32CD32"
+    },
+    {
+      "id": "basic-structure",
+      "name": "Basic Structure",
+      "category": "structure",
+      "description": "Basic building material",
+      "icon": "Square",
+      "iconColor": "#8B4513"
+    },
+    {
+      "id": "reinforced-structure",
+      "name": "Reinforced Structure",
+      "category": "structure",
+      "description": "Reinforced building material",
+      "icon": "Square",
       "iconColor": "#4A4A4A"
     },
     {
-      "id": "copper-ore",
-      "name": "Copper Ore",
-      "category": "raw-resource",
-      "description": "Raw copper ore extracted from deposits",
-      "icon": "Package",
-      "iconColor": "#B87333"
-    },
-    {
-      "id": "copper-plate",
-      "name": "Copper Plate",
-      "category": "processed-material",
-      "description": "Smelted copper plate",
-      "icon": "Square",
-      "iconColor": "#FF7F50"
-    },
-    {
-      "id": "copper-wire",
-      "name": "Copper Wire",
+      "id": "basic-ammo",
+      "name": "Basic Ammunition",
       "category": "component",
-      "description": "Conductive copper wiring",
-      "icon": "Cable",
-      "iconColor": "#FFA500"
+      "description": "Basic ammunition",
+      "icon": "Package",
+      "iconColor": "#B22222"
+    },
+    {
+      "id": "standard-ammo",
+      "name": "Standard Ammunition",
+      "category": "component",
+      "description": "Standard ammunition",
+      "icon": "Package",
+      "iconColor": "#FF0000"
+    },
+    {
+      "id": "heavy-ammo",
+      "name": "Heavy Ammunition",
+      "category": "component",
+      "description": "Heavy ammunition",
+      "icon": "Package",
+      "iconColor": "#800080"
     }
   ]
 }

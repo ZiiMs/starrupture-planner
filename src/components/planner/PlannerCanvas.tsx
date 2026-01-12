@@ -16,6 +16,7 @@ import { BuildingNode } from './BuildingNode'
 import Controls from './Controls'
 import Minimap from './Minimap'
 import BuildingSelector from './BuildingSelector'
+import type { Node, Edge } from '@xyflow/react'
 
 function PlannerCanvas() {
   const { data: plannerData, isLoading } = usePlannerData()
@@ -107,6 +108,7 @@ function PlannerCanvas() {
         <BuildingSelector
           buildings={plannerData.buildings}
           recipes={plannerData.recipes}
+          items={plannerData.items}
         />
       </div>
 
