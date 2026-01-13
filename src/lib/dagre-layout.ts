@@ -24,9 +24,9 @@ export function getLayoutedElements(
 ): LayoutedElements {
   // Create a NEW graph each time - this is the fix!
   const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}))
-  
+
   const isHorizontal = direction === 'LR'
-  dagreGraph.setGraph({ 
+  dagreGraph.setGraph({
     rankdir: direction,
     nodesep: 60,
     ranksep: 120,
@@ -48,7 +48,7 @@ export function getLayoutedElements(
     const width = node.measured?.width ?? nodeWidth
     const height = node.measured?.height ?? estimateNodeHeight(node)
     const nodeWithPosition = dagreGraph.node(node.id)
-    
+
     return {
       ...node,
       targetPosition: (isHorizontal ? 'left' : 'top') as Position,

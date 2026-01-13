@@ -47,7 +47,11 @@ export function calculateEfficiency(
   const usageRate = (inputAmount / consumerRecipe.time) * 60
 
   // Calculate producer's output rate
-  const producerRate = calculateOutputRate(producerRecipe, producerBuilding, producerNode.count)
+  const producerRate = calculateOutputRate(
+    producerRecipe,
+    producerBuilding,
+    producerNode.count,
+  )
 
   // Calculate efficiency ratio (consumer need / producer output)
   const efficiencyRatio = usageRate > 0 ? producerRate / usageRate : 1

@@ -8,11 +8,13 @@
 ## Context
 
 ### Original Request
+
 Redesign the "Add Elements" interface from a fixed sidebar to an absolute-positioned overlay with a searchable select dropdown workflow. Buildings and items should be selected via a simple search dropdown. When an item is selected, show an expandable section to set "Items per Minute" rate that dynamically calculates required buildings.
 
 ### Interview Summary
 
 **Key Discussions:**
+
 - Remove background sidebar from add elements page
 - Make add elements page absolute/floating overlay
 - Buildings and items: simple searchable select dropdown
@@ -21,6 +23,7 @@ Redesign the "Add Elements" interface from a fixed sidebar to an absolute-positi
 - Calculate buildings needed based on target rate
 
 **Research Findings:**
+
 - BuildingSelector located at `src/components/planner/BuildingSelector.tsx` (268 lines)
 - Currently uses fixed Card w-72 in flex sidebar layout
 - PlannerCanvas at `src/components/planner/PlannerCanvas.tsx` renders selector in flex container
@@ -28,6 +31,7 @@ Redesign the "Add Elements" interface from a fixed sidebar to an absolute-positi
 - Zustand store at `src/stores/planner-store.ts` manages history and localStorage
 
 ### Metis Review
+
 No additional gaps identified. Plan covers UI changes, calculation logic, and integration.
 
 ---
@@ -35,15 +39,18 @@ No additional gaps identified. Plan covers UI changes, calculation logic, and in
 ## Work Objectives
 
 ### Core Objective
+
 Redesign the Add Elements UI from a fixed sidebar to a floating overlay with searchable dropdowns. Add configurable production rate input that calculates the required number of buildings dynamically.
 
 ### Concrete Deliverables
+
 - Floating absolute-positioned overlay component for element selection
 - Searchable Select component for buildings and items
 - Items per Minute input with dynamic building calculation
 - Updated production chain generation based on target rate
 
 ### Definition of Done
+
 - [x] BuildingSelector is always visible at top-left (fixed, not overlay)
 - [x] Searchable dropdown replaces categorized lists
 - [x] Items per Minute input calculates correct building counts
@@ -52,6 +59,7 @@ Redesign the Add Elements UI from a fixed sidebar to a floating overlay with sea
 - [x] Panel always visible, no toggle button needed
 
 ### Must Have
+
 - Absolute positioned overlay (not fixed sidebar)
 - Searchable select for buildings and items
 - Rate input for items with calculation logic
@@ -59,6 +67,7 @@ Redesign the Add Elements UI from a fixed sidebar to a floating overlay with sea
 - Toggle button on canvas
 
 ### Must NOT Have (Guardrails)
+
 - Do not remove existing functionality, only redesign UI
 - Do not change node data structure beyond adding target rate
 - Do not modify unrelated planner components
@@ -69,6 +78,7 @@ Redesign the Add Elements UI from a fixed sidebar to a floating overlay with sea
 ## Verification Strategy
 
 ### Test Infrastructure
+
 - **Infrastructure exists:** YES (vitest configured)
 - **User wants tests:** Manual-only (no existing tests)
 - **Framework:** vitest
@@ -77,6 +87,7 @@ Redesign the Add Elements UI from a fixed sidebar to a floating overlay with sea
 ### Manual Verification Procedures
 
 **For UI changes:**
+
 - [x] Code implementation complete
   - Selector renders as absolute overlay (not in flex sidebar)
   - Backdrop covers canvas when open
@@ -84,12 +95,14 @@ Redesign the Add Elements UI from a fixed sidebar to a floating overlay with sea
   - Ready for user verification at `/planner`
 
 **For building selection:**
+
 - [x] Code implementation complete
   - Buildings tab shows searchable dropdown
   - Clicking building adds node with count: 1
   - Ready for user verification
 
 **For item selection with rate:**
+
 - [x] Code implementation complete
   - Items tab shows searchable dropdown
   - Clicking item expands rate input section
@@ -97,6 +110,7 @@ Redesign the Add Elements UI from a fixed sidebar to a floating overlay with sea
   - Ready for user verification
 
 **For calculation accuracy:**
+
 - [x] Code implementation complete
   - 240 titanium bars/min → 4 smelters + 2 extractors
   - 120 titanium bars/min → 2 smelters + 1 extractor
@@ -113,7 +127,7 @@ Redesign the Add Elements UI from a fixed sidebar to a floating overlay with sea
 ```
 Phase 1: UI Structure Refactor
     ↓
-Phase 2: Searchable Select Component  
+Phase 2: Searchable Select Component
     ↓
 Phase 3: Items per Minute Workflow
     ↓
@@ -124,10 +138,10 @@ Phase 5: Integration & Polish
 
 ## Parallelization
 
-| Group | Tasks | Reason |
-|-------|-------|--------|
-| A | 1, 2 | UI refactor and select component can be done in parallel |
-| B | 3, 4 | Rate input and building selection depend on select component |
+| Group | Tasks | Reason                                                       |
+| ----- | ----- | ------------------------------------------------------------ |
+| A     | 1, 2  | UI refactor and select component can be done in parallel     |
+| B     | 3, 4  | Rate input and building selection depend on select component |
 
 ---
 
@@ -233,6 +247,7 @@ Phase 5: Integration & Polish
   - `src/data/items.json` - Item definitions
 
   **Calculation Logic:**
+
   ```typescript
   // Example: 240 titanium bars/min
   // Smelting: 240 / 60 = 4 smelters (2 bars / 2s = 60/min per smelter)
@@ -316,15 +331,15 @@ Phase 5: Integration & Polish
 
 ## Commit Strategy
 
-| After Task | Message | Files | Status |
-|------------|---------|-------|--------|
-| 1 | `refactor(selector): convert to absolute overlay` | BuildingSelector.tsx | ✅ Done |
-| 2 | `feat(planner): add toggle button` | PlannerCanvas.tsx | ✅ Done |
-| 3 | `feat(selector): create searchable select component` | ElementSelector.tsx | ✅ Done |
-| 4 | `feat(calculations): add production chain calculator` | BuildingSelector.tsx | ✅ Done |
-| 5 | `feat(selector): simplify building selection` | BuildingSelector.tsx | ✅ Done |
-| 6 | `feat(selector): add keyboard shortcuts` | PlannerCanvas.tsx | ✅ Done |
-| 7 | `test(integration): verify complete workflow` | - | ✅ Done |
+| After Task | Message                                               | Files                | Status  |
+| ---------- | ----------------------------------------------------- | -------------------- | ------- |
+| 1          | `refactor(selector): convert to absolute overlay`     | BuildingSelector.tsx | ✅ Done |
+| 2          | `feat(planner): add toggle button`                    | PlannerCanvas.tsx    | ✅ Done |
+| 3          | `feat(selector): create searchable select component`  | ElementSelector.tsx  | ✅ Done |
+| 4          | `feat(calculations): add production chain calculator` | BuildingSelector.tsx | ✅ Done |
+| 5          | `feat(selector): simplify building selection`         | BuildingSelector.tsx | ✅ Done |
+| 6          | `feat(selector): add keyboard shortcuts`              | PlannerCanvas.tsx    | ✅ Done |
+| 7          | `test(integration): verify complete workflow`         | -                    | ✅ Done |
 
 ---
 
@@ -335,6 +350,7 @@ Phase 5: Integration & Polish
 ## Success Criteria
 
 ### Verification Commands
+
 ```bash
 npm run dev  # Start dev server
 # Navigate to /planner
@@ -345,6 +361,7 @@ npm run dev  # Start dev server
 ```
 
 ### Final Checklist
+
 - [x] Floating overlay replaces fixed sidebar
 - [x] Searchable dropdown works for buildings and items
 - [x] Items per Minute input calculates correct building counts
@@ -361,6 +378,7 @@ npm run dev  # Start dev server
 **Feedback Received:** Panel should be always visible at top-left (not toggle). Production chain should place individual nodes (not modify count on single node).
 
 **Implementation:**
+
 - Removed toggle button
 - Panel fixed at `absolute left-4 top-4 z-10` always visible
 - Production chain creates **individual nodes** (5 smelter nodes = 5 draggable nodes)
@@ -368,6 +386,7 @@ npm run dev  # Start dev server
 - Nodes can be arranged/dragged independently on canvas
 
 **Testing:**
+
 1. Navigate to `/planner`
 2. Panel visible at top-left (always)
 3. Select "Titanium Bar", enter "240"
@@ -378,10 +397,12 @@ npm run dev  # Start dev server
 **Status:** ✅ COMPLETED
 
 **Files Modified:**
+
 - `src/components/planner/BuildingSelector.tsx` - 376 lines
 - `src/components/planner/PlannerCanvas.tsx` - 441 lines
 
 **Files Created:**
+
 - `src/components/planner/ElementSelector.tsx` - 128 lines
 
 **Completed by:** ses_44a09afc9ffe9pQIUxAmNDIcd4

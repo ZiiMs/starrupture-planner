@@ -1,10 +1,13 @@
 # Draft: Fix Add Connector Buttons
 
 ## Bug Report
+
 **Issue**: Add Input Connector and Add Output Connector buttons in context menu don't work when clicked
 
 ## Root Cause
+
 In `PlannerCanvas.tsx:272-273`, the handlers are empty arrow functions:
+
 ```tsx
 onAddInputConnector={() => {}}
 onAddOutputConnector={() => {}}
@@ -35,17 +38,20 @@ onAddOutputConnector={() => {}}
 ### Existing Infrastructure
 
 **Node Data Structure**:
+
 - `data.customInputs`: Array of custom input connectors
 - `data.customOutputs`: Array of custom output connectors
 - Each connector has an `id` field
 
 **Handle Rendering** (`BuildingNode.tsx`):
+
 - Lines 145-163: Custom input handles rendering
 - Lines 180-199: Custom output handles rendering
 - Dynamic positioning based on total connector count
 - Secondary styling (`bg-secondary! border-secondary-foreground!`)
 
 **Node Update Pattern**:
+
 - `setNodes((nds) => nds.map(node => ...))` for updating node data
 - `setEdges((eds) => eds.filter(...))` for removing edges
 - Both hooks available in `PlannerCanvas.tsx`
@@ -53,6 +59,7 @@ onAddOutputConnector={() => {}}
 ## Open Questions
 
 **How should users trigger "remove connector"?**
+
 - Right-click on the handle itself?
 - Add a "Remove Connector" submenu item in the context menu?
 - Other approach?

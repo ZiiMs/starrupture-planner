@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { Trash2, Plug, ArrowUpFromDot, Minus } from 'lucide-react'
+import { Trash2, Plug, ArrowUpFromDot, Minus, Unplug } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useOnClickOutside } from '@/hooks/use-on-click-outside'
 
@@ -12,6 +12,7 @@ interface NodeContextMenuProps {
   bottom?: number
   onClick: () => void
   onDeleteNode: () => void
+  onDisconnect: () => void
   onAddInputConnector: () => void
   onAddOutputConnector: () => void
   onRemoveInputConnector?: (connectorId: string) => void
@@ -27,6 +28,7 @@ export function NodeContextMenu({
   bottom,
   onClick,
   onDeleteNode,
+  onDisconnect,
   onAddInputConnector,
   onAddOutputConnector,
   onRemoveInputConnector,
@@ -85,6 +87,18 @@ export function NodeContextMenu({
       >
         <ArrowUpFromDot className="h-4 w-4" />
         Add Output Connector
+      </button>
+      <button
+        onClick={onDisconnect}
+        className={cn(
+          'w-full flex items-center gap-2 px-2 py-2 text-xs rounded-none',
+          'hover:bg-accent hover:text-accent-foreground',
+          'focus:bg-accent focus:text-accent-foreground',
+          'outline-hidden cursor-default select-none',
+        )}
+      >
+        <Unplug className="h-4 w-4" />
+        Disconnect
       </button>
 
       {customInputs.length > 0 && (

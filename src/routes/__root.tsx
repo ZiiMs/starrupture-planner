@@ -42,5 +42,3 @@ function RootDocument() {
     </html>
   )
 }
-
-

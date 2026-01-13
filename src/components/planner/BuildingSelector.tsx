@@ -76,7 +76,11 @@ function BuildingSelectorComponent({
       if (!building) return
 
       const outputPerBuilding = calculateOutputRate(recipe, building, 1)
-      const buildingsNeeded = calculateBuildingsNeeded(recipe, building, requiredRate)
+      const buildingsNeeded = calculateBuildingsNeeded(
+        recipe,
+        building,
+        requiredRate,
+      )
 
       summary.push({
         buildingId: building.id,
@@ -131,7 +135,8 @@ function BuildingSelectorComponent({
   }
 
   const addProductionChain = () => {
-    if (!selectedItemId || !itemsPerMinute || productionSummary.length === 0) return
+    if (!selectedItemId || !itemsPerMinute || productionSummary.length === 0)
+      return
 
     const targetRate = parseFloat(itemsPerMinute)
     if (isNaN(targetRate) || targetRate <= 0) return
@@ -145,8 +150,8 @@ function BuildingSelectorComponent({
     productionSummary.forEach((buildingInfo) => {
       const building = buildings[buildingInfo.buildingId]
       // Use the stored recipeId, not search by building type
-      const recipe = Object.values(recipes).find((r) =>
-        r.id === buildingInfo.recipeId,
+      const recipe = Object.values(recipes).find(
+        (r) => r.id === buildingInfo.recipeId,
       )
 
       if (!building || !recipe) return
@@ -180,8 +185,8 @@ function BuildingSelectorComponent({
     // Pass 2: Create edges with proper distribution (not all-to-all)
     productionSummary.forEach((buildingInfo) => {
       // Use the stored recipeId instead of searching by building type
-      const recipe = Object.values(recipes).find((r) =>
-        r.id === buildingInfo.recipeId,
+      const recipe = Object.values(recipes).find(
+        (r) => r.id === buildingInfo.recipeId,
       )
 
       if (!recipe || recipe.inputs.length === 0) return
@@ -191,8 +196,8 @@ function BuildingSelectorComponent({
 
       // Find which building produces this input
       const inputBuildingSummary = productionSummary.find((bi) => {
-        const biRecipe = Object.values(recipes).find((r) =>
-          r.id === bi.recipeId,
+        const biRecipe = Object.values(recipes).find(
+          (r) => r.id === bi.recipeId,
         )
         return biRecipe?.outputs.some((o) => o.itemId === inputItemId)
       })
@@ -220,8 +225,8 @@ function BuildingSelectorComponent({
           const sourceId = sourceNodeIds[sourceIdx]
           const targetId = targetNodeIds[targetIdx]
 
-          const sourceRecipe = Object.values(recipes).find((r) =>
-            r.id === inputBuildingSummary.recipeId,
+          const sourceRecipe = Object.values(recipes).find(
+            (r) => r.id === inputBuildingSummary.recipeId,
           )!
           const sourceBuilding = buildings[inputBuildingSummary.buildingId]
 
@@ -235,7 +240,11 @@ function BuildingSelectorComponent({
               itemId: inputItemId,
               amount: inputAmount,
               usageRate: 0,
-              producerRate: calculateOutputRate(sourceRecipe, sourceBuilding, 1),
+              producerRate: calculateOutputRate(
+                sourceRecipe,
+                sourceBuilding,
+                1,
+              ),
               isWarning: false,
               sourceNodeId: sourceId,
               targetNodeId: targetId,
@@ -246,7 +255,11 @@ function BuildingSelectorComponent({
     })
 
     // Apply dagre layout
-    const { nodes: layoutedNodes } = getLayoutedElements(nodesToAdd, edgesToAdd, 'LR')
+    const { nodes: layoutedNodes } = getLayoutedElements(
+      nodesToAdd,
+      edgesToAdd,
+      'LR',
+    )
 
     if (layoutedNodes.length > 0) {
       addNodes(layoutedNodes)
@@ -279,7 +292,10 @@ function BuildingSelectorComponent({
             <TabsTrigger value="items">Items</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="buildings" className="flex-1 overflow-hidden mt-3">
+          <TabsContent
+            value="buildings"
+            className="flex-1 overflow-hidden mt-3"
+          >
             <ElementSelector
               type="buildings"
               buildings={buildings}
@@ -312,8 +328,13 @@ function BuildingSelectorComponent({
                       const ItemIcon = getIcon(selectedItem.icon)
                       return (
                         <>
-                          <ItemIcon className="h-5 w-5" style={{ color: selectedItem.iconColor }} />
-                          <span className="font-medium">{selectedItem.name}</span>
+                          <ItemIcon
+                            className="h-5 w-5"
+                            style={{ color: selectedItem.iconColor }}
+                          />
+                          <span className="font-medium">
+                            {selectedItem.name}
+                          </span>
                         </>
                       )
                     })()}
@@ -331,7 +352,9 @@ function BuildingSelectorComponent({
                       onChange={(e) => setItemsPerMinute(e.target.value)}
                       className="flex-1"
                     />
-                    <span className="text-sm text-muted-foreground">items/min</span>
+                    <span className="text-sm text-muted-foreground">
+                      items/min
+                    </span>
                   </div>
                 </div>
 
@@ -342,7 +365,9 @@ function BuildingSelectorComponent({
                       {[...productionSummary].reverse().map((item, idx) => (
                         <div key={idx} className="flex justify-between text-sm">
                           <span>{item.buildingName}</span>
-                          <span className="text-muted-foreground">×{item.count}</span>
+                          <span className="text-muted-foreground">
+                            ×{item.count}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -352,7 +377,11 @@ function BuildingSelectorComponent({
                 <Button
                   onClick={addProductionChain}
                   className="w-full"
-                  disabled={!itemsPerMinute || parseFloat(itemsPerMinute) <= 0 || productionSummary.length === 0}
+                  disabled={
+                    !itemsPerMinute ||
+                    parseFloat(itemsPerMinute) <= 0 ||
+                    productionSummary.length === 0
+                  }
                 >
                   Place Production Chain
                 </Button>

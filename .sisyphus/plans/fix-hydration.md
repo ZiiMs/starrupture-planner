@@ -3,6 +3,7 @@
 ## Problem Analysis
 
 The application has persistent hydration errors:
+
 1. "Expected server HTML to contain a matching <title> in <head>"
 2. "Hydration failed because the initial UI does not match what was rendered on the server"
 3. Error happens at `HeadContent` (TanStack Router's head management component)
@@ -73,11 +74,15 @@ export async function getLoadContext() {
   return {}
 }
 
-export const { createHydrateContext, Hydrate, ServerContext, serverOnlyLoadContext } =
-  createStartContext({
-    router: () => router,
-    loadContext: getLoadContext,
-  })
+export const {
+  createHydrateContext,
+  Hydrate,
+  ServerContext,
+  serverOnlyLoadContext,
+} = createStartContext({
+  router: () => router,
+  loadContext: getLoadContext,
+})
 ```
 
 ### Step 3: Configure vite.config.ts for static export
@@ -89,7 +94,7 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 export default defineConfig({
   plugins: [
     tanstackStart({
-      ssr: false,  // Disable SSR
+      ssr: false, // Disable SSR
     }),
   ],
 })
@@ -144,13 +149,18 @@ function PlannerPage() {
 }
 ```
 
-### Step 5: Simplify __root.tsx
+### Step 5: Simplify \_\_root.tsx
 
 Remove ErrorBoundary and client-only checks:
 
 ```tsx
 import { TanStackDevtools } from '@tanstack/react-devtools'
-import { HeadContent, Scripts, createRootRoute, Outlet } from '@tanstack/react-router'
+import {
+  HeadContent,
+  Scripts,
+  createRootRoute,
+  Outlet,
+} from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import appCss from '../styles.css?url'
 
@@ -176,7 +186,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         {children}
         <TanStackDevtools
           config={{ position: 'bottom-right' }}
-          plugins={[{ name: 'Tanstack Router', render: <TanStackRouterDevtoolsPanel /> }]}
+          plugins={[
+            {
+              name: 'Tanstack Router',
+              render: <TanStackRouterDevtoolsPanel />,
+            },
+          ]}
         />
         <Scripts />
       </body>
@@ -200,14 +215,14 @@ export default function App() {
 
 ## Files to Modify
 
-| File | Change |
-|------|--------|
-| `src/entry-client.tsx` | NEW - Client entry point |
-| `src/entry-server.tsx` | NEW - Server entry point (minimal) |
-| `vite.config.ts` | ADD - ssr: false option |
-| `src/routes/planner.tsx` | SIMPLIFY - Remove mounted/isHydrating |
-| `src/routes/__root.tsx` | SIMPLIFY - Remove ErrorBoundary, client-only logic |
-| `src/routes/index.tsx` | SIMPLIFY - Remove mounted check if present |
+| File                     | Change                                             |
+| ------------------------ | -------------------------------------------------- |
+| `src/entry-client.tsx`   | NEW - Client entry point                           |
+| `src/entry-server.tsx`   | NEW - Server entry point (minimal)                 |
+| `vite.config.ts`         | ADD - ssr: false option                            |
+| `src/routes/planner.tsx` | SIMPLIFY - Remove mounted/isHydrating              |
+| `src/routes/__root.tsx`  | SIMPLIFY - Remove ErrorBoundary, client-only logic |
+| `src/routes/index.tsx`   | SIMPLIFY - Remove mounted check if present         |
 
 ## Success Criteria
 

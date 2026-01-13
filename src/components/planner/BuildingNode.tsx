@@ -10,11 +10,21 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { getIcon } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import type { Building, Item, PlannerEdgeData, Recipe } from '@/types/planner'
-import { Handle, NodeProps, Position, useEdges, useUpdateNodeInternals } from '@xyflow/react'
+import {
+  Handle,
+  NodeProps,
+  Position,
+  useEdges,
+  useUpdateNodeInternals,
+} from '@xyflow/react'
 import { AlertTriangle } from 'lucide-react'
 import { memo, useEffect, useMemo } from 'react'
 
@@ -26,7 +36,7 @@ interface BuildingNodeProps extends NodeProps {
 }
 
 function BuildingNodeComponent({
-  id,  // Add this - React Flow passes node id as a prop
+  id, // Add this - React Flow passes node id as a prop
   data,
   selected,
   items,
@@ -40,14 +50,26 @@ function BuildingNodeComponent({
   const recipe = recipes[(data as any).recipeId]
 
   // Debug: log every render
-  console.log('BuildingNode render:', building?.name, '| Node ID:', id, '| Edges count:', edges.length)
+  console.log(
+    'BuildingNode render:',
+    building?.name,
+    '| Node ID:',
+    id,
+    '| Edges count:',
+    edges.length,
+  )
 
   // Update node internals when custom inputs/outputs change (required for dynamic handles)
   useEffect(() => {
     if (id) {
       updateNodeInternals(id)
     }
-  }, [id, (data as any).customInputs, (data as any).customOutputs, updateNodeInternals])
+  }, [
+    id,
+    (data as any).customInputs,
+    (data as any).customOutputs,
+    updateNodeInternals,
+  ])
 
   const BuildingIcon = getIcon(building.icon)
 
@@ -55,81 +77,94 @@ function BuildingNodeComponent({
     r.producers.includes((data as any).buildingId),
   )
 
-const efficiencyWarnings = useMemo(() => {
-  if (!id) return []
+  const efficiencyWarnings = useMemo(() => {
+    if (!id) return []
 
-  const connectedEdges = edges.filter(
-    (edge) => edge.source === id || edge.target === id
-  )
+    const connectedEdges = edges.filter(
+      (edge) => edge.source === id || edge.target === id,
+    )
 
-  // Skip if any edge data isn't ready yet
-  if (connectedEdges.some(edge => !(edge.data as PlannerEdgeData | undefined)?.dataReady)) {
-    return []
-  }
-
-  const warnings: Array<{
-    type: 'over' | 'under'
-    itemName: string
-    producerRate: number
-    consumerRate: number
-    itemId: string
-  }> = []
-
-  // Aggregate rates by itemId for outputs (where this node is producer)
-  const outputTotals = new Map<string, { produced: number; consumed: number }>()
-  
-  // Aggregate rates by itemId for inputs (where this node is consumer)
-  const inputTotals = new Map<string, { produced: number; needed: number }>()
-
-  connectedEdges.forEach((edge) => {
-    const edgeData = edge.data as PlannerEdgeData | undefined
-    if (!edgeData?.dataReady || !edgeData.itemId) return
-
-    const isProducer = edge.source === id
-
-    if (isProducer) {
-      // This node is producing - track total consumption of our output
-      const current = outputTotals.get(edgeData.itemId) || { produced: edgeData.producerRate, consumed: 0 }
-      current.consumed += edgeData.usageRate
-      outputTotals.set(edgeData.itemId, current)
-    } else {
-      // This node is consuming - track total production feeding our input
-      const current = inputTotals.get(edgeData.itemId) || { produced: 0, needed: edgeData.usageRate }
-      current.produced += edgeData.producerRate
-      inputTotals.set(edgeData.itemId, current)
+    // Skip if any edge data isn't ready yet
+    if (
+      connectedEdges.some(
+        (edge) => !(edge.data as PlannerEdgeData | undefined)?.dataReady,
+      )
+    ) {
+      return []
     }
-  })
 
-  // Check output warnings (overproduction)
-  outputTotals.forEach((totals, itemId) => {
-    if (totals.produced > totals.consumed) {
-      const item = items[itemId]
-      warnings.push({
-        type: 'over',
-        itemName: item?.name || itemId,
-        producerRate: totals.produced,
-        consumerRate: totals.consumed,
-        itemId,
-      })
-    }
-  })
+    const warnings: Array<{
+      type: 'over' | 'under'
+      itemName: string
+      producerRate: number
+      consumerRate: number
+      itemId: string
+    }> = []
 
-  // Check input warnings (underproduction / starving)
-  inputTotals.forEach((totals, itemId) => {
-    if (totals.produced < totals.needed) {
-      const item = items[itemId]
-      warnings.push({
-        type: 'under',
-        itemName: item?.name || itemId,
-        producerRate: totals.produced,
-        consumerRate: totals.needed,
-        itemId,
-      })
-    }
-  })
+    // Aggregate rates by itemId for outputs (where this node is producer)
+    const outputTotals = new Map<
+      string,
+      { produced: number; consumed: number }
+    >()
 
-  return warnings
-}, [id, edges, items])
+    // Aggregate rates by itemId for inputs (where this node is consumer)
+    const inputTotals = new Map<string, { produced: number; needed: number }>()
+
+    connectedEdges.forEach((edge) => {
+      const edgeData = edge.data as PlannerEdgeData | undefined
+      if (!edgeData?.dataReady || !edgeData.itemId) return
+
+      const isProducer = edge.source === id
+
+      if (isProducer) {
+        // This node is producing - track total consumption of our output
+        const current = outputTotals.get(edgeData.itemId) || {
+          produced: edgeData.producerRate,
+          consumed: 0,
+        }
+        current.consumed += edgeData.usageRate
+        outputTotals.set(edgeData.itemId, current)
+      } else {
+        // This node is consuming - track total production feeding our input
+        const current = inputTotals.get(edgeData.itemId) || {
+          produced: 0,
+          needed: edgeData.usageRate,
+        }
+        current.produced += edgeData.producerRate
+        inputTotals.set(edgeData.itemId, current)
+      }
+    })
+
+    // Check output warnings (overproduction)
+    outputTotals.forEach((totals, itemId) => {
+      if (totals.produced > totals.consumed) {
+        const item = items[itemId]
+        warnings.push({
+          type: 'over',
+          itemName: item?.name || itemId,
+          producerRate: totals.produced,
+          consumerRate: totals.consumed,
+          itemId,
+        })
+      }
+    })
+
+    // Check input warnings (underproduction / starving)
+    inputTotals.forEach((totals, itemId) => {
+      if (totals.produced < totals.needed) {
+        const item = items[itemId]
+        warnings.push({
+          type: 'under',
+          itemName: item?.name || itemId,
+          producerRate: totals.produced,
+          consumerRate: totals.needed,
+          itemId,
+        })
+      }
+    })
+
+    return warnings
+  }, [id, edges, items])
 
   return (
     <Card
@@ -234,9 +269,17 @@ const efficiencyWarnings = useMemo(() => {
                     {efficiencyWarnings.map((warning, index) => (
                       <p key={index} className="text-xs mb-1 last:mb-0">
                         {warning.type === 'over' ? (
-                          <>Producing {Math.round(warning.producerRate)}/min of {warning.itemName} but only using {Math.round(warning.consumerRate)}/min</>
+                          <>
+                            Producing {Math.round(warning.producerRate)}/min of{' '}
+                            {warning.itemName} but only using{' '}
+                            {Math.round(warning.consumerRate)}/min
+                          </>
                         ) : (
-                          <>Producing {Math.round(warning.producerRate)}/min of {warning.itemName} but needs {Math.round(warning.consumerRate)}/min</>
+                          <>
+                            Producing {Math.round(warning.producerRate)}/min of{' '}
+                            {warning.itemName} but needs{' '}
+                            {Math.round(warning.consumerRate)}/min
+                          </>
                         )}
                       </p>
                     ))}
@@ -265,7 +308,7 @@ const efficiencyWarnings = useMemo(() => {
           </label>
           <Select
             value={(data as any).recipeId}
-            onValueChange={(value) => onRecipeChange?.((data as any).id, value)}
+            onValueChange={(value) => onRecipeChange?.(id, value)}
           >
             <SelectTrigger className="h-8 text-xs">
               <SelectValue placeholder="Select recipe" />
