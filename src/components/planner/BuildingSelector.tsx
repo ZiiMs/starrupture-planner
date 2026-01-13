@@ -16,6 +16,7 @@ import { useReactFlow } from '@xyflow/react'
 import { nanoid } from 'nanoid'
 import { memo, useState, useMemo } from 'react'
 import type { Edge, Node } from '@xyflow/react'
+import { getLayoutedElements } from '@/lib/dagre-layout'
 import ElementSelector from './ElementSelector'
 
 interface BuildingSelectorProps {
@@ -27,6 +28,7 @@ interface BuildingSelectorProps {
 interface ProductionChainSummary {
   buildingId: string
   buildingName: string
+  recipeId: string
   count: number
   outputRate: number
 }
@@ -79,6 +81,7 @@ function BuildingSelectorComponent({
       summary.push({
         buildingId: building.id,
         buildingName: building.name,
+        recipeId: recipe.id,
         count: Math.ceil(buildingsNeeded),
         outputRate: outputPerBuilding,
       })
@@ -135,36 +138,30 @@ function BuildingSelectorComponent({
 
     const nodesToAdd: Node[] = []
     const edgesToAdd: Edge[] = []
-    const levelCounts = new Map<number, number>()
-    let nodesAdded = 0
 
-    // Build from summary - create individual nodes for each building
-    const buildFromSummary = (
-      buildingInfo: ProductionChainSummary,
-      level: number = 0,
-      parentNodeId?: string,
-      inputItemId?: string,
-    ): void => {
+    // Pass 1: Create all nodes, track IDs by building type
+    const nodeIdMap = new Map<string, string[]>()
+
+    productionSummary.forEach((buildingInfo) => {
       const building = buildings[buildingInfo.buildingId]
+      // Use the stored recipeId, not search by building type
       const recipe = Object.values(recipes).find((r) =>
-        r.producers.includes(buildingInfo.buildingId),
+        r.id === buildingInfo.recipeId,
       )
 
       if (!building || !recipe) return
 
-      // Create individual nodes for each building
+      const nodeIds: string[] = []
+
       for (let i = 0; i < buildingInfo.count; i++) {
         const nodeId = nanoid()
         const outputRate = calculateOutputRate(recipe, building, 1)
         const powerConsumption = calculatePowerConsumption(building, 1)
 
-        const x = 1200 - level * 350 + (i % 3) * 50
-        const y = 200 + ((levelCounts.get(level) || 0) + Math.floor(i / 3)) * 80
-
         nodesToAdd.push({
           id: nodeId,
           type: 'planner-node',
-          position: { x, y },
+          position: { x: 0, y: 0 },
           data: {
             buildingId: building.id,
             recipeId: recipe.id,
@@ -174,59 +171,87 @@ function BuildingSelectorComponent({
           },
         })
 
-        levelCounts.set(level, (levelCounts.get(level) || 0) + 1)
-        nodesAdded++
+        nodeIds.push(nodeId)
+      }
 
-        // Create edges from each node to parent
-        if (parentNodeId && inputItemId) {
+      nodeIdMap.set(buildingInfo.buildingId, nodeIds)
+    })
+
+    // Pass 2: Create edges with proper distribution (not all-to-all)
+    productionSummary.forEach((buildingInfo) => {
+      // Use the stored recipeId instead of searching by building type
+      const recipe = Object.values(recipes).find((r) =>
+        r.id === buildingInfo.recipeId,
+      )
+
+      if (!recipe || recipe.inputs.length === 0) return
+
+      const inputItemId = recipe.inputs[0].itemId
+      const inputAmount = recipe.inputs[0].amount
+
+      // Find which building produces this input
+      const inputBuildingSummary = productionSummary.find((bi) => {
+        const biRecipe = Object.values(recipes).find((r) =>
+          r.id === bi.recipeId,
+        )
+        return biRecipe?.outputs.some((o) => o.itemId === inputItemId)
+      })
+
+      if (!inputBuildingSummary) return
+
+      const sourceNodeIds = nodeIdMap.get(inputBuildingSummary.buildingId) || []
+      const targetNodeIds = nodeIdMap.get(buildingInfo.buildingId) || []
+
+      // Calculate distribution - how many targets each source feeds
+      const targetCount = targetNodeIds.length
+
+      if (sourceNodeIds.length === 0 || targetCount === 0) return
+
+      // Each target needs connections from enough sources to get required input
+      // Spread sources evenly across targets
+      const edgesPerTarget = Math.ceil(sourceNodeIds.length / targetCount)
+
+      // Create distributed edges
+      for (let targetIdx = 0; targetIdx < targetCount; targetIdx++) {
+        // Each target gets connected to `edgesPerTarget` sources
+        // Spread sources evenly: 0, 1, 2, ... modulo sourceNodeIds.length
+        for (let j = 0; j < edgesPerTarget; j++) {
+          const sourceIdx = (targetIdx + j) % sourceNodeIds.length
+          const sourceId = sourceNodeIds[sourceIdx]
+          const targetId = targetNodeIds[targetIdx]
+
+          const sourceRecipe = Object.values(recipes).find((r) =>
+            r.id === inputBuildingSummary.recipeId,
+          )!
+          const sourceBuilding = buildings[inputBuildingSummary.buildingId]
+
           edgesToAdd.push({
             id: nanoid(),
-            source: nodeId,
-            target: parentNodeId,
+            source: sourceId,
+            target: targetId,
             type: 'efficiency-edge',
             animated: true,
             data: {
               itemId: inputItemId,
-              amount: 1,
+              amount: inputAmount,
               usageRate: 0,
-              producerRate: outputRate,
+              producerRate: calculateOutputRate(sourceRecipe, sourceBuilding, 1),
               isWarning: false,
-              sourceNodeId: nodeId,
-              targetNodeId: parentNodeId,
+              sourceNodeId: sourceId,
+              targetNodeId: targetId,
             },
           })
         }
       }
-    }
+    })
 
-    // Process summary in reverse order (inputs first, outputs last)
-    const reversedSummary = [...productionSummary].reverse()
+    // Apply dagre layout
+    const { nodes: layoutedNodes } = getLayoutedElements(nodesToAdd, edgesToAdd, 'LR')
 
-    for (let i = 0; i < reversedSummary.length; i++) {
-      const current = reversedSummary[i]
-      const next = reversedSummary[i + 1]
-
-      const recipe = Object.values(recipes).find((r) =>
-        r.producers.includes(current.buildingId),
-      )
-
-      if (!recipe) continue
-
-      // Get the input item for this building
-      const inputItem = recipe.inputs[0]
-
-      buildFromSummary(
-        current,
-        i,
-        next ? getNodeIdForBuilding(nodesToAdd, next.buildingId) : undefined,
-        inputItem?.itemId,
-      )
-    }
-
-    if (nodesToAdd.length > 0) {
-      addNodes(nodesToAdd)
+    if (layoutedNodes.length > 0) {
+      addNodes(layoutedNodes)
       addEdges(edgesToAdd)
-      setNodeCounter((c) => c + nodesAdded)
+      setNodeCounter((c) => c + layoutedNodes.length)
       setSelectedItemId(null)
       setItemsPerMinute('60')
     }
@@ -348,12 +373,6 @@ function BuildingSelectorComponent({
       </CardContent>
     </Card>
   )
-}
-
-// Helper to find a node ID for a building type
-function getNodeIdForBuilding(nodes: Node[], buildingId: string): string | undefined {
-  const node = nodes.find((n) => n.data.buildingId === buildingId)
-  return node?.id as string | undefined
 }
 
 export default memo(BuildingSelectorComponent)

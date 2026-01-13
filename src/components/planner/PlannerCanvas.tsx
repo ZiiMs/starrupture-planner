@@ -1,22 +1,26 @@
 'use client'
 
-import { useCallback, useEffect, useState, memo, useRef } from 'react'
+import { usePlannerData } from '@/hooks/use-planner-data'
+import { getLayoutedElements } from '@/lib/dagre-layout'
+import { usePlannerStore } from '@/stores/planner-store'
 import {
-  ReactFlow,
   Background,
   Connection,
-  useNodesState,
+  ReactFlow,
+  ReactFlowProvider,
   useEdgesState,
+  useNodesInitialized,
+  useNodesState,
+  useReactFlow,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { usePlannerStore } from '@/stores/planner-store'
-import { usePlannerData } from '@/hooks/use-planner-data'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { BuildingNode } from './BuildingNode'
-import Controls from './Controls'
-import Minimap from './Minimap'
 import BuildingSelector from './BuildingSelector'
-import { NodeContextMenu } from './NodeContextMenu'
+import Controls from './Controls'
 import { EfficiencyEdge } from './EfficiencyEdge'
+import Minimap from './Minimap'
+import { NodeContextMenu } from './NodeContextMenu'
 
 interface EnhancedBuildingNodeProps {
   items: Record<string, any>
@@ -42,12 +46,17 @@ const EnhancedBuildingNode = memo(
 
 EnhancedBuildingNode.displayName = 'EnhancedBuildingNode'
 
-function PlannerCanvas() {
+function PlannerCanvasInner() {
   const { data: plannerData, isLoading } = usePlannerData()
   const { saveToLocalStorage } = usePlannerStore()
 
   const [nodes, setNodes, onNodesChange] = useNodesState<any>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<any>([])
+  const [isLayouted, setIsLayouted] = useState(false)
+
+  const nodesInitialized = useNodesInitialized()
+  const { getNodes, fitView } = useReactFlow()
+
   const [menu, setMenu] = useState<{
     id: string | null
     top?: number
@@ -56,6 +65,26 @@ function PlannerCanvas() {
     bottom?: number
   } | null>(null)
   const reactFlowWrapper = useRef<HTMLDivElement>(null)
+
+  // Apply layout once nodes are measured
+  useEffect(() => {
+    if (nodesInitialized && nodes.length > 0 && !isLayouted) {
+      const currentNodes = getNodes()
+      const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+        currentNodes,
+        edges,
+        'LR'
+      )
+      setNodes(layoutedNodes)
+      setEdges(layoutedEdges)
+      setIsLayouted(true)
+
+      // Fit view after layout is applied
+      window.requestAnimationFrame(() => {
+        fitView({ padding: 0.1 })
+      })
+    }
+  }, [nodesInitialized, nodes.length, isLayouted, getNodes, edges, setNodes, setEdges, fitView])
 
   const onConnect = useCallback((params: Connection) => {
     const newEdge = {
@@ -69,7 +98,7 @@ function PlannerCanvas() {
       },
     }
     setEdges((eds) => [...eds, newEdge] as any)
-  }, [])
+  }, [setEdges])
 
   const handleNodesChange = useCallback(
     (changes: any) => {
@@ -283,14 +312,31 @@ function PlannerCanvas() {
         return updatedNodes
       })
 
+      // Trigger re-layout after recipe change since node size may change
+      setIsLayouted(false)
       setTimeout(() => saveToLocalStorage(), 500)
     },
     [setNodes, setEdges, plannerData?.recipes, plannerData?.buildings, saveToLocalStorage],
   )
 
+  // Manual re-layout function
+  const handleRelayout = useCallback(() => {
+    const currentNodes = getNodes()
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+      currentNodes,
+      edges,
+      'LR'
+    )
+    setNodes(layoutedNodes)
+    setEdges(layoutedEdges)
+
+    window.requestAnimationFrame(() => {
+      fitView({ padding: 0.1 })
+    })
+  }, [getNodes, edges, setNodes, setEdges, fitView])
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger shortcuts when typing in inputs
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement
@@ -320,11 +366,17 @@ function PlannerCanvas() {
         e.preventDefault()
         setMenu(null)
       }
+
+      // Add keyboard shortcut for re-layout (Ctrl/Cmd + L)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+        e.preventDefault()
+        handleRelayout()
+      }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [saveToLocalStorage, menu])
+  }, [saveToLocalStorage, menu, handleRelayout])
 
   if (isLoading) {
     return (
@@ -345,8 +397,7 @@ function PlannerCanvas() {
   }
 
   return (
-    <div className="h-screen w-full relative">
-      {/* Add Elements Panel - Always Visible */}
+    <div className="h-screen w-full relative" ref={reactFlowWrapper}>
       <div className="absolute left-4 top-4 z-10">
         <BuildingSelector
           buildings={plannerData.buildings}
@@ -392,7 +443,7 @@ function PlannerCanvas() {
         }}
       >
         <Background />
-        <Controls />
+        <Controls  />
         <Minimap />
 
         {menu && (
@@ -409,6 +460,14 @@ function PlannerCanvas() {
         )}
       </ReactFlow>
     </div>
+  )
+}
+
+function PlannerCanvas() {
+  return (
+    <ReactFlowProvider>
+      <PlannerCanvasInner />
+    </ReactFlowProvider>
   )
 }
 
