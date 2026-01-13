@@ -1,0 +1,114 @@
+{
+  "buildings": [
+    {
+      "id": "ore-excavator",
+      "name": "Ore Excavator",
+      "category": "extraction",
+      "speed": 1.0,
+      "powerUsage": 0,
+      "powerDrain": 0,
+      "size": { "width": 3, "height": 3 },
+      "icon": "Drill",
+      "iconColor": "#8B4513"
+    },
+    {
+      "id": "smelter",
+      "name": "Smelter",
+      "category": "smelting",
+      "speed": 1.0,
+      "powerUsage": 60,
+      "powerDrain": 5,
+      "size": { "width": 2, "height": 2 },
+      "icon": "Factory",
+      "iconColor": "#FF6B35"
+    },
+    {
+      "id": "fabricator",
+      "name": "Fabricator",
+      "category": "crafting",
+      "speed": 1.0,
+      "powerUsage": 75,
+      "powerDrain": 5,
+      "size": { "width": 3, "height": 3 },
+      "icon": "Wrench",
+      "iconColor": "#4ECDC4"
+    },
+    {
+      "id": "furnace",
+      "name": "Furnace",
+      "category": "smelting",
+      "speed": 1.0,
+      "powerUsage": 45,
+      "powerDrain": 3,
+      "size": { "width": 2, "height": 2 },
+      "icon": "Flame",
+      "iconColor": "#FF4500"
+    },
+    {
+      "id": "megapress",
+      "name": "Megapress",
+      "category": "crafting",
+      "speed": 1.0,
+      "powerUsage": 150,
+      "powerDrain": 10,
+      "size": { "width": 4, "height": 4 },
+      "icon": "Cog",
+      "iconColor": "#4ECDC4"
+    },
+    {
+      "id": "refinery",
+      "name": "Refinery",
+      "category": "refining",
+      "speed": 1.0,
+      "powerUsage": 90,
+      "powerDrain": 5,
+      "size": { "width": 3, "height": 3 },
+      "icon": "Package",
+      "iconColor": "#00CED1"
+    },
+    {
+      "id": "helium-3-extractor",
+      "name": "Helium-3 Extractor",
+      "category": "extraction",
+      "speed": 1.0,
+      "powerUsage": 0,
+      "powerDrain": 0,
+      "size": { "width": 2, "height": 2 },
+      "icon": "Wind",
+      "iconColor": "#00BFFF"
+    },
+    {
+      "id": "sulfur-extractor",
+      "name": "Sulfur Extractor",
+      "category": "extraction",
+      "speed": 1.0,
+      "powerUsage": 0,
+      "powerDrain": 0,
+      "size": { "width": 2, "height": 2 },
+      "icon": "Package",
+      "iconColor": "#FFFF00"
+    },
+    {
+      "id": "assembler",
+      "name": "Assembler",
+      "category": "crafting",
+      "speed": 1.0,
+      "powerUsage": 75,
+      "powerDrain": 5,
+      "size": { "width": 3, "height": 3 },
+      "icon": "Hammer",
+      "iconColor": "#4ECDC4"
+    },
+    {
+      "id": "compounder",
+      "name": "Compounder",
+      "category": "crafting",
+      "speed": 1.0,
+      "powerUsage": 120,
+      "powerDrain": 8,
+      "size": { "width": 3, "height": 3 },
+      "icon": "Package",
+      "iconColor": "#4ECDC4"
+    }
+  ]
+}
