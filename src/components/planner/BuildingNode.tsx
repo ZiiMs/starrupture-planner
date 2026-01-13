@@ -1,7 +1,7 @@
 'use client'
 
-import { memo } from 'react'
-import { Handle, Position, NodeProps } from '@xyflow/react'
+import { memo, useMemo } from 'react'
+import { Handle, Position, NodeProps, useEdges } from '@xyflow/react'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   Select,
@@ -12,8 +12,10 @@ import {
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { Building, Recipe, Item } from '@/types/planner'
+import type { Building, Recipe, Item, PlannerEdgeData } from '@/types/planner'
 import { getIcon } from '@/lib/icons'
 
 interface BuildingNodeProps extends NodeProps {
@@ -31,14 +33,91 @@ function BuildingNodeComponent({
   recipes,
   onRecipeChange,
 }: BuildingNodeProps) {
+  const edges = useEdges()
   const building = buildings[(data as any).buildingId]
   const recipe = recipes[(data as any).recipeId]
+
+  // Debug: log every render
+  console.log('BuildingNode render:', building?.name, '| Edges count:', edges.length)
 
   const BuildingIcon = getIcon(building.icon)
 
   const availableRecipes = Object.values(recipes).filter((r) =>
     r.producers.includes((data as any).buildingId),
   )
+
+  const efficiencyWarnings = useMemo(() => {
+    const nodeId = (data as any).id
+    if (!nodeId) return []
+
+    const connectedEdges = edges.filter(
+      (edge) => edge.source === nodeId || edge.target === nodeId
+    )
+
+    console.log('BuildingNode:', building.name, '| NodeId:', nodeId, '| Connected edges:', connectedEdges.length)
+    connectedEdges.forEach((edge, i) => {
+      console.log(`Edge ${i}:`, { id: edge.id, source: edge.source, target: edge.target, data: edge.data })
+    })
+
+    const warnings: Array<{
+      type: 'over' | 'under'
+      itemName: string
+      producerRate: number
+      consumerRate: number
+      itemId: string
+    }> = []
+
+    connectedEdges.forEach((edge) => {
+      const edgeData = edge.data as PlannerEdgeData | undefined
+
+      // Skip if data not ready yet (edge data still being calculated)
+      if (!edgeData?.dataReady) return
+
+      const isProducer = edge.source === nodeId
+      const itemId = edgeData.itemId
+
+      let itemName = 'Unknown'
+      if (isProducer) {
+        const thisRecipe = recipes[(data as any).recipeId]
+        if (thisRecipe) {
+          const output = thisRecipe.outputs.find((o) => o.itemId === itemId)
+          if (output) {
+            const item = items[itemId]
+            itemName = item?.name || itemId
+          }
+        }
+      } else {
+        const thisRecipe = recipes[(data as any).recipeId]
+        if (thisRecipe) {
+          const input = thisRecipe.inputs.find((i) => i.itemId === itemId)
+          if (input) {
+            const item = items[itemId]
+            itemName = item?.name || itemId
+          }
+        }
+      }
+
+      if (isProducer && edgeData.producerRate > edgeData.usageRate) {
+        warnings.push({
+          type: 'over',
+          itemName,
+          producerRate: edgeData.producerRate,
+          consumerRate: edgeData.usageRate,
+          itemId,
+        })
+      } else if (!isProducer && edgeData.producerRate < edgeData.usageRate) {
+        warnings.push({
+          type: 'under',
+          itemName,
+          producerRate: edgeData.producerRate,
+          consumerRate: edgeData.usageRate,
+          itemId,
+        })
+      }
+    })
+
+    return warnings
+  }, [data, edges, items, recipes, building.name])
 
   return (
     <Card
@@ -130,10 +209,30 @@ function BuildingNodeComponent({
           </div>
 
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-sm text-foreground mb-1">
-              {building.name}
-            </h3>
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-sm text-foreground">
+                {building.name}
+              </h3>
+              {efficiencyWarnings.length > 0 && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <AlertTriangle className="w-4 h-4 text-amber-500 cursor-help flex-shrink-0" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    {efficiencyWarnings.map((warning, index) => (
+                      <p key={index} className="text-xs mb-1 last:mb-0">
+                        {warning.type === 'over' ? (
+                          <>Producing {Math.round(warning.producerRate)}/min of {warning.itemName} but only using {Math.round(warning.consumerRate)}/min</>
+                        ) : (
+                          <>Producing {Math.round(warning.producerRate)}/min of {warning.itemName} but needs {Math.round(warning.consumerRate)}/min</>
+                        )}
+                      </p>
+                    ))}
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </div>
+            <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
               <div className="flex items-center gap-1">
                 <span className="font-medium">Power:</span>
                 <span>{(data as any).powerConsumption.toFixed(0)} kW</span>
