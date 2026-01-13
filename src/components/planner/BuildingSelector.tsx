@@ -124,9 +124,9 @@ function BuildingSelectorComponent({
           let isWarning = false
 
           if (consumerRecipe && consumerRecipe.time > 0) {
-            const inputAmount = consumerRecipe.inputs.find(
-              (i) => i.itemId === inputItemId,
-            )?.amount || 1
+            const inputAmount =
+              consumerRecipe.inputs.find((i) => i.itemId === inputItemId)
+                ?.amount || 1
 
             usageRate = (inputAmount / consumerRecipe.time) * 60
             isWarning = producerRate > usageRate
@@ -136,22 +136,16 @@ function BuildingSelectorComponent({
             id: nanoid(),
             source: nodeId,
             target: parentNodeId,
-            type: 'smoothstep',
+            type: 'efficiency-edge',
             animated: true,
-            label: `${Math.round(usageRate)}/min`,
-            labelStyle: {
-              fontSize: 10,
-              color: isWarning ? '#ef4444' : '#000',
-              fontWeight: isWarning ? 'bold' : 'normal',
-            },
-            labelBgStyle: {
-              fill: isWarning ? '#fef2f2' : '#fff',
-            },
             data: {
               itemId: inputItemId,
               amount: 1,
               usageRate,
+              producerRate,
               isWarning,
+              sourceNodeId: nodeId,
+              targetNodeId: parentNodeId,
             },
           })
         }

@@ -18,12 +18,12 @@ src/lib/
 
 ## WHERE TO LOOK
 
-| Task           | File            | Notes                                    |
-| -------------- | --------------- | ---------------------------------------- |
-| Class merging  | utils.ts        | cn() - used in 58+ files across project |
-| Icons          | icons.ts        | getIcon() mapping for Lucide icons      |
-| Calculations   | calculations.ts | Output rates, power consumption, recipes |
-| Data helpers   | data.ts         | Data loading and transformation          |
+| Task          | File            | Notes                                    |
+| ------------- | --------------- | ---------------------------------------- |
+| Class merging | utils.ts        | cn() - used in 58+ files across project  |
+| Icons         | icons.ts        | getIcon() mapping for Lucide icons       |
+| Calculations  | calculations.ts | Output rates, power consumption, recipes |
+| Data helpers  | data.ts         | Data loading and transformation          |
 
 ## CONVENTIONS
 

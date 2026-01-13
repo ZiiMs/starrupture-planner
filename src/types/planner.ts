@@ -61,6 +61,10 @@ export type PlannerNode = Node<PlannerNodeData, 'planner-node'>
 export interface PlannerEdgeData extends Record<string, unknown> {
   itemId: string
   amount: number
+  usageRate: number
+  producerRate: number
+  efficiencyRatio?: number
+  isWarning?: boolean
 }
 
 export type PlannerEdge = Edge<PlannerEdgeData>

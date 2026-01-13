@@ -22,17 +22,23 @@ The context menu on ReactFlow nodes has two critical issues:
 **Location**: `src/components/planner/PlannerCanvas.tsx`, lines 80-87
 
 **Current Code**:
+
 ```typescript
 setMenu({
   id: node.id,
   top: event.clientY < pane.height - 200 ? event.clientY : undefined,
   left: event.clientX < pane.width - 200 ? event.clientX : undefined,
-  right: event.clientX >= pane.width - 200 ? pane.width - event.clientX : undefined,
-  bottom: event.clientY >= pane.height - 200 ? pane.height - event.clientY : undefined,
+  right:
+    event.clientX >= pane.width - 200 ? pane.width - event.clientX : undefined,
+  bottom:
+    event.clientY >= pane.height - 200
+      ? pane.height - event.clientY
+      : undefined,
 })
 ```
 
-**Problem**: 
+**Problem**:
+
 - `event.clientX/clientY` are viewport-relative coordinates
 - The context menu is positioned absolutely relative to the wrapper div (which may have an offset from viewport)
 - Missing offset adjustment: `event.clientY - pane.top` and `event.clientX - pane.left`
@@ -42,6 +48,7 @@ setMenu({
 **Location**: `src/components/planner/NodeContextMenu.tsx`, lines 28-34
 
 **Current Code**:
+
 ```typescript
 <div
   className="absolute..."
@@ -54,6 +61,7 @@ setMenu({
 ```
 
 **Problem**:
+
 - The parent div has an `onClick` handler with `stopPropagation()`
 - This prevents clicks on buttons inside from propagating correctly
 - Button clicks are swallowed by parent's `onClick`, triggering `onPaneClick` and closing the menu prematurely
@@ -73,13 +81,19 @@ Adjust coordinates by subtracting wrapper offset from viewport coordinates:
 setMenu({
   id: node.id,
   top: event.clientY < pane.height - 200 ? event.clientY - pane.top : undefined,
-  left: event.clientX < pane.width - 200 ? event.clientX - pane.left : undefined,
-  right: event.clientX >= pane.width - 200 ? pane.right - event.clientX : undefined,
-  bottom: event.clientY >= pane.height - 200 ? pane.bottom - event.clientY : undefined,
+  left:
+    event.clientX < pane.width - 200 ? event.clientX - pane.left : undefined,
+  right:
+    event.clientX >= pane.width - 200 ? pane.right - event.clientX : undefined,
+  bottom:
+    event.clientY >= pane.height - 200
+      ? pane.bottom - event.clientY
+      : undefined,
 })
 ```
 
 **Why this works**:
+
 - Converts viewport-relative `clientX/Y` to wrapper-relative coordinates
 - Maintains existing boundary detection logic
 - No API changes, simple coordinate adjustment
@@ -100,6 +114,7 @@ Remove the `onClick` handler from the parent div:
 ```
 
 **Why this works**:
+
 - Removes `stopPropagation()` that was blocking button clicks
 - Allows existing `onPaneClick` in `PlannerCanvas.tsx` to handle dismissal
 - Simplifies component logic
@@ -123,17 +138,17 @@ export function useOnClickOutside<T extends HTMLElement = HTMLElement>(
   useEffect(() => {
     const listener = (event: Event) => {
       const el = ref?.current
-      
+
       // Do nothing if clicking ref's element or descendant elements
       if (!el || el.contains(event?.target as Node)) {
         return
       }
-      
+
       callback(event)
     }
 
     document.addEventListener(eventType, listener)
-    
+
     return () => {
       document.removeEventListener(eventType, listener)
     }
@@ -166,6 +181,7 @@ export function NodeContextMenu({ /*...*/ }: NodeContextMenuProps) {
 ```
 
 **Why this works**:
+
 - Provides robust click-outside detection using standard pattern
 - Used by Microsoft FluentUI, shadcn/ui, and other major libraries
 - Handles nested elements correctly via `el.contains()`
@@ -197,6 +213,7 @@ useEffect(() => {
 ```
 
 **Why this works**:
+
 - Follows accessibility standards
 - Standard UI pattern (used by MUI, Radix UI, etc.)
 - Provides user-friendly dismissal option
@@ -206,7 +223,9 @@ useEffect(() => {
 ## Implementation Steps
 
 ### Step 1: Fix Positioning Offset
+
 **File**: `src/components/planner/PlannerCanvas.tsx`
+
 - Navigate to line 80-87 in `onNodeContextMenu` callback
 - Change `event.clientY` to `event.clientY - pane.top`
 - Change `event.clientX` to `event.clientX - pane.left`
@@ -214,13 +233,17 @@ useEffect(() => {
 - Change `pane.width` to `pane.right` (for right boundary)
 
 ### Step 2: Create useOnClickOutside Hook
+
 **File**: `src/hooks/use-on-click-outside.ts` (new file)
+
 - Create new hook file in `src/hooks/` directory
 - Copy implementation from plan above
 - Verify TypeScript types export correctly
 
 ### Step 3: Update NodeContextMenu Component
+
 **File**: `src/components/planner/NodeContextMenu.tsx`
+
 - Import `useRef` from React
 - Import `useOnClickOutside` from `@/hooks/use-on-click-outside`
 - Add `const menuRef = useRef<HTMLDivElement>(null)` inside component
@@ -229,7 +252,9 @@ useEffect(() => {
 - Remove `onClick` and `stopPropagation()` from parent div
 
 ### Step 4: Add Keyboard Dismissal (Optional)
+
 **File**: `src/components/planner/PlannerCanvas.tsx`
+
 - Locate existing `useEffect` with keyboard handlers (lines 177-200)
 - Add Escape key handler as shown in plan
 - Update dependency array to include `menu`
@@ -241,17 +266,20 @@ useEffect(() => {
 ### Manual Testing Required
 
 **Test Case 1: Positioning**
+
 - [ ] Right-click on a node near top-left corner
 - [ ] Verify menu appears directly under cursor
-- [ ] Right-click on a node near bottom-right corner  
+- [ ] Right-click on a node near bottom-right corner
 - [ ] Verify menu doesn't overflow viewport
 
 **Test Case 2: Dismissal via Click Outside**
+
 - [ ] Open context menu on a node
 - [ ] Left-click on empty canvas area
 - [ ] Verify menu closes immediately
 
 **Test Case 3: Button Actions**
+
 - [ ] Open context menu
 - [ ] Click "Delete Node" button
 - [ ] Verify node is deleted and menu closes
@@ -261,17 +289,20 @@ useEffect(() => {
 - [ ] Verify connector is added and menu closes
 
 **Test Case 4: Keyboard Dismissal (if implemented)**
+
 - [ ] Open context menu
 - [ ] Press Escape key
 - [ ] Verify menu closes
 
 **Test Case 5: Multiple Menus**
+
 - [ ] Open context menu on Node A
 - [ ] Right-click on Node B without closing first
 - [ ] Verify menu moves to Node B position
 - [ ] Verify only one menu is visible at a time
 
 **Test Case 6: Edge Cases**
+
 - [ ] Open context menu, then drag a node
 - [ ] Verify menu stays closed
 - [ ] Resize browser window with menu open
@@ -281,12 +312,12 @@ useEffect(() => {
 
 ## Code Changes Summary
 
-| File | Lines Changed | Type | Risk |
-|------|--------------|------|------|
-| `PlannerCanvas.tsx` | 4-5 lines | Coordinate math fix | Low |
-| `NodeContextMenu.tsx` | 6-8 lines | Hook integration, removal | Low |
-| `hooks/use-on-click-outside.ts` | 35 lines (new) | New hook | None |
-| **Total** | **~50 lines** | - | **Low** |
+| File                            | Lines Changed  | Type                      | Risk    |
+| ------------------------------- | -------------- | ------------------------- | ------- |
+| `PlannerCanvas.tsx`             | 4-5 lines      | Coordinate math fix       | Low     |
+| `NodeContextMenu.tsx`           | 6-8 lines      | Hook integration, removal | Low     |
+| `hooks/use-on-click-outside.ts` | 35 lines (new) | New hook                  | None    |
+| **Total**                       | **~50 lines**  | -                         | **Low** |
 
 ---
 
@@ -295,9 +326,11 @@ useEffect(() => {
 **Overall Risk**: Low
 
 **Potential Issues**:
+
 - None identified. Changes are localized and follow established patterns.
 
 **Rollback Plan**:
+
 - If positioning is worse, revert coordinate adjustments
 - If click-outside still fails, verify `useOnClickOutside` implementation matches plan
 - All changes are additive or simple arithmetic - no refactoring required
@@ -307,16 +340,19 @@ useEffect(() => {
 ## Alternatives Considered
 
 ### Alternative A: Use ReactFlow NodeToolbar
+
 - **Pros**: Zero positioning code, built-in
 - **Cons**: Less flexible UI, different UX pattern
 - **Decision**: Not suitable for custom context menu requirements
 
 ### Alternative B: Use Radix UI ContextMenu
+
 - **Pros**: Best-in-class accessibility
 - **Cons**: Requires major refactor, breaking changes
 - **Decision**: Overkill for this use case
 
 ### Alternative C: Keep current implementation with debug
+
 - **Pros**: No new code
 - **Cons**: Doesn't fix the issues
 - **Decision**: Not acceptable
