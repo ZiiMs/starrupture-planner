@@ -288,6 +288,16 @@ function PlannerCanvasInner() {
     }
   }, [setNodes, setEdges])
 
+  // Auto-save to localStorage whenever nodes or edges change
+  useEffect(() => {
+    if (typeof window !== 'undefined' && nodes.length > 0) {
+      localStorage.setItem(
+        'starrupture-planner',
+        JSON.stringify({ nodes, edges }),
+      )
+    }
+  }, [nodes, edges])
+
   // Apply layout
   useEffect(() => {
     if (nodesInitialized && nodes.length > 0 && !isLayouted) {
