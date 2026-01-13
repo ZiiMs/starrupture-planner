@@ -12,6 +12,7 @@ import {
 } from '@/lib/calculations'
 import { getIcon } from '@/lib/icons'
 import type { Building, Item, Recipe, PlannerNode, PlannerEdge } from '@/types/planner'
+import { usePlannerStore } from '@/stores/planner-store'
 import { nanoid } from 'nanoid'
 import { memo, useState, useCallback, useMemo } from 'react'
 import { getLayoutedElements } from '@/lib/dagre-layout'
@@ -21,11 +22,6 @@ interface BuildingSelectorProps {
   buildings: Record<string, Building>
   recipes: Record<string, Recipe>
   items: Record<string, Item>
-  nodes: PlannerNode[]
-  edges: PlannerEdge[]
-  setNodes: React.Dispatch<React.SetStateAction<PlannerNode[]>>
-  setEdges: React.Dispatch<React.SetStateAction<PlannerEdge[]>>
-  pushToHistory: (nodes: PlannerNode[], edges: PlannerEdge[]) => void
 }
 
 interface ProductionChainSummary {
@@ -40,12 +36,11 @@ function BuildingSelectorComponent({
   buildings,
   recipes,
   items,
-  nodes,
-  edges,
-  setNodes,
-  setEdges,
-  pushToHistory,
 }: BuildingSelectorProps) {
+  // Use store actions directly - they handle history capture internally
+  const addNode = usePlannerStore((state) => state.addNode)
+  const addEdge = usePlannerStore((state) => state.addEdge)
+
   const [activeTab, setActiveTab] = useState<'buildings' | 'items'>('buildings')
   const [nodeCounter, setNodeCounter] = useState(0)
 
@@ -139,13 +134,11 @@ function BuildingSelectorComponent({
         },
       }
 
-      // Capture history before adding node
-      pushToHistory(nodes, edges)
-
-      setNodes((nds) => [...nds, newNode])
+      // addNode captures history internally before adding
+      addNode(newNode)
       setNodeCounter((c) => c + 1)
     },
-    [buildings, recipes, nodeCounter, nodes, edges, setNodes, pushToHistory],
+    [buildings, recipes, nodeCounter, addNode],
   )
 
   const addProductionChain = useCallback(() => {
@@ -276,11 +269,11 @@ function BuildingSelectorComponent({
     )
 
     if (layoutedNodes.length > 0) {
-      // Capture history ONCE before adding all nodes/edges (single undo step)
-      pushToHistory(nodes, edges)
+      // addNode captures history before each addition
+      // Using individual adds to properly type the nodes
+      layoutedNodes.forEach((node) => addNode(node as PlannerNode))
+      edgesToAdd.forEach((edge) => addEdge(edge))
 
-      setNodes((nds) => [...nds, ...layoutedNodes])
-      setEdges((eds) => [...eds, ...edgesToAdd])
       setNodeCounter((c) => c + layoutedNodes.length)
       setSelectedItemId(null)
       setItemsPerMinute('60')
@@ -291,9 +284,8 @@ function BuildingSelectorComponent({
     productionSummary,
     buildings,
     recipes,
-    setNodes,
-    setEdges,
-    pushToHistory,
+    addNode,
+    addEdge,
   ])
 
   return (

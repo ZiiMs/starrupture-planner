@@ -104,33 +104,37 @@ function PlannerCanvasInner() {
   const pushToHistory = usePlannerStore((state) => state.pushToHistory)
 
   // Sync undo/redo from store to local ReactFlow state
-  const present = usePlannerStore((state) => state.present)
+  // Use object selector to get both values together and avoid unnecessary re-renders
+  const { nodes: storeNodes, edges: storeEdges } = usePlannerStore((state) => ({
+    nodes: state.nodes,
+    edges: state.edges,
+  }))
   const lastSyncedRef = useRef<{ nodes: any[] | null; edges: any[] | null }>({
     nodes: null,
     edges: null,
   })
   useEffect(() => {
-    // Sync if present changed and local state hasn't caught up yet
+    // Sync if store nodes/edges changed and local state hasn't caught up yet
     // Use JSON comparison for deep equality since arrays are reference types
     const nodesNeedSync =
-      present.nodes &&
-      lastSyncedRef.current.nodes !== present.nodes &&
-      JSON.stringify(present.nodes) !== JSON.stringify(lastSyncedRef.current.nodes)
+      storeNodes &&
+      lastSyncedRef.current.nodes !== storeNodes &&
+      JSON.stringify(storeNodes) !== JSON.stringify(lastSyncedRef.current.nodes)
 
     const edgesNeedSync =
-      present.edges &&
-      lastSyncedRef.current.edges !== present.edges &&
-      JSON.stringify(present.edges) !== JSON.stringify(lastSyncedRef.current.edges)
+      storeEdges &&
+      lastSyncedRef.current.edges !== storeEdges &&
+      JSON.stringify(storeEdges) !== JSON.stringify(lastSyncedRef.current.edges)
 
     if (nodesNeedSync) {
-      setNodes(present.nodes)
-      lastSyncedRef.current.nodes = present.nodes
+      setNodes(storeNodes)
+      lastSyncedRef.current.nodes = storeNodes
     }
     if (edgesNeedSync) {
-      setEdges(present.edges)
-      lastSyncedRef.current.edges = present.edges
+      setEdges(storeEdges)
+      lastSyncedRef.current.edges = storeEdges
     }
-  }, [present, setNodes, setEdges])
+  }, [storeNodes, storeEdges, setNodes, setEdges])
 
   // Wrap onNodesChange to capture history for meaningful changes
   const onNodesChange = useCallback(
@@ -143,11 +147,11 @@ function PlannerCanvasInner() {
           !(change.type === 'position' && !change.force),
       )
       if (meaningfulChanges.length > 0) {
-        pushToHistory(nodes, edges)
+        pushToHistory()
       }
       onNodesChangeOrig(changes)
     },
-    [nodes, edges, onNodesChangeOrig, pushToHistory],
+    [onNodesChangeOrig, pushToHistory],
   )
 
   // Wrap onEdgesChange to capture history for meaningful changes
@@ -158,11 +162,11 @@ function PlannerCanvasInner() {
         (change) => change.type !== 'select',
       )
       if (meaningfulChanges.length > 0) {
-        pushToHistory(nodes, edges)
+        pushToHistory()
       }
       onEdgesChangeOrig(changes)
     },
-    [nodes, edges, onEdgesChangeOrig, pushToHistory],
+    [onEdgesChangeOrig, pushToHistory],
   )
 
   const [menu, setMenu] = useState<{
@@ -178,7 +182,7 @@ function PlannerCanvasInner() {
   const onConnect = useCallback(
     (params: any) => {
       // Capture history before adding edge
-      pushToHistory(nodes, edges)
+      pushToHistory()
 
       const newEdge = {
         id: `efficiency-edge-${crypto.randomUUID()}`,
@@ -211,7 +215,7 @@ function PlannerCanvasInner() {
         return updatedEdges
       })
     },
-    [setEdges, nodes, plannerData, pushToHistory, edges],
+    [setEdges, nodes, plannerData, pushToHistory],
   )
 
   const onPaneClick = useCallback(() => setMenu(null), [])
@@ -229,7 +233,7 @@ function PlannerCanvasInner() {
   const handleDeleteNode = useCallback(() => {
     if (menu?.id) {
       // Capture history before deleting
-      pushToHistory(nodes, edges)
+      pushToHistory()
 
       setNodes((nds) => nds.filter((n: any) => n.id !== menu.id))
       setEdges((eds) =>
@@ -237,13 +241,13 @@ function PlannerCanvasInner() {
       )
       setMenu(null)
     }
-  }, [menu, setNodes, setEdges, pushToHistory, nodes, edges])
+  }, [menu, setNodes, setEdges, pushToHistory])
 
   const handleAddInputConnector = useCallback(() => {
     if (!menu?.id) return
 
     // Capture history before adding connector
-    pushToHistory(nodes, edges)
+    pushToHistory()
 
     setNodes((nds) =>
       nds.map((node) => {
@@ -258,13 +262,13 @@ function PlannerCanvasInner() {
       }),
     )
     setMenu(null)
-  }, [menu?.id, setNodes, pushToHistory, nodes, edges])
+  }, [menu?.id, setNodes, pushToHistory])
 
   const handleAddOutputConnector = useCallback(() => {
     if (!menu?.id) return
 
     // Capture history before adding connector
-    pushToHistory(nodes, edges)
+    pushToHistory()
 
     setNodes((nds) =>
       nds.map((node) => {
@@ -279,14 +283,14 @@ function PlannerCanvasInner() {
       }),
     )
     setMenu(null)
-  }, [menu?.id, setNodes, pushToHistory, nodes, edges])
+  }, [menu?.id, setNodes, pushToHistory])
 
   const handleRemoveInputConnector = useCallback(
     (connectorId: string) => {
       if (!menu?.id) return
 
       // Capture history before removing connector
-      pushToHistory(nodes, edges)
+      pushToHistory()
 
       // First, remove any edges connected to this handle
       setEdges((eds) =>
@@ -310,7 +314,7 @@ function PlannerCanvasInner() {
       )
       setMenu(null)
     },
-    [menu?.id, setNodes, setEdges, pushToHistory, nodes, edges],
+    [menu?.id, setNodes, setEdges, pushToHistory],
   )
 
   const handleRemoveOutputConnector = useCallback(
@@ -318,7 +322,7 @@ function PlannerCanvasInner() {
       if (!menu?.id) return
 
       // Capture history before removing connector
-      pushToHistory(nodes, edges)
+      pushToHistory()
 
       // First, remove any edges connected to this handle
       setEdges((eds) =>
@@ -342,14 +346,14 @@ function PlannerCanvasInner() {
       )
       setMenu(null)
     },
-    [menu?.id, setNodes, setEdges, pushToHistory, nodes, edges],
+    [menu?.id, setNodes, setEdges, pushToHistory],
   )
 
   const handleDisconnect = useCallback(() => {
     if (!menu?.id) return
 
     // Capture history before disconnecting
-    pushToHistory(nodes, edges)
+    pushToHistory()
 
     setEdges((eds) =>
       eds.filter(
@@ -357,7 +361,7 @@ function PlannerCanvasInner() {
       ),
     )
     setMenu(null)
-  }, [menu?.id, setEdges, pushToHistory, nodes, edges])
+  }, [menu?.id, setEdges, pushToHistory])
 
   // Load saved data
   useEffect(() => {
@@ -440,7 +444,7 @@ function PlannerCanvasInner() {
   const handleRecipeChange = useCallback(
     (nodeId: string, newRecipeId: string) => {
       // Capture history before changing recipe
-      pushToHistory(nodes, edges)
+      pushToHistory()
 
       setNodes((nds) =>
         nds.map((node) => {
@@ -462,7 +466,7 @@ function PlannerCanvasInner() {
         }),
       )
     },
-    [plannerData, setNodes, pushToHistory, nodes, edges],
+    [plannerData, setNodes, pushToHistory],
   )
   if (isLoading) {
     return (
@@ -487,11 +491,6 @@ function PlannerCanvasInner() {
           buildings={plannerData.buildings}
           recipes={plannerData.recipes}
           items={plannerData.items}
-          nodes={nodes}
-          edges={edges}
-          setNodes={setNodes}
-          setEdges={setEdges}
-          pushToHistory={pushToHistory}
         />
       </div>
 
