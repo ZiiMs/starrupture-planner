@@ -3,12 +3,11 @@
 import { memo } from 'react'
 import { Controls } from '@xyflow/react'
 import { Button } from '@/components/ui/button'
-import { Undo, Redo, Save, RotateCcw } from 'lucide-react'
+import { Undo, Redo } from 'lucide-react'
 import { usePlannerStore } from '@/stores/planner-store'
 
 function ControlsComponent() {
-  const { undo, redo, saveToLocalStorage, loadFromLocalStorage } =
-    usePlannerStore()
+  const { undo, redo } = usePlannerStore()
 
   return (
     <>
@@ -29,22 +28,6 @@ function ControlsComponent() {
           title="Redo (Ctrl+Y)"
         >
           <Redo className="w-4 h-4" />
-        </Button>
-        <Button
-          size="icon"
-          variant="outline"
-          onClick={saveToLocalStorage}
-          title="Save (Ctrl+S)"
-        >
-          <Save className="w-4 h-4" />
-        </Button>
-        <Button
-          size="icon"
-          variant="outline"
-          onClick={loadFromLocalStorage}
-          title="Load"
-        >
-          <RotateCcw className="w-4 h-4" />
         </Button>
       </div>
     </>
