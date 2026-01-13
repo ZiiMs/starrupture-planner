@@ -1,6 +1,8 @@
 {
-  "active_plan": "/home/ziim/.claude-squad/7ca5efee1156c3bbb28f419e1ae3a9f4c985a71d334da2d85161a8d0f82e47ac/worktrees/ziim/fix-calculations_188a338ebbfec594/.sisyphus/plans/undo-redo-fix.md",
-  "started_at": "2026-01-13T17:55:42.837Z",
-  "session_ids": ["ses_447885456ffem4BF4P1XH80kGd"],
-  "plan_name": "undo-redo-fix"
+  "active_plan": "/home/ziim/.claude-squad/7ca5efee1156c3bbb28f419e1ae3a9f4c985a71d334da2d85161a8d0f82e47ac/worktrees/ziim/peristant-state_188a6156a49d53da/.sisyphus/plans/zustand-persist.md",
+  "started_at": "2026-01-13T20:32:01.499Z",
+  "completed_at": "2026-01-13T20:38:00.000Z",
+  "session_ids": ["ses_447240f0cffeAEmiQy4YEc5MdT"],
+  "plan_name": "zustand-persist",
+  "status": "completed"
 }
