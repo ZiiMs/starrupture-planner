@@ -17,7 +17,6 @@ import Minimap from './Minimap'
 import BuildingSelector from './BuildingSelector'
 import { NodeContextMenu } from './NodeContextMenu'
 import { EfficiencyEdge } from './EfficiencyEdge'
-import { ClientOnly } from '@/components/ClientOnly'
 
 interface EnhancedBuildingNodeProps {
   items: Record<string, any>
@@ -340,70 +339,54 @@ function PlannerCanvas() {
   return (
     <div className="flex h-screen w-full">
       <div className="flex-shrink-0 p-4 border-r border-border bg-background">
-        <ClientOnly
-          fallback={
-            <div className="w-72 h-[500px] flex items-center justify-center">
-              <div className="text-sm text-muted-foreground">Loading...</div>
-            </div>
-          }
-        >
-          <BuildingSelector
-            buildings={plannerData.buildings}
-            recipes={plannerData.recipes}
-            items={plannerData.items}
-          />
-        </ClientOnly>
+        <BuildingSelector
+          buildings={plannerData.buildings}
+          recipes={plannerData.recipes}
+          items={plannerData.items}
+        />
       </div>
 
       <div className="flex-1 relative" ref={reactFlowWrapper}>
-        <ClientOnly
-          fallback={
-            <div className="flex items-center justify-center h-full">
-              <div className="text-sm text-muted-foreground">Loading canvas...</div>
-            </div>
-          }
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={handleNodesChange}
+          onEdgesChange={handleEdgesChange}
+          onConnect={onConnect}
+          onNodeContextMenu={onNodeContextMenu}
+          onPaneClick={onPaneClick}
+          onNodeClick={onNodeClick}
+          nodeTypes={{
+            'planner-node': (props: any) => (
+              <EnhancedBuildingNode
+                {...props}
+                items={plannerData.items}
+                buildings={plannerData.buildings}
+                recipes={plannerData.recipes}
+                onRecipeChange={handleRecipeChange}
+              />
+            ),
+          }}
+          edgeTypes={{
+            'efficiency-edge': (props: any) => (
+              <EfficiencyEdge
+                {...props}
+                recipes={plannerData.recipes}
+                buildings={plannerData.buildings}
+              />
+            ),
+          }}
+          fitView
+          className="bg-background"
+          defaultEdgeOptions={{
+            type: 'smoothstep',
+            animated: true,
+          }}
         >
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={handleNodesChange}
-            onEdgesChange={handleEdgesChange}
-            onConnect={onConnect}
-            onNodeContextMenu={onNodeContextMenu}
-            onPaneClick={onPaneClick}
-            onNodeClick={onNodeClick}
-            nodeTypes={{
-              'planner-node': (props: any) => (
-                <EnhancedBuildingNode
-                  {...props}
-                  items={plannerData.items}
-                  buildings={plannerData.buildings}
-                  recipes={plannerData.recipes}
-                  onRecipeChange={handleRecipeChange}
-                />
-              ),
-            }}
-            edgeTypes={{
-              'efficiency-edge': (props: any) => (
-                <EfficiencyEdge
-                  {...props}
-                  recipes={plannerData.recipes}
-                  buildings={plannerData.buildings}
-                />
-              ),
-            }}
-            fitView
-            className="bg-background"
-            defaultEdgeOptions={{
-              type: 'smoothstep',
-              animated: true,
-            }}
-          >
-            <Background />
-            <Controls />
-            <Minimap />
-          </ReactFlow>
-        </ClientOnly>
+          <Background />
+          <Controls />
+          <Minimap />
+        </ReactFlow>
 
         {menu && (
           <NodeContextMenu
