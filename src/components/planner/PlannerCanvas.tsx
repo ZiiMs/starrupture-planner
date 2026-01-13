@@ -44,6 +44,43 @@ const EnhancedBuildingNode = memo(
 
 EnhancedBuildingNode.displayName = 'EnhancedBuildingNode'
 
+// Helper to calculate edge efficiency data
+function calculateEdgeEfficiencyData(
+  edge: any,
+  nodes: any[],
+  recipes: Record<string, any>,
+  buildings: Record<string, any>
+) {
+  const sourceNode = nodes.find((n) => n.id === edge.source)
+  const targetNode = nodes.find((n) => n.id === edge.target)
+
+  if (!sourceNode || !targetNode) return null
+
+  const sourceRecipe = recipes[sourceNode.data.recipeId]
+  const targetRecipe = recipes[targetNode.data.recipeId]
+  const sourceBuilding = buildings[sourceNode.data.buildingId]
+
+  if (!sourceRecipe || !targetRecipe || !sourceBuilding) return null
+
+  const itemId = edge.data?.itemId || edge.targetHandle?.replace('input-', '') || ''
+  if (!itemId) return null
+
+  const inputAmount = targetRecipe.inputs.find((i: any) => i.itemId === itemId)?.amount || 1
+  const usageRate = (inputAmount / targetRecipe.time) * 60
+
+  const sourceOutputAmount = sourceRecipe.outputs.find((o: any) => o.itemId === itemId)?.amount || sourceRecipe.outputs[0]?.amount || 1
+  const craftsPerSecond = (sourceNode.data.count * sourceBuilding.speed) / sourceRecipe.time
+  const producerRate = craftsPerSecond * 60 * sourceOutputAmount
+
+  return {
+    itemId,
+    usageRate,
+    producerRate,
+    isWarning: producerRate > usageRate,
+    dataReady: true,
+  }
+}
+
 function PlannerCanvasInner() {
   const { data: plannerData, isLoading } = usePlannerData()
 
@@ -63,23 +100,7 @@ function PlannerCanvasInner() {
   } | null>(null)
   const reactFlowWrapper = useRef<HTMLDivElement>(null)
 
-  // Early returns MUST be after all hooks
-  if (isLoading) {
-    return (
-      <div className="h-screen w-full flex items-center justify-center">
-        <span className="text-muted-foreground">Loading...</span>
-      </div>
-    )
-  }
-
-  if (!plannerData) {
-    return (
-      <div className="h-screen w-full flex items-center justify-center">
-        <span className="text-muted-foreground">No data</span>
-      </div>
-    )
-  }
-
+  // ALL HOOKS MUST BE DEFINED BEFORE ANY EARLY RETURNS
   const onConnect = useCallback((params: any) => {
     const newEdge = {
       ...params,
@@ -87,8 +108,20 @@ function PlannerCanvasInner() {
       animated: true,
       data: { usageRate: 0, producerRate: 0, isWarning: false, dataReady: false },
     }
-    setEdges((eds) => [...eds, newEdge])
-  }, [setEdges])
+    setEdges((eds) => {
+      const updatedEdges = [...eds, newEdge]
+      // Calculate edge data for all edges
+      if (plannerData?.recipes && plannerData?.buildings) {
+        updatedEdges.forEach((edge: any) => {
+          const edgeData = calculateEdgeEfficiencyData(edge, nodes, plannerData.recipes, plannerData.buildings)
+          if (edgeData) {
+            edge.data = { ...edge.data, ...edgeData }
+          }
+        })
+      }
+      return updatedEdges
+    })
+  }, [setEdges, nodes, plannerData])
 
   const onPaneClick = useCallback(() => setMenu(null), [])
   const onNodeClick = useCallback(() => setMenu(null), [])
@@ -109,6 +142,88 @@ function PlannerCanvasInner() {
       setMenu(null)
     }
   }, [menu, setNodes, setEdges])
+
+  const handleAddInputConnector = useCallback(() => {
+    if (!menu?.id) return
+    
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === menu.id) {
+          const customInputs = [...((node.data as any).customInputs || []), { id: `custom-input-${crypto.randomUUID()}` }]
+          return { ...node, data: { ...node.data, customInputs } }
+        }
+        return node
+      })
+    )
+    setMenu(null)
+  }, [menu?.id, setNodes])
+
+  const handleAddOutputConnector = useCallback(() => {
+    if (!menu?.id) return
+    
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === menu.id) {
+          const customOutputs = [...((node.data as any).customOutputs || []), { id: `custom-output-${crypto.randomUUID()}` }]
+          return { ...node, data: { ...node.data, customOutputs } }
+        }
+        return node
+      })
+    )
+    setMenu(null)
+  }, [menu?.id, setNodes])
+
+  const handleRemoveInputConnector = useCallback((connectorId: string) => {
+    if (!menu?.id) return
+    
+    // First, remove any edges connected to this handle
+    setEdges((eds) =>
+      eds.filter((edge) => {
+        // Keep edge if it's NOT connected to the target handle
+        return !(edge.target === menu.id && edge.targetHandle === connectorId)
+      })
+    )
+    
+    // Then, remove the handle from customInputs
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === menu.id) {
+          const customInputs = ((node.data as any).customInputs || []).filter(
+            (input: any) => input.id !== connectorId
+          )
+          return { ...node, data: { ...node.data, customInputs } }
+        }
+        return node
+      })
+    )
+    setMenu(null)
+  }, [menu?.id, setNodes, setEdges])
+
+  const handleRemoveOutputConnector = useCallback((connectorId: string) => {
+    if (!menu?.id) return
+    
+    // First, remove any edges connected to this handle
+    setEdges((eds) =>
+      eds.filter((edge) => {
+        // Keep edge if it's NOT connected to the source handle
+        return !(edge.source === menu.id && edge.sourceHandle === connectorId)
+      })
+    )
+    
+    // Then, remove the handle from customOutputs
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === menu.id) {
+          const customOutputs = ((node.data as any).customOutputs || []).filter(
+            (output: any) => output.id !== connectorId
+          )
+          return { ...node, data: { ...node.data, customOutputs } }
+        }
+        return node
+      })
+    )
+    setMenu(null)
+  }, [menu?.id, setNodes, setEdges])
 
   // Load saved data
   useEffect(() => {
@@ -140,6 +255,48 @@ function PlannerCanvasInner() {
       setTimeout(() => fitView({ padding: 0.1 }), 100)
     }
   }, [nodesInitialized, nodes.length, isLayouted, getNodes, edges, setNodes, setEdges, fitView])
+
+  // Calculate edge efficiency when nodes or planner data changes
+  useEffect(() => {
+    if (!plannerData?.recipes || !plannerData?.buildings || nodes.length === 0) return
+
+    setEdges((eds) => {
+      let hasChanges = false
+      const updatedEdges = eds.map((edge: any) => {
+        const edgeData = calculateEdgeEfficiencyData(edge, nodes, plannerData.recipes, plannerData.buildings)
+        if (edgeData) {
+          const needsUpdate =
+            edge.data?.itemId !== edgeData.itemId ||
+            edge.data?.usageRate !== edgeData.usageRate ||
+            edge.data?.producerRate !== edgeData.producerRate ||
+            edge.data?.isWarning !== edgeData.isWarning
+          if (needsUpdate) {
+            hasChanges = true
+            return { ...edge, data: { ...edge.data, ...edgeData } }
+          }
+        }
+        return edge
+      })
+      return hasChanges ? updatedEdges : eds
+    })
+  }, [nodes, plannerData, setEdges])
+
+  // NOW we can have early returns
+  if (isLoading) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center">
+        <span className="text-muted-foreground">Loading...</span>
+      </div>
+    )
+  }
+
+  if (!plannerData) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center">
+        <span className="text-muted-foreground">No data</span>
+      </div>
+    )
+  }
 
   return (
     <div className="h-screen w-full relative" ref={reactFlowWrapper}>
@@ -194,8 +351,12 @@ function PlannerCanvasInner() {
             right={menu.right}
             bottom={menu.bottom}
             onDeleteNode={handleDeleteNode}
-            onAddInputConnector={() => {}}
-            onAddOutputConnector={() => {}}
+            onAddInputConnector={handleAddInputConnector}
+            onAddOutputConnector={handleAddOutputConnector}
+            onRemoveInputConnector={handleRemoveInputConnector}
+            onRemoveOutputConnector={handleRemoveOutputConnector}
+            customInputs={(nodes.find((n) => n.id === menu.id)?.data as any)?.customInputs || []}
+            customOutputs={(nodes.find((n) => n.id === menu.id)?.data as any)?.customOutputs || []}
           />
         )}
       </ReactFlow>

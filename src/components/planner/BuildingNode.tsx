@@ -1,7 +1,6 @@
 'use client'
 
-import { memo, useMemo } from 'react'
-import { Handle, Position, NodeProps, useEdges } from '@xyflow/react'
+import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   Select,
@@ -11,12 +10,13 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { AlertTriangle } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import type { Building, Recipe, Item, PlannerEdgeData } from '@/types/planner'
 import { getIcon } from '@/lib/icons'
+import { cn } from '@/lib/utils'
+import type { Building, Item, PlannerEdgeData, Recipe } from '@/types/planner'
+import { Handle, NodeProps, Position, useEdges, useUpdateNodeInternals } from '@xyflow/react'
+import { AlertTriangle } from 'lucide-react'
+import { memo, useEffect, useMemo } from 'react'
 
 interface BuildingNodeProps extends NodeProps {
   items: Record<string, Item>
@@ -26,6 +26,7 @@ interface BuildingNodeProps extends NodeProps {
 }
 
 function BuildingNodeComponent({
+  id,  // Add this - React Flow passes node id as a prop
   data,
   selected,
   items,
@@ -34,11 +35,19 @@ function BuildingNodeComponent({
   onRecipeChange,
 }: BuildingNodeProps) {
   const edges = useEdges()
+  const updateNodeInternals = useUpdateNodeInternals()
   const building = buildings[(data as any).buildingId]
   const recipe = recipes[(data as any).recipeId]
 
   // Debug: log every render
-  console.log('BuildingNode render:', building?.name, '| Edges count:', edges.length)
+  console.log('BuildingNode render:', building?.name, '| Node ID:', id, '| Edges count:', edges.length)
+
+  // Update node internals when custom inputs/outputs change (required for dynamic handles)
+  useEffect(() => {
+    if (id) {
+      updateNodeInternals(id)
+    }
+  }, [id, (data as any).customInputs, (data as any).customOutputs, updateNodeInternals])
 
   const BuildingIcon = getIcon(building.icon)
 
@@ -46,78 +55,81 @@ function BuildingNodeComponent({
     r.producers.includes((data as any).buildingId),
   )
 
-  const efficiencyWarnings = useMemo(() => {
-    const nodeId = (data as any).id
-    if (!nodeId) return []
+const efficiencyWarnings = useMemo(() => {
+  if (!id) return []
 
-    const connectedEdges = edges.filter(
-      (edge) => edge.source === nodeId || edge.target === nodeId
-    )
+  const connectedEdges = edges.filter(
+    (edge) => edge.source === id || edge.target === id
+  )
 
-    console.log('BuildingNode:', building.name, '| NodeId:', nodeId, '| Connected edges:', connectedEdges.length)
-    connectedEdges.forEach((edge, i) => {
-      console.log(`Edge ${i}:`, { id: edge.id, source: edge.source, target: edge.target, data: edge.data })
-    })
+  // Skip if any edge data isn't ready yet
+  if (connectedEdges.some(edge => !(edge.data as PlannerEdgeData | undefined)?.dataReady)) {
+    return []
+  }
 
-    const warnings: Array<{
-      type: 'over' | 'under'
-      itemName: string
-      producerRate: number
-      consumerRate: number
-      itemId: string
-    }> = []
+  const warnings: Array<{
+    type: 'over' | 'under'
+    itemName: string
+    producerRate: number
+    consumerRate: number
+    itemId: string
+  }> = []
 
-    connectedEdges.forEach((edge) => {
-      const edgeData = edge.data as PlannerEdgeData | undefined
+  // Aggregate rates by itemId for outputs (where this node is producer)
+  const outputTotals = new Map<string, { produced: number; consumed: number }>()
+  
+  // Aggregate rates by itemId for inputs (where this node is consumer)
+  const inputTotals = new Map<string, { produced: number; needed: number }>()
 
-      // Skip if data not ready yet (edge data still being calculated)
-      if (!edgeData?.dataReady) return
+  connectedEdges.forEach((edge) => {
+    const edgeData = edge.data as PlannerEdgeData | undefined
+    if (!edgeData?.dataReady || !edgeData.itemId) return
 
-      const isProducer = edge.source === nodeId
-      const itemId = edgeData.itemId
+    const isProducer = edge.source === id
 
-      let itemName = 'Unknown'
-      if (isProducer) {
-        const thisRecipe = recipes[(data as any).recipeId]
-        if (thisRecipe) {
-          const output = thisRecipe.outputs.find((o) => o.itemId === itemId)
-          if (output) {
-            const item = items[itemId]
-            itemName = item?.name || itemId
-          }
-        }
-      } else {
-        const thisRecipe = recipes[(data as any).recipeId]
-        if (thisRecipe) {
-          const input = thisRecipe.inputs.find((i) => i.itemId === itemId)
-          if (input) {
-            const item = items[itemId]
-            itemName = item?.name || itemId
-          }
-        }
-      }
+    if (isProducer) {
+      // This node is producing - track total consumption of our output
+      const current = outputTotals.get(edgeData.itemId) || { produced: edgeData.producerRate, consumed: 0 }
+      current.consumed += edgeData.usageRate
+      outputTotals.set(edgeData.itemId, current)
+    } else {
+      // This node is consuming - track total production feeding our input
+      const current = inputTotals.get(edgeData.itemId) || { produced: 0, needed: edgeData.usageRate }
+      current.produced += edgeData.producerRate
+      inputTotals.set(edgeData.itemId, current)
+    }
+  })
 
-      if (isProducer && edgeData.producerRate > edgeData.usageRate) {
-        warnings.push({
-          type: 'over',
-          itemName,
-          producerRate: edgeData.producerRate,
-          consumerRate: edgeData.usageRate,
-          itemId,
-        })
-      } else if (!isProducer && edgeData.producerRate < edgeData.usageRate) {
-        warnings.push({
-          type: 'under',
-          itemName,
-          producerRate: edgeData.producerRate,
-          consumerRate: edgeData.usageRate,
-          itemId,
-        })
-      }
-    })
+  // Check output warnings (overproduction)
+  outputTotals.forEach((totals, itemId) => {
+    if (totals.produced > totals.consumed) {
+      const item = items[itemId]
+      warnings.push({
+        type: 'over',
+        itemName: item?.name || itemId,
+        producerRate: totals.produced,
+        consumerRate: totals.consumed,
+        itemId,
+      })
+    }
+  })
 
-    return warnings
-  }, [data, edges, items, recipes, building.name])
+  // Check input warnings (underproduction / starving)
+  inputTotals.forEach((totals, itemId) => {
+    if (totals.produced < totals.needed) {
+      const item = items[itemId]
+      warnings.push({
+        type: 'under',
+        itemName: item?.name || itemId,
+        producerRate: totals.produced,
+        consumerRate: totals.needed,
+        itemId,
+      })
+    }
+  })
+
+  return warnings
+}, [id, edges, items])
 
   return (
     <Card
@@ -137,7 +149,7 @@ function BuildingNodeComponent({
               position={Position.Left}
               id={`input-${input.itemId}`}
               style={{ top: `${yPos}%` }}
-              className="!bg-primary !border-primary-foreground"
+              className="bg-primary! border-primary-foreground!"
             />
           )
         })}
@@ -157,7 +169,7 @@ function BuildingNodeComponent({
                 position={Position.Left}
                 id={String(customInput.id)}
                 style={{ top: `${yPos}%` }}
-                className="!bg-secondary !border-secondary-foreground"
+                className="bg-secondary! border-secondary-foreground!"
               />
             )
           },
@@ -172,7 +184,7 @@ function BuildingNodeComponent({
               position={Position.Right}
               id={`output-${output.itemId}`}
               style={{ top: `${yPos}%` }}
-              className="!bg-primary !border-primary-foreground"
+              className="bg-primary! border-primary-foreground!"
             />
           )
         })}
@@ -192,7 +204,7 @@ function BuildingNodeComponent({
                 position={Position.Right}
                 id={String(customOutput.id)}
                 style={{ top: `${yPos}%` }}
-                className="!bg-secondary !border-secondary-foreground"
+                className="bg-secondary! border-secondary-foreground!"
               />
             )
           },
