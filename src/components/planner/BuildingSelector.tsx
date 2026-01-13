@@ -2,23 +2,35 @@
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   calculateOutputRate,
   calculatePowerConsumption,
+  calculateBuildingsNeeded,
 } from '@/lib/calculations'
 import { getIcon } from '@/lib/icons'
 import type { Building, Item, Recipe } from '@/types/planner'
 import { useReactFlow } from '@xyflow/react'
 import { nanoid } from 'nanoid'
-import { memo, useState } from 'react'
+import { memo, useState, useMemo } from 'react'
 import type { Edge, Node } from '@xyflow/react'
+import { getLayoutedElements } from '@/lib/dagre-layout'
+import ElementSelector from './ElementSelector'
 
 interface BuildingSelectorProps {
   buildings: Record<string, Building>
   recipes: Record<string, Recipe>
   items: Record<string, Item>
+}
+
+interface ProductionChainSummary {
+  buildingId: string
+  buildingName: string
+  recipeId: string
+  count: number
+  outputRate: number
 }
 
 function BuildingSelectorComponent({
@@ -29,6 +41,65 @@ function BuildingSelectorComponent({
   const { addNodes, addEdges } = useReactFlow()
   const [activeTab, setActiveTab] = useState<'buildings' | 'items'>('buildings')
   const [nodeCounter, setNodeCounter] = useState(0)
+
+  // Item selection state
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
+  const [itemsPerMinute, setItemsPerMinute] = useState<string>('60')
+  const [buildingSearch, setBuildingSearch] = useState('')
+  const [itemSearch, setItemSearch] = useState('')
+
+  const selectedItem = selectedItemId ? items[selectedItemId] : null
+
+  // Calculate production chain summary for selected item and rate
+  const productionSummary = useMemo(() => {
+    if (!selectedItemId || !itemsPerMinute) return []
+
+    const rate = parseFloat(itemsPerMinute)
+    if (isNaN(rate) || rate <= 0) return []
+
+    const summary: ProductionChainSummary[] = []
+    const visitedRecipes = new Set<string>()
+
+    const calculateForItem = (itemId: string, requiredRate: number) => {
+      const recipesProducingItem = Object.values(recipes).filter((r) =>
+        r.outputs.some((o) => o.itemId === itemId),
+      )
+
+      if (recipesProducingItem.length === 0) return
+
+      const recipe = recipesProducingItem[0]
+      const recipeKey = `${recipe.id}`
+      if (visitedRecipes.has(recipeKey)) return
+      visitedRecipes.add(recipeKey)
+
+      const building = buildings[recipe.producers[0]]
+      if (!building) return
+
+      const outputPerBuilding = calculateOutputRate(recipe, building, 1)
+      const buildingsNeeded = calculateBuildingsNeeded(
+        recipe,
+        building,
+        requiredRate,
+      )
+
+      summary.push({
+        buildingId: building.id,
+        buildingName: building.name,
+        recipeId: recipe.id,
+        count: Math.ceil(buildingsNeeded),
+        outputRate: outputPerBuilding,
+      })
+
+      // Calculate input requirements
+      for (const input of recipe.inputs) {
+        const inputRate = (input.amount / recipe.time) * 60 * buildingsNeeded
+        calculateForItem(input.itemId, inputRate)
+      }
+    }
+
+    calculateForItem(selectedItemId, rate)
+    return summary
+  }, [selectedItemId, itemsPerMinute, buildings, recipes])
 
   const addBuildingNode = (buildingId: string) => {
     const building = buildings[buildingId]
@@ -63,50 +134,39 @@ function BuildingSelectorComponent({
     setNodeCounter((c) => c + 1)
   }
 
-  const addChainFromItem = (itemId: string) => {
+  const addProductionChain = () => {
+    if (!selectedItemId || !itemsPerMinute || productionSummary.length === 0)
+      return
+
+    const targetRate = parseFloat(itemsPerMinute)
+    if (isNaN(targetRate) || targetRate <= 0) return
+
     const nodesToAdd: Node[] = []
     const edgesToAdd: Edge[] = []
-    const visitedRecipes = new Set<string>()
-    const levelCounts = new Map<number, number>()
-    const nodeRecipeMap = new Map<string, Recipe>()
 
-    const buildProductionChain = (
-      targetItemId: string,
-      level: number = 0,
-      parentNodeId?: string,
-      inputItemId?: string,
-    ): void => {
-      if (level > 10) return
+    // Pass 1: Create all nodes, track IDs by building type
+    const nodeIdMap = new Map<string, string[]>()
 
-      const recipesProducingItem = Object.values(recipes).filter((r) =>
-        r.outputs.some((o) => o.itemId === targetItemId),
+    productionSummary.forEach((buildingInfo) => {
+      const building = buildings[buildingInfo.buildingId]
+      // Use the stored recipeId, not search by building type
+      const recipe = Object.values(recipes).find(
+        (r) => r.id === buildingInfo.recipeId,
       )
 
-      if (recipesProducingItem.length === 0) return
+      if (!building || !recipe) return
 
-      const countAtLevel = levelCounts.get(level) || 0
+      const nodeIds: string[] = []
 
-      for (const recipe of recipesProducingItem) {
-        const recipeKey = `${recipe.id}-${level}`
-        if (visitedRecipes.has(recipeKey)) continue
-        visitedRecipes.add(recipeKey)
-
-        const building = buildings[recipe.producers[0]]
-        if (!building) continue
-
+      for (let i = 0; i < buildingInfo.count; i++) {
+        const nodeId = nanoid()
         const outputRate = calculateOutputRate(recipe, building, 1)
         const powerConsumption = calculatePowerConsumption(building, 1)
-
-        const nodeId = nanoid()
-        nodeRecipeMap.set(nodeId, recipe)
-
-        const x = 1200 - level * 350
-        const y = 200 + countAtLevel * 250
 
         nodesToAdd.push({
           id: nodeId,
           type: 'planner-node',
-          position: { x, y },
+          position: { x: 0, y: 0 },
           data: {
             buildingId: building.id,
             recipeId: recipe.id,
@@ -116,147 +176,227 @@ function BuildingSelectorComponent({
           },
         })
 
-        if (parentNodeId && inputItemId) {
-          const consumerRecipe = nodeRecipeMap.get(parentNodeId)
-          const producerRate = outputRate
+        nodeIds.push(nodeId)
+      }
 
-          let usageRate = 0
-          let isWarning = false
+      nodeIdMap.set(buildingInfo.buildingId, nodeIds)
+    })
 
-          if (consumerRecipe && consumerRecipe.time > 0) {
-            const inputAmount =
-              consumerRecipe.inputs.find((i) => i.itemId === inputItemId)
-                ?.amount || 1
+    // Pass 2: Create edges with proper distribution (not all-to-all)
+    productionSummary.forEach((buildingInfo) => {
+      // Use the stored recipeId instead of searching by building type
+      const recipe = Object.values(recipes).find(
+        (r) => r.id === buildingInfo.recipeId,
+      )
 
-            usageRate = (inputAmount / consumerRecipe.time) * 60
-            isWarning = producerRate > usageRate
-          }
+      if (!recipe || recipe.inputs.length === 0) return
+
+      const inputItemId = recipe.inputs[0].itemId
+      const inputAmount = recipe.inputs[0].amount
+
+      // Find which building produces this input
+      const inputBuildingSummary = productionSummary.find((bi) => {
+        const biRecipe = Object.values(recipes).find(
+          (r) => r.id === bi.recipeId,
+        )
+        return biRecipe?.outputs.some((o) => o.itemId === inputItemId)
+      })
+
+      if (!inputBuildingSummary) return
+
+      const sourceNodeIds = nodeIdMap.get(inputBuildingSummary.buildingId) || []
+      const targetNodeIds = nodeIdMap.get(buildingInfo.buildingId) || []
+
+      // Calculate distribution - how many targets each source feeds
+      const targetCount = targetNodeIds.length
+
+      if (sourceNodeIds.length === 0 || targetCount === 0) return
+
+      // Each target needs connections from enough sources to get required input
+      // Spread sources evenly across targets
+      const edgesPerTarget = Math.ceil(sourceNodeIds.length / targetCount)
+
+      // Create distributed edges
+      for (let targetIdx = 0; targetIdx < targetCount; targetIdx++) {
+        // Each target gets connected to `edgesPerTarget` sources
+        // Spread sources evenly: 0, 1, 2, ... modulo sourceNodeIds.length
+        for (let j = 0; j < edgesPerTarget; j++) {
+          const sourceIdx = (targetIdx + j) % sourceNodeIds.length
+          const sourceId = sourceNodeIds[sourceIdx]
+          const targetId = targetNodeIds[targetIdx]
+
+          const sourceRecipe = Object.values(recipes).find(
+            (r) => r.id === inputBuildingSummary.recipeId,
+          )!
+          const sourceBuilding = buildings[inputBuildingSummary.buildingId]
 
           edgesToAdd.push({
             id: nanoid(),
-            source: nodeId,
-            target: parentNodeId,
+            source: sourceId,
+            target: targetId,
             type: 'efficiency-edge',
             animated: true,
             data: {
               itemId: inputItemId,
-              amount: 1,
-              usageRate,
-              producerRate,
-              isWarning,
-              sourceNodeId: nodeId,
-              targetNodeId: parentNodeId,
+              amount: inputAmount,
+              usageRate: 0,
+              producerRate: calculateOutputRate(
+                sourceRecipe,
+                sourceBuilding,
+                1,
+              ),
+              isWarning: false,
+              sourceNodeId: sourceId,
+              targetNodeId: targetId,
             },
           })
         }
-
-        levelCounts.set(level, countAtLevel + 1)
-
-        for (const input of recipe.inputs) {
-          buildProductionChain(input.itemId, level + 1, nodeId, input.itemId)
-        }
       }
-    }
+    })
 
-    buildProductionChain(itemId, 0)
+    // Apply dagre layout
+    const { nodes: layoutedNodes } = getLayoutedElements(
+      nodesToAdd,
+      edgesToAdd,
+      'LR',
+    )
 
-    if (nodesToAdd.length > 0) {
-      addNodes(nodesToAdd)
+    if (layoutedNodes.length > 0) {
+      addNodes(layoutedNodes)
       addEdges(edgesToAdd)
-      setNodeCounter((c) => c + nodesToAdd.length)
+      setNodeCounter((c) => c + layoutedNodes.length)
+      setSelectedItemId(null)
+      setItemsPerMinute('60')
     }
   }
 
-  const categories = Array.from(
-    new Set(Object.values(buildings).map((b) => b.category)),
-  )
-  const itemCategories = Array.from(
-    new Set(Object.values(items).map((i) => i.category)),
-  )
-
   return (
-    <Card className="w-72">
+    <Card className="w-80 shadow-lg">
       <CardHeader>
         <CardTitle className="text-sm">Add Elements</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 overflow-hidden flex flex-col">
         <Tabs
           value={activeTab}
-          onValueChange={(v) => setActiveTab(v as 'buildings' | 'items')}
+          onValueChange={(v) => {
+            setActiveTab(v as 'buildings' | 'items')
+            setSelectedItemId(null)
+            setItemsPerMinute('60')
+            setBuildingSearch('')
+            setItemSearch('')
+          }}
+          className="flex-1 flex flex-col overflow-hidden"
         >
           <TabsList className="w-full">
             <TabsTrigger value="buildings">Buildings</TabsTrigger>
             <TabsTrigger value="items">Items</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="buildings">
-            <ScrollArea className="h-[400px]">
-              {categories.map((category) => (
-                <div key={category} className="mb-4">
-                  <h4 className="text-xs font-semibold text-muted-foreground mb-2 capitalize">
-                    {category}
-                  </h4>
-                  <div className="flex flex-col gap-2">
-                    {Object.values(buildings)
-                      .filter((b) => b.category === category)
-                      .map((building) => {
-                        const BuildingIcon = getIcon(building.icon)
-                        return (
-                          <Button
-                            key={building.id}
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => addBuildingNode(building.id)}
-                            className="justify-start gap-2 h-auto py-2"
-                          >
-                            <div
-                              className="w-6 h-6 rounded-sm flex items-center justify-center bg-accent"
-                              style={{
-                                color:
-                                  building.iconColor || 'var(--foreground)',
-                              }}
-                            >
-                              <BuildingIcon className="w-4 h-4" />
-                            </div>
-                            <span className="text-xs">{building.name}</span>
-                          </Button>
-                        )
-                      })}
-                  </div>
-                </div>
-              ))}
-            </ScrollArea>
+          <TabsContent
+            value="buildings"
+            className="flex-1 overflow-hidden mt-3"
+          >
+            <ElementSelector
+              type="buildings"
+              buildings={buildings}
+              items={items}
+              onSelectBuilding={addBuildingNode}
+              onSelectItem={() => {}}
+              searchQuery={buildingSearch}
+              onSearchChange={setBuildingSearch}
+            />
           </TabsContent>
 
-          <TabsContent value="items">
-            <ScrollArea className="h-[400px]">
-              {itemCategories.map((category) => (
-                <div key={category} className="mb-4">
-                  <h4 className="text-xs font-semibold text-muted-foreground mb-2 capitalize">
-                    {category}
-                  </h4>
-                  <div className="flex flex-col gap-2">
-                    {Object.values(items)
-                      .filter((i) => i.category === category)
-                      .map((item) => {
-                        const ItemIcon = getIcon(item.icon)
-                        return (
-                          <Button
-                            key={item.id}
-                            variant="outline"
-                            onClick={() => addChainFromItem(item.id)}
-                            className="justify-start gap-2 h-auto py-2"
-                            title={`Click to add ${item.name} production chain`}
-                          >
-                            <ItemIcon className="h-4 w-4" />
-                            {item.name}
-                          </Button>
-                        )
-                      })}
+          <TabsContent value="items" className="flex-1 overflow-hidden mt-3">
+            {selectedItem ? (
+              <div className="space-y-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedItemId(null)
+                    setItemsPerMinute('60')
+                  }}
+                  className="mb-2"
+                >
+                  ← Back to items
+                </Button>
+
+                <div className="p-3 rounded-md bg-accent/50">
+                  <div className="flex items-center gap-2">
+                    {(() => {
+                      const ItemIcon = getIcon(selectedItem.icon)
+                      return (
+                        <>
+                          <ItemIcon
+                            className="h-5 w-5"
+                            style={{ color: selectedItem.iconColor }}
+                          />
+                          <span className="font-medium">
+                            {selectedItem.name}
+                          </span>
+                        </>
+                      )
+                    })()}
                   </div>
                 </div>
-              ))}
-            </ScrollArea>
+
+                <div className="space-y-2">
+                  <Label htmlFor="rate">Target Production Rate</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="rate"
+                      type="number"
+                      min="1"
+                      value={itemsPerMinute}
+                      onChange={(e) => setItemsPerMinute(e.target.value)}
+                      className="flex-1"
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      items/min
+                    </span>
+                  </div>
+                </div>
+
+                {productionSummary.length > 0 && (
+                  <div className="space-y-2">
+                    <Label>Production Chain</Label>
+                    <div className="p-3 rounded-md bg-muted space-y-2">
+                      {[...productionSummary].reverse().map((item, idx) => (
+                        <div key={idx} className="flex justify-between text-sm">
+                          <span>{item.buildingName}</span>
+                          <span className="text-muted-foreground">
+                            ×{item.count}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <Button
+                  onClick={addProductionChain}
+                  className="w-full"
+                  disabled={
+                    !itemsPerMinute ||
+                    parseFloat(itemsPerMinute) <= 0 ||
+                    productionSummary.length === 0
+                  }
+                >
+                  Place Production Chain
+                </Button>
+              </div>
+            ) : (
+              <ElementSelector
+                type="items"
+                buildings={buildings}
+                items={items}
+                onSelectBuilding={() => {}}
+                onSelectItem={(itemId) => setSelectedItemId(itemId)}
+                searchQuery={itemSearch}
+                onSearchChange={setItemSearch}
+              />
+            )}
           </TabsContent>
         </Tabs>
       </CardContent>

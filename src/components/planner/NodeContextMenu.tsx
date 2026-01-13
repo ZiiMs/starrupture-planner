@@ -1,7 +1,7 @@
 'use client'
 
-import { useRef } from 'react'
-import { Trash2, Plug, ArrowUpFromDot } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { Trash2, Plug, ArrowUpFromDot, Minus, Unplug } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useOnClickOutside } from '@/hooks/use-on-click-outside'
 
@@ -12,8 +12,13 @@ interface NodeContextMenuProps {
   bottom?: number
   onClick: () => void
   onDeleteNode: () => void
+  onDisconnect: () => void
   onAddInputConnector: () => void
   onAddOutputConnector: () => void
+  onRemoveInputConnector?: (connectorId: string) => void
+  onRemoveOutputConnector?: (connectorId: string) => void
+  customInputs?: Array<{ id: string }>
+  customOutputs?: Array<{ id: string }>
 }
 
 export function NodeContextMenu({
@@ -23,12 +28,23 @@ export function NodeContextMenu({
   bottom,
   onClick,
   onDeleteNode,
+  onDisconnect,
   onAddInputConnector,
   onAddOutputConnector,
+  onRemoveInputConnector,
+  onRemoveOutputConnector,
+  customInputs = [],
+  customOutputs = [],
 }: NodeContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null)
+  const [showRemoveInputMenu, setShowRemoveInputMenu] = useState(false)
+  const [showRemoveOutputMenu, setShowRemoveOutputMenu] = useState(false)
 
-  useOnClickOutside(menuRef, onClick)
+  useOnClickOutside(menuRef, () => {
+    onClick()
+    setShowRemoveInputMenu(false)
+    setShowRemoveOutputMenu(false)
+  })
 
   return (
     <div
@@ -72,6 +88,94 @@ export function NodeContextMenu({
         <ArrowUpFromDot className="h-4 w-4" />
         Add Output Connector
       </button>
+      <button
+        onClick={onDisconnect}
+        className={cn(
+          'w-full flex items-center gap-2 px-2 py-2 text-xs rounded-none',
+          'hover:bg-accent hover:text-accent-foreground',
+          'focus:bg-accent focus:text-accent-foreground',
+          'outline-hidden cursor-default select-none',
+        )}
+      >
+        <Unplug className="h-4 w-4" />
+        Disconnect
+      </button>
+
+      {customInputs.length > 0 && (
+        <div className="relative">
+          <button
+            onClick={() => setShowRemoveInputMenu(!showRemoveInputMenu)}
+            className={cn(
+              'w-full flex items-center gap-2 px-2 py-2 text-xs rounded-none',
+              'hover:bg-accent hover:text-accent-foreground',
+              'focus:bg-accent focus:text-accent-foreground',
+              'outline-hidden cursor-default select-none',
+            )}
+          >
+            <Minus className="h-4 w-4" />
+            Remove Input Connector
+          </button>
+          {showRemoveInputMenu && (
+            <div className="absolute left-full top-0 ml-1 bg-popover text-popover-foreground min-w-36 rounded-none shadow-md ring-1 ring-foreground/10 z-50 p-1">
+              {customInputs.map((input) => (
+                <button
+                  key={input.id}
+                  onClick={() => {
+                    onRemoveInputConnector?.(input.id)
+                    setShowRemoveInputMenu(false)
+                  }}
+                  className={cn(
+                    'w-full flex items-center gap-2 px-2 py-2 text-xs rounded-none',
+                    'hover:bg-accent hover:text-accent-foreground',
+                    'focus:bg-accent focus:text-accent-foreground',
+                    'outline-hidden cursor-default select-none',
+                  )}
+                >
+                  {input.id}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {customOutputs.length > 0 && (
+        <div className="relative">
+          <button
+            onClick={() => setShowRemoveOutputMenu(!showRemoveOutputMenu)}
+            className={cn(
+              'w-full flex items-center gap-2 px-2 py-2 text-xs rounded-none',
+              'hover:bg-accent hover:text-accent-foreground',
+              'focus:bg-accent focus:text-accent-foreground',
+              'outline-hidden cursor-default select-none',
+            )}
+          >
+            <Minus className="h-4 w-4" />
+            Remove Output Connector
+          </button>
+          {showRemoveOutputMenu && (
+            <div className="absolute left-full top-0 ml-1 bg-popover text-popover-foreground min-w-36 rounded-none shadow-md ring-1 ring-foreground/10 z-50 p-1">
+              {customOutputs.map((output) => (
+                <button
+                  key={output.id}
+                  onClick={() => {
+                    onRemoveOutputConnector?.(output.id)
+                    setShowRemoveOutputMenu(false)
+                  }}
+                  className={cn(
+                    'w-full flex items-center gap-2 px-2 py-2 text-xs rounded-none',
+                    'hover:bg-accent hover:text-accent-foreground',
+                    'focus:bg-accent focus:text-accent-foreground',
+                    'outline-hidden cursor-default select-none',
+                  )}
+                >
+                  {output.id}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

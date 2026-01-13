@@ -1,7 +1,6 @@
 'use client'
 
-import { memo } from 'react'
-import { Handle, Position, NodeProps } from '@xyflow/react'
+import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   Select,
@@ -11,10 +10,23 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
-import type { Building, Recipe, Item } from '@/types/planner'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { getIcon } from '@/lib/icons'
+import { cn } from '@/lib/utils'
+import type { Building, Item, PlannerEdgeData, Recipe } from '@/types/planner'
+import {
+  Handle,
+  NodeProps,
+  Position,
+  useEdges,
+  useUpdateNodeInternals,
+} from '@xyflow/react'
+import { AlertTriangle } from 'lucide-react'
+import { memo, useEffect, useMemo } from 'react'
 
 interface BuildingNodeProps extends NodeProps {
   items: Record<string, Item>
@@ -24,6 +36,7 @@ interface BuildingNodeProps extends NodeProps {
 }
 
 function BuildingNodeComponent({
+  id, // Add this - React Flow passes node id as a prop
   data,
   selected,
   items,
@@ -31,14 +44,132 @@ function BuildingNodeComponent({
   recipes,
   onRecipeChange,
 }: BuildingNodeProps) {
+  const edges = useEdges()
+  const updateNodeInternals = useUpdateNodeInternals()
   const building = buildings[(data as any).buildingId]
   const recipe = recipes[(data as any).recipeId]
+
+  // Debug: log every render
+  console.log(
+    'BuildingNode render:',
+    building?.name,
+    '| Node ID:',
+    id,
+    '| Edges count:',
+    edges.length,
+  )
+
+  // Update node internals when custom inputs/outputs change (required for dynamic handles)
+  useEffect(() => {
+    if (id) {
+      updateNodeInternals(id)
+    }
+  }, [
+    id,
+    (data as any).customInputs,
+    (data as any).customOutputs,
+    updateNodeInternals,
+  ])
 
   const BuildingIcon = getIcon(building.icon)
 
   const availableRecipes = Object.values(recipes).filter((r) =>
     r.producers.includes((data as any).buildingId),
   )
+
+  const totalLeftHandles =
+    recipe.inputs.length + ((data as any).customInputs?.length || 0)
+  const totalRightHandles =
+    recipe.outputs.length + ((data as any).customOutputs?.length || 0)
+
+  const efficiencyWarnings = useMemo(() => {
+    if (!id) return []
+
+    const connectedEdges = edges.filter(
+      (edge) => edge.source === id || edge.target === id,
+    )
+
+    // Skip if any edge data isn't ready yet
+    if (
+      connectedEdges.some(
+        (edge) => !(edge.data as PlannerEdgeData | undefined)?.dataReady,
+      )
+    ) {
+      return []
+    }
+
+    const warnings: Array<{
+      type: 'over' | 'under'
+      itemName: string
+      producerRate: number
+      consumerRate: number
+      itemId: string
+    }> = []
+
+    // Aggregate rates by itemId for outputs (where this node is producer)
+    const outputTotals = new Map<
+      string,
+      { produced: number; consumed: number }
+    >()
+
+    // Aggregate rates by itemId for inputs (where this node is consumer)
+    const inputTotals = new Map<string, { produced: number; needed: number }>()
+
+    connectedEdges.forEach((edge) => {
+      const edgeData = edge.data as PlannerEdgeData | undefined
+      if (!edgeData?.dataReady || !edgeData.itemId) return
+
+      const isProducer = edge.source === id
+
+      if (isProducer) {
+        // This node is producing - track total consumption of our output
+        const current = outputTotals.get(edgeData.itemId) || {
+          produced: edgeData.producerRate,
+          consumed: 0,
+        }
+        current.consumed += edgeData.usageRate
+        outputTotals.set(edgeData.itemId, current)
+      } else {
+        // This node is consuming - track total production feeding our input
+        const current = inputTotals.get(edgeData.itemId) || {
+          produced: 0,
+          needed: edgeData.usageRate,
+        }
+        current.produced += edgeData.producerRate
+        inputTotals.set(edgeData.itemId, current)
+      }
+    })
+
+    // Check output warnings (overproduction)
+    outputTotals.forEach((totals, itemId) => {
+      if (totals.produced > totals.consumed) {
+        const item = items[itemId]
+        warnings.push({
+          type: 'over',
+          itemName: item?.name || itemId,
+          producerRate: totals.produced,
+          consumerRate: totals.consumed,
+          itemId,
+        })
+      }
+    })
+
+    // Check input warnings (underproduction / starving)
+    inputTotals.forEach((totals, itemId) => {
+      if (totals.produced < totals.needed) {
+        const item = items[itemId]
+        warnings.push({
+          type: 'under',
+          itemName: item?.name || itemId,
+          producerRate: totals.produced,
+          consumerRate: totals.needed,
+          itemId,
+        })
+      }
+    })
+
+    return warnings
+  }, [id, edges, items])
 
   return (
     <Card
@@ -50,7 +181,7 @@ function BuildingNodeComponent({
     >
       <CardContent className="p-3">
         {recipe.inputs.map((input, index) => {
-          const yPos = ((index + 1) / (recipe.inputs.length + 1)) * 100
+          const yPos = ((index + 1) / (totalLeftHandles + 1)) * 100
           return (
             <Handle
               key={`input-${input.itemId}`}
@@ -58,7 +189,7 @@ function BuildingNodeComponent({
               position={Position.Left}
               id={`input-${input.itemId}`}
               style={{ top: `${yPos}%` }}
-              className="!bg-primary !border-primary-foreground"
+              className="bg-primary! border-primary-foreground!"
             />
           )
         })}
@@ -66,10 +197,7 @@ function BuildingNodeComponent({
         {((data as any).customInputs || []).map(
           (customInput: any, index: number) => {
             const yPos =
-              ((index + recipe.inputs.length + 1) /
-                (recipe.inputs.length +
-                  ((data as any).customInputs?.length || 0) +
-                  1)) *
+              ((recipe.inputs.length + index + 1) / (totalLeftHandles + 1)) *
               100
             return (
               <Handle
@@ -78,14 +206,14 @@ function BuildingNodeComponent({
                 position={Position.Left}
                 id={String(customInput.id)}
                 style={{ top: `${yPos}%` }}
-                className="!bg-secondary !border-secondary-foreground"
+                className="bg-secondary! border-secondary-foreground!"
               />
             )
           },
         )}
 
         {recipe.outputs.map((output, index) => {
-          const yPos = ((index + 1) / (recipe.outputs.length + 1)) * 100
+          const yPos = ((index + 1) / (totalRightHandles + 1)) * 100
           return (
             <Handle
               key={`output-${output.itemId}`}
@@ -93,7 +221,7 @@ function BuildingNodeComponent({
               position={Position.Right}
               id={`output-${output.itemId}`}
               style={{ top: `${yPos}%` }}
-              className="!bg-primary !border-primary-foreground"
+              className="bg-primary! border-primary-foreground!"
             />
           )
         })}
@@ -101,10 +229,7 @@ function BuildingNodeComponent({
         {((data as any).customOutputs || []).map(
           (customOutput: any, index: number) => {
             const yPos =
-              ((index + recipe.outputs.length + 1) /
-                (recipe.outputs.length +
-                  ((data as any).customOutputs?.length || 0) +
-                  1)) *
+              ((recipe.outputs.length + index + 1) / (totalRightHandles + 1)) *
               100
             return (
               <Handle
@@ -113,7 +238,7 @@ function BuildingNodeComponent({
                 position={Position.Right}
                 id={String(customOutput.id)}
                 style={{ top: `${yPos}%` }}
-                className="!bg-secondary !border-secondary-foreground"
+                className="bg-secondary! border-secondary-foreground!"
               />
             )
           },
@@ -130,10 +255,38 @@ function BuildingNodeComponent({
           </div>
 
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-sm text-foreground mb-1">
-              {building.name}
-            </h3>
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-sm text-foreground">
+                {building.name}
+              </h3>
+              {efficiencyWarnings.length > 0 && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <AlertTriangle className="w-4 h-4 text-amber-500 cursor-help flex-shrink-0" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    {efficiencyWarnings.map((warning, index) => (
+                      <p key={index} className="text-xs mb-1 last:mb-0">
+                        {warning.type === 'over' ? (
+                          <>
+                            Producing {Math.round(warning.producerRate)}/min of{' '}
+                            {warning.itemName} but only using{' '}
+                            {Math.round(warning.consumerRate)}/min
+                          </>
+                        ) : (
+                          <>
+                            Producing {Math.round(warning.producerRate)}/min of{' '}
+                            {warning.itemName} but needs{' '}
+                            {Math.round(warning.consumerRate)}/min
+                          </>
+                        )}
+                      </p>
+                    ))}
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </div>
+            <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
               <div className="flex items-center gap-1">
                 <span className="font-medium">Power:</span>
                 <span>{(data as any).powerConsumption.toFixed(0)} kW</span>
@@ -154,7 +307,7 @@ function BuildingNodeComponent({
           </label>
           <Select
             value={(data as any).recipeId}
-            onValueChange={(value) => onRecipeChange?.((data as any).id, value)}
+            onValueChange={(value) => onRecipeChange?.(id, value)}
           >
             <SelectTrigger className="h-8 text-xs">
               <SelectValue placeholder="Select recipe" />
