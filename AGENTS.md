@@ -27,31 +27,31 @@ TanStack Start + React + TypeScript + shadcn/ui template. ReactFlow canvas plann
 
 ## WHERE TO LOOK
 
-| Task             | Location                    | Notes                              |
-| ---------------- | --------------------------- | ---------------------------------- |
-| Add route        | `src/routes/*.tsx`          | File-based: `createFileRoute('/')` |
-| Add component    | `src/components/*.tsx`      | Non-UI: custom components          |
-| Add UI component | `src/components/ui/*.tsx`   | shadcn/ui: copy + adapt            |
-| Planner logic    | `src/components/planner/`   | ReactFlow + Zustand patterns       |
-| State management | `src/stores/`               | Zustand stores                     |
-| Data fetching    | `src/hooks/`                | TanStack Query hooks               |
-| Utilities        | `src/lib/`                  | cn(), calculations, icons          |
-| Static data      | `src/data/*.json`           | buildings, items, recipes         |
-| Styling          | `src/styles.css`            | Tailwind v4 via @tailwindcss/vite  |
-| Config           | `vite.config.ts`, tsconfig.json, package.json | Build, type, deps |
+| Task             | Location                                      | Notes                              |
+| ---------------- | --------------------------------------------- | ---------------------------------- |
+| Add route        | `src/routes/*.tsx`                            | File-based: `createFileRoute('/')` |
+| Add component    | `src/components/*.tsx`                        | Non-UI: custom components          |
+| Add UI component | `src/components/ui/*.tsx`                     | shadcn/ui: copy + adapt            |
+| Planner logic    | `src/components/planner/`                     | ReactFlow + Zustand patterns       |
+| State management | `src/stores/`                                 | Zustand stores                     |
+| Data fetching    | `src/hooks/`                                  | TanStack Query hooks               |
+| Utilities        | `src/lib/`                                    | cn(), calculations, icons          |
+| Static data      | `src/data/*.json`                             | buildings, items, recipes          |
+| Styling          | `src/styles.css`                              | Tailwind v4 via @tailwindcss/vite  |
+| Config           | `vite.config.ts`, tsconfig.json, package.json | Build, type, deps                  |
 
 ## CODE MAP
 
-| Symbol          | Type     | Location              | Refs | Role                      |
-| --------------- | -------- | --------------------- | ---- | ------------------------- |
-| createFileRoute | Function | src/routes/*.tsx      | 3    | Route definition          |
-| getRouter       | Function | src/router.tsx        | 1    | Router instance factory   |
-| usePlannerStore | Hook     | src/stores/planner-store.ts | ?  | Zustand store              |
-| ReactFlow       | Component| src/components/planner/PlannerCanvas.tsx | ? | Canvas renderer           |
-| cn              | Function | src/lib/utils.ts      | 58+  | Tailwind class merger     |
-| useIsMobile     | Hook     | src/hooks/use-mobile.ts | ?  | Mobile breakpoint (768px) |
-| usePlannerData  | Hook     | src/hooks/use-planner-data.ts | ? | TanStack Query data hook   |
-| Route (export)  | Const    | src/routes/__root.tsx, index.tsx | 2 | TanStack route exports    |
+| Symbol          | Type      | Location                                 | Refs | Role                      |
+| --------------- | --------- | ---------------------------------------- | ---- | ------------------------- |
+| createFileRoute | Function  | src/routes/\*.tsx                        | 3    | Route definition          |
+| getRouter       | Function  | src/router.tsx                           | 1    | Router instance factory   |
+| usePlannerStore | Hook      | src/stores/planner-store.ts              | ?    | Zustand store             |
+| ReactFlow       | Component | src/components/planner/PlannerCanvas.tsx | ?    | Canvas renderer           |
+| cn              | Function  | src/lib/utils.ts                         | 58+  | Tailwind class merger     |
+| useIsMobile     | Hook      | src/hooks/use-mobile.ts                  | ?    | Mobile breakpoint (768px) |
+| usePlannerData  | Hook      | src/hooks/use-planner-data.ts            | ?    | TanStack Query data hook  |
+| Route (export)  | Const     | src/routes/\_\_root.tsx, index.tsx       | 2    | TanStack route exports    |
 
 ## CONVENTIONS
 

@@ -63,19 +63,26 @@ function BuildingNodeComponent({
           )
         })}
 
-        {((data as any).customInputs || []).map((customInput: any, index: number) => {
-          const yPos = ((index + recipe.inputs.length + 1) / (recipe.inputs.length + ((data as any).customInputs?.length || 0) + 1)) * 100
-          return (
-            <Handle
-              key={customInput.id}
-              type="target"
-              position={Position.Left}
-              id={String(customInput.id)}
-              style={{ top: `${yPos}%` }}
-              className="!bg-secondary !border-secondary-foreground"
-            />
-          )
-        })}
+        {((data as any).customInputs || []).map(
+          (customInput: any, index: number) => {
+            const yPos =
+              ((index + recipe.inputs.length + 1) /
+                (recipe.inputs.length +
+                  ((data as any).customInputs?.length || 0) +
+                  1)) *
+              100
+            return (
+              <Handle
+                key={customInput.id}
+                type="target"
+                position={Position.Left}
+                id={String(customInput.id)}
+                style={{ top: `${yPos}%` }}
+                className="!bg-secondary !border-secondary-foreground"
+              />
+            )
+          },
+        )}
 
         {recipe.outputs.map((output, index) => {
           const yPos = ((index + 1) / (recipe.outputs.length + 1)) * 100
@@ -91,19 +98,26 @@ function BuildingNodeComponent({
           )
         })}
 
-        {((data as any).customOutputs || []).map((customOutput: any, index: number) => {
-          const yPos = ((index + recipe.outputs.length + 1) / (recipe.outputs.length + ((data as any).customOutputs?.length || 0) + 1)) * 100
-          return (
-            <Handle
-              key={customOutput.id}
-              type="source"
-              position={Position.Right}
-              id={String(customOutput.id)}
-              style={{ top: `${yPos}%` }}
-              className="!bg-secondary !border-secondary-foreground"
-            />
-          )
-        })}
+        {((data as any).customOutputs || []).map(
+          (customOutput: any, index: number) => {
+            const yPos =
+              ((index + recipe.outputs.length + 1) /
+                (recipe.outputs.length +
+                  ((data as any).customOutputs?.length || 0) +
+                  1)) *
+              100
+            return (
+              <Handle
+                key={customOutput.id}
+                type="source"
+                position={Position.Right}
+                id={String(customOutput.id)}
+                style={{ top: `${yPos}%` }}
+                className="!bg-secondary !border-secondary-foreground"
+              />
+            )
+          },
+        )}
 
         <div className="flex items-start gap-3 mb-2">
           <div className="flex-shrink-0">

@@ -17,13 +17,13 @@ src/routes/
 
 ## WHERE TO LOOK
 
-| Task        | File               | Notes                                   |
-| ----------- | ------------------ | --------------------------------------- |
-| Root layout | `__root.tsx`       | HTML structure, global styles, devtools |
-| Add route   | `*.tsx`            | File path = route path                  |
-| Route tree  | `routeTree.gen.ts` | Auto-generated, DO NOT EDIT             |
+| Task         | File               | Notes                                   |
+| ------------ | ------------------ | --------------------------------------- |
+| Root layout  | `__root.tsx`       | HTML structure, global styles, devtools |
+| Add route    | `*.tsx`            | File path = route path                  |
+| Route tree   | `routeTree.gen.ts` | Auto-generated, DO NOT EDIT             |
 | Entry points | `entry-client.tsx` | MISSING - create for client hydration   |
-| Entry points | `entry-server.tsx` | MISSING - create for SSR                 |
+| Entry points | `entry-server.tsx` | MISSING - create for SSR                |
 
 ## CONVENTIONS
 

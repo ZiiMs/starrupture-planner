@@ -20,14 +20,14 @@ src/components/planner/
 
 ## WHERE TO LOOK
 
-| Task           | Component              | Notes                               |
-| -------------- | ---------------------- | ----------------------------------- |
-| Canvas setup   | PlannerCanvas.tsx       | ReactFlow config, node types, edges |
-| Custom nodes   | BuildingNode.tsx       | Memoized, use NodeProps             |
-| Building UI    | BuildingSelector.tsx   | Search, filter, drag-and-drop       |
-| User actions   | NodeContextMenu.tsx     | Delete, connect actions             |
-| Canvas controls| Controls.tsx           | Zoom, fit view, reset               |
-| State          | src/stores/planner-store.ts | Zustand store for selections, history |
+| Task            | Component                   | Notes                                 |
+| --------------- | --------------------------- | ------------------------------------- |
+| Canvas setup    | PlannerCanvas.tsx           | ReactFlow config, node types, edges   |
+| Custom nodes    | BuildingNode.tsx            | Memoized, use NodeProps               |
+| Building UI     | BuildingSelector.tsx        | Search, filter, drag-and-drop         |
+| User actions    | NodeContextMenu.tsx         | Delete, connect actions               |
+| Canvas controls | Controls.tsx                | Zoom, fit view, reset                 |
+| State           | src/stores/planner-store.ts | Zustand store for selections, history |
 
 ## CONVENTIONS
 

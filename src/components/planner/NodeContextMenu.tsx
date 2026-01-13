@@ -1,7 +1,9 @@
 'use client'
 
+import { useRef } from 'react'
 import { Trash2, Plug, ArrowUpFromDot } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useOnClickOutside } from '@/hooks/use-on-click-outside'
 
 interface NodeContextMenuProps {
   top?: number
@@ -24,14 +26,15 @@ export function NodeContextMenu({
   onAddInputConnector,
   onAddOutputConnector,
 }: NodeContextMenuProps) {
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useOnClickOutside(menuRef, onClick)
+
   return (
     <div
+      ref={menuRef}
       className="absolute bg-popover text-popover-foreground min-w-36 rounded-none shadow-md ring-1 ring-foreground/10 z-50 p-1"
       style={{ top, left, right, bottom }}
-      onClick={(e) => {
-        e.stopPropagation()
-        onClick()
-      }}
     >
       <button
         onClick={onDeleteNode}

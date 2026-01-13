@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 
 export const Route = createFileRoute('/')({
@@ -6,7 +6,9 @@ export const Route = createFileRoute('/')({
 })
 
 function HomePage() {
-  const navigate = useNavigate({ from: '/' })
+  const handleNavigate = () => {
+    window.location.href = '/planner'
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -15,7 +17,7 @@ function HomePage() {
         <p className="text-muted-foreground text-lg">
           Plan your factory with visual node-based editor
         </p>
-        <Button size="lg" onClick={() => navigate({ to: '/planner' })}>
+        <Button size="lg" onClick={handleNavigate}>
           Open Planner
         </Button>
       </div>
