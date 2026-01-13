@@ -77,6 +77,11 @@ function BuildingNodeComponent({
     r.producers.includes((data as any).buildingId),
   )
 
+  const totalLeftHandles =
+    recipe.inputs.length + ((data as any).customInputs?.length || 0)
+  const totalRightHandles =
+    recipe.outputs.length + ((data as any).customOutputs?.length || 0)
+
   const efficiencyWarnings = useMemo(() => {
     if (!id) return []
 
@@ -176,7 +181,7 @@ function BuildingNodeComponent({
     >
       <CardContent className="p-3">
         {recipe.inputs.map((input, index) => {
-          const yPos = ((index + 1) / (recipe.inputs.length + 1)) * 100
+          const yPos = ((index + 1) / (totalLeftHandles + 1)) * 100
           return (
             <Handle
               key={`input-${input.itemId}`}
@@ -192,10 +197,7 @@ function BuildingNodeComponent({
         {((data as any).customInputs || []).map(
           (customInput: any, index: number) => {
             const yPos =
-              ((index + recipe.inputs.length + 1) /
-                (recipe.inputs.length +
-                  ((data as any).customInputs?.length || 0) +
-                  1)) *
+              ((recipe.inputs.length + index + 1) / (totalLeftHandles + 1)) *
               100
             return (
               <Handle
@@ -211,7 +213,7 @@ function BuildingNodeComponent({
         )}
 
         {recipe.outputs.map((output, index) => {
-          const yPos = ((index + 1) / (recipe.outputs.length + 1)) * 100
+          const yPos = ((index + 1) / (totalRightHandles + 1)) * 100
           return (
             <Handle
               key={`output-${output.itemId}`}
@@ -227,10 +229,7 @@ function BuildingNodeComponent({
         {((data as any).customOutputs || []).map(
           (customOutput: any, index: number) => {
             const yPos =
-              ((index + recipe.outputs.length + 1) /
-                (recipe.outputs.length +
-                  ((data as any).customOutputs?.length || 0) +
-                  1)) *
+              ((recipe.outputs.length + index + 1) / (totalRightHandles + 1)) *
               100
             return (
               <Handle
