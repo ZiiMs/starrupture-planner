@@ -290,6 +290,14 @@ function PlannerCanvas() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger shortcuts when typing in inputs
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return
+      }
+
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
         e.preventDefault()
         usePlannerStore.getState().undo()
@@ -337,8 +345,9 @@ function PlannerCanvas() {
   }
 
   return (
-    <div className="flex h-screen w-full">
-      <div className="flex-shrink-0 p-4 border-r border-border bg-background">
+    <div className="h-screen w-full relative">
+      {/* Add Elements Panel - Always Visible */}
+      <div className="absolute left-4 top-4 z-10">
         <BuildingSelector
           buildings={plannerData.buildings}
           recipes={plannerData.recipes}
@@ -346,47 +355,45 @@ function PlannerCanvas() {
         />
       </div>
 
-      <div className="flex-1 relative" ref={reactFlowWrapper}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={handleNodesChange}
-          onEdgesChange={handleEdgesChange}
-          onConnect={onConnect}
-          onNodeContextMenu={onNodeContextMenu}
-          onPaneClick={onPaneClick}
-          onNodeClick={onNodeClick}
-          nodeTypes={{
-            'planner-node': (props: any) => (
-              <EnhancedBuildingNode
-                {...props}
-                items={plannerData.items}
-                buildings={plannerData.buildings}
-                recipes={plannerData.recipes}
-                onRecipeChange={handleRecipeChange}
-              />
-            ),
-          }}
-          edgeTypes={{
-            'efficiency-edge': (props: any) => (
-              <EfficiencyEdge
-                {...props}
-                recipes={plannerData.recipes}
-                buildings={plannerData.buildings}
-              />
-            ),
-          }}
-          fitView
-          className="bg-background"
-          defaultEdgeOptions={{
-            type: 'smoothstep',
-            animated: true,
-          }}
-        >
-          <Background />
-          <Controls />
-          <Minimap />
-        </ReactFlow>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={handleNodesChange}
+        onEdgesChange={handleEdgesChange}
+        onConnect={onConnect}
+        onNodeContextMenu={onNodeContextMenu}
+        onPaneClick={onPaneClick}
+        onNodeClick={onNodeClick}
+        nodeTypes={{
+          'planner-node': (props: any) => (
+            <EnhancedBuildingNode
+              {...props}
+              items={plannerData.items}
+              buildings={plannerData.buildings}
+              recipes={plannerData.recipes}
+              onRecipeChange={handleRecipeChange}
+            />
+          ),
+        }}
+        edgeTypes={{
+          'efficiency-edge': (props: any) => (
+            <EfficiencyEdge
+              {...props}
+              recipes={plannerData.recipes}
+              buildings={plannerData.buildings}
+            />
+          ),
+        }}
+        fitView
+        className="bg-background"
+        defaultEdgeOptions={{
+          type: 'smoothstep',
+          animated: true,
+        }}
+      >
+        <Background />
+        <Controls />
+        <Minimap />
 
         {menu && (
           <NodeContextMenu
@@ -400,7 +407,7 @@ function PlannerCanvas() {
             onAddOutputConnector={handleAddOutputConnector}
           />
         )}
-      </div>
+      </ReactFlow>
     </div>
   )
 }

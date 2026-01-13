@@ -2,23 +2,33 @@
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   calculateOutputRate,
   calculatePowerConsumption,
+  calculateBuildingsNeeded,
 } from '@/lib/calculations'
 import { getIcon } from '@/lib/icons'
 import type { Building, Item, Recipe } from '@/types/planner'
 import { useReactFlow } from '@xyflow/react'
 import { nanoid } from 'nanoid'
-import { memo, useState } from 'react'
+import { memo, useState, useMemo } from 'react'
 import type { Edge, Node } from '@xyflow/react'
+import ElementSelector from './ElementSelector'
 
 interface BuildingSelectorProps {
   buildings: Record<string, Building>
   recipes: Record<string, Recipe>
   items: Record<string, Item>
+}
+
+interface ProductionChainSummary {
+  buildingId: string
+  buildingName: string
+  count: number
+  outputRate: number
 }
 
 function BuildingSelectorComponent({
@@ -29,6 +39,60 @@ function BuildingSelectorComponent({
   const { addNodes, addEdges } = useReactFlow()
   const [activeTab, setActiveTab] = useState<'buildings' | 'items'>('buildings')
   const [nodeCounter, setNodeCounter] = useState(0)
+
+  // Item selection state
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
+  const [itemsPerMinute, setItemsPerMinute] = useState<string>('60')
+  const [buildingSearch, setBuildingSearch] = useState('')
+  const [itemSearch, setItemSearch] = useState('')
+
+  const selectedItem = selectedItemId ? items[selectedItemId] : null
+
+  // Calculate production chain summary for selected item and rate
+  const productionSummary = useMemo(() => {
+    if (!selectedItemId || !itemsPerMinute) return []
+
+    const rate = parseFloat(itemsPerMinute)
+    if (isNaN(rate) || rate <= 0) return []
+
+    const summary: ProductionChainSummary[] = []
+    const visitedRecipes = new Set<string>()
+
+    const calculateForItem = (itemId: string, requiredRate: number) => {
+      const recipesProducingItem = Object.values(recipes).filter((r) =>
+        r.outputs.some((o) => o.itemId === itemId),
+      )
+
+      if (recipesProducingItem.length === 0) return
+
+      const recipe = recipesProducingItem[0]
+      const recipeKey = `${recipe.id}`
+      if (visitedRecipes.has(recipeKey)) return
+      visitedRecipes.add(recipeKey)
+
+      const building = buildings[recipe.producers[0]]
+      if (!building) return
+
+      const outputPerBuilding = calculateOutputRate(recipe, building, 1)
+      const buildingsNeeded = calculateBuildingsNeeded(recipe, building, requiredRate)
+
+      summary.push({
+        buildingId: building.id,
+        buildingName: building.name,
+        count: Math.ceil(buildingsNeeded),
+        outputRate: outputPerBuilding,
+      })
+
+      // Calculate input requirements
+      for (const input of recipe.inputs) {
+        const inputRate = (input.amount / recipe.time) * 60 * buildingsNeeded
+        calculateForItem(input.itemId, inputRate)
+      }
+    }
+
+    calculateForItem(selectedItemId, rate)
+    return summary
+  }, [selectedItemId, itemsPerMinute, buildings, recipes])
 
   const addBuildingNode = (buildingId: string) => {
     const building = buildings[buildingId]
@@ -63,45 +127,39 @@ function BuildingSelectorComponent({
     setNodeCounter((c) => c + 1)
   }
 
-  const addChainFromItem = (itemId: string) => {
+  const addProductionChain = () => {
+    if (!selectedItemId || !itemsPerMinute || productionSummary.length === 0) return
+
+    const targetRate = parseFloat(itemsPerMinute)
+    if (isNaN(targetRate) || targetRate <= 0) return
+
     const nodesToAdd: Node[] = []
     const edgesToAdd: Edge[] = []
-    const visitedRecipes = new Set<string>()
     const levelCounts = new Map<number, number>()
-    const nodeRecipeMap = new Map<string, Recipe>()
+    let nodesAdded = 0
 
-    const buildProductionChain = (
-      targetItemId: string,
+    // Build from summary - create individual nodes for each building
+    const buildFromSummary = (
+      buildingInfo: ProductionChainSummary,
       level: number = 0,
       parentNodeId?: string,
       inputItemId?: string,
     ): void => {
-      if (level > 10) return
-
-      const recipesProducingItem = Object.values(recipes).filter((r) =>
-        r.outputs.some((o) => o.itemId === targetItemId),
+      const building = buildings[buildingInfo.buildingId]
+      const recipe = Object.values(recipes).find((r) =>
+        r.producers.includes(buildingInfo.buildingId),
       )
 
-      if (recipesProducingItem.length === 0) return
+      if (!building || !recipe) return
 
-      const countAtLevel = levelCounts.get(level) || 0
-
-      for (const recipe of recipesProducingItem) {
-        const recipeKey = `${recipe.id}-${level}`
-        if (visitedRecipes.has(recipeKey)) continue
-        visitedRecipes.add(recipeKey)
-
-        const building = buildings[recipe.producers[0]]
-        if (!building) continue
-
+      // Create individual nodes for each building
+      for (let i = 0; i < buildingInfo.count; i++) {
+        const nodeId = nanoid()
         const outputRate = calculateOutputRate(recipe, building, 1)
         const powerConsumption = calculatePowerConsumption(building, 1)
 
-        const nodeId = nanoid()
-        nodeRecipeMap.set(nodeId, recipe)
-
-        const x = 1200 - level * 350
-        const y = 200 + countAtLevel * 250
+        const x = 1200 - level * 350 + (i % 3) * 50
+        const y = 200 + ((levelCounts.get(level) || 0) + Math.floor(i / 3)) * 80
 
         nodesToAdd.push({
           id: nodeId,
@@ -116,22 +174,11 @@ function BuildingSelectorComponent({
           },
         })
 
+        levelCounts.set(level, (levelCounts.get(level) || 0) + 1)
+        nodesAdded++
+
+        // Create edges from each node to parent
         if (parentNodeId && inputItemId) {
-          const consumerRecipe = nodeRecipeMap.get(parentNodeId)
-          const producerRate = outputRate
-
-          let usageRate = 0
-          let isWarning = false
-
-          if (consumerRecipe && consumerRecipe.time > 0) {
-            const inputAmount =
-              consumerRecipe.inputs.find((i) => i.itemId === inputItemId)
-                ?.amount || 1
-
-            usageRate = (inputAmount / consumerRecipe.time) * 60
-            isWarning = producerRate > usageRate
-          }
-
           edgesToAdd.push({
             id: nanoid(),
             source: nodeId,
@@ -141,127 +188,172 @@ function BuildingSelectorComponent({
             data: {
               itemId: inputItemId,
               amount: 1,
-              usageRate,
-              producerRate,
-              isWarning,
+              usageRate: 0,
+              producerRate: outputRate,
+              isWarning: false,
               sourceNodeId: nodeId,
               targetNodeId: parentNodeId,
             },
           })
         }
-
-        levelCounts.set(level, countAtLevel + 1)
-
-        for (const input of recipe.inputs) {
-          buildProductionChain(input.itemId, level + 1, nodeId, input.itemId)
-        }
       }
     }
 
-    buildProductionChain(itemId, 0)
+    // Process summary in reverse order (inputs first, outputs last)
+    const reversedSummary = [...productionSummary].reverse()
+
+    for (let i = 0; i < reversedSummary.length; i++) {
+      const current = reversedSummary[i]
+      const next = reversedSummary[i + 1]
+
+      const recipe = Object.values(recipes).find((r) =>
+        r.producers.includes(current.buildingId),
+      )
+
+      if (!recipe) continue
+
+      // Get the input item for this building
+      const inputItem = recipe.inputs[0]
+
+      buildFromSummary(
+        current,
+        i,
+        next ? getNodeIdForBuilding(nodesToAdd, next.buildingId) : undefined,
+        inputItem?.itemId,
+      )
+    }
 
     if (nodesToAdd.length > 0) {
       addNodes(nodesToAdd)
       addEdges(edgesToAdd)
-      setNodeCounter((c) => c + nodesToAdd.length)
+      setNodeCounter((c) => c + nodesAdded)
+      setSelectedItemId(null)
+      setItemsPerMinute('60')
     }
   }
 
-  const categories = Array.from(
-    new Set(Object.values(buildings).map((b) => b.category)),
-  )
-  const itemCategories = Array.from(
-    new Set(Object.values(items).map((i) => i.category)),
-  )
-
   return (
-    <Card className="w-72">
+    <Card className="w-80 shadow-lg">
       <CardHeader>
         <CardTitle className="text-sm">Add Elements</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 overflow-hidden flex flex-col">
         <Tabs
           value={activeTab}
-          onValueChange={(v) => setActiveTab(v as 'buildings' | 'items')}
+          onValueChange={(v) => {
+            setActiveTab(v as 'buildings' | 'items')
+            setSelectedItemId(null)
+            setItemsPerMinute('60')
+            setBuildingSearch('')
+            setItemSearch('')
+          }}
+          className="flex-1 flex flex-col overflow-hidden"
         >
           <TabsList className="w-full">
             <TabsTrigger value="buildings">Buildings</TabsTrigger>
             <TabsTrigger value="items">Items</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="buildings">
-            <ScrollArea className="h-[400px]">
-              {categories.map((category) => (
-                <div key={category} className="mb-4">
-                  <h4 className="text-xs font-semibold text-muted-foreground mb-2 capitalize">
-                    {category}
-                  </h4>
-                  <div className="flex flex-col gap-2">
-                    {Object.values(buildings)
-                      .filter((b) => b.category === category)
-                      .map((building) => {
-                        const BuildingIcon = getIcon(building.icon)
-                        return (
-                          <Button
-                            key={building.id}
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => addBuildingNode(building.id)}
-                            className="justify-start gap-2 h-auto py-2"
-                          >
-                            <div
-                              className="w-6 h-6 rounded-sm flex items-center justify-center bg-accent"
-                              style={{
-                                color:
-                                  building.iconColor || 'var(--foreground)',
-                              }}
-                            >
-                              <BuildingIcon className="w-4 h-4" />
-                            </div>
-                            <span className="text-xs">{building.name}</span>
-                          </Button>
-                        )
-                      })}
-                  </div>
-                </div>
-              ))}
-            </ScrollArea>
+          <TabsContent value="buildings" className="flex-1 overflow-hidden mt-3">
+            <ElementSelector
+              type="buildings"
+              buildings={buildings}
+              items={items}
+              onSelectBuilding={addBuildingNode}
+              onSelectItem={() => {}}
+              searchQuery={buildingSearch}
+              onSearchChange={setBuildingSearch}
+            />
           </TabsContent>
 
-          <TabsContent value="items">
-            <ScrollArea className="h-[400px]">
-              {itemCategories.map((category) => (
-                <div key={category} className="mb-4">
-                  <h4 className="text-xs font-semibold text-muted-foreground mb-2 capitalize">
-                    {category}
-                  </h4>
-                  <div className="flex flex-col gap-2">
-                    {Object.values(items)
-                      .filter((i) => i.category === category)
-                      .map((item) => {
-                        const ItemIcon = getIcon(item.icon)
-                        return (
-                          <Button
-                            key={item.id}
-                            variant="outline"
-                            onClick={() => addChainFromItem(item.id)}
-                            className="justify-start gap-2 h-auto py-2"
-                            title={`Click to add ${item.name} production chain`}
-                          >
-                            <ItemIcon className="h-4 w-4" />
-                            {item.name}
-                          </Button>
-                        )
-                      })}
+          <TabsContent value="items" className="flex-1 overflow-hidden mt-3">
+            {selectedItem ? (
+              <div className="space-y-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedItemId(null)
+                    setItemsPerMinute('60')
+                  }}
+                  className="mb-2"
+                >
+                  ← Back to items
+                </Button>
+
+                <div className="p-3 rounded-md bg-accent/50">
+                  <div className="flex items-center gap-2">
+                    {(() => {
+                      const ItemIcon = getIcon(selectedItem.icon)
+                      return (
+                        <>
+                          <ItemIcon className="h-5 w-5" style={{ color: selectedItem.iconColor }} />
+                          <span className="font-medium">{selectedItem.name}</span>
+                        </>
+                      )
+                    })()}
                   </div>
                 </div>
-              ))}
-            </ScrollArea>
+
+                <div className="space-y-2">
+                  <Label htmlFor="rate">Target Production Rate</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="rate"
+                      type="number"
+                      min="1"
+                      value={itemsPerMinute}
+                      onChange={(e) => setItemsPerMinute(e.target.value)}
+                      className="flex-1"
+                    />
+                    <span className="text-sm text-muted-foreground">items/min</span>
+                  </div>
+                </div>
+
+                {productionSummary.length > 0 && (
+                  <div className="space-y-2">
+                    <Label>Production Chain</Label>
+                    <div className="p-3 rounded-md bg-muted space-y-2">
+                      {[...productionSummary].reverse().map((item, idx) => (
+                        <div key={idx} className="flex justify-between text-sm">
+                          <span>{item.buildingName}</span>
+                          <span className="text-muted-foreground">×{item.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <Button
+                  onClick={addProductionChain}
+                  className="w-full"
+                  disabled={!itemsPerMinute || parseFloat(itemsPerMinute) <= 0 || productionSummary.length === 0}
+                >
+                  Place Production Chain
+                </Button>
+              </div>
+            ) : (
+              <ElementSelector
+                type="items"
+                buildings={buildings}
+                items={items}
+                onSelectBuilding={() => {}}
+                onSelectItem={(itemId) => setSelectedItemId(itemId)}
+                searchQuery={itemSearch}
+                onSearchChange={setItemSearch}
+              />
+            )}
           </TabsContent>
         </Tabs>
       </CardContent>
     </Card>
   )
+}
+
+// Helper to find a node ID for a building type
+function getNodeIdForBuilding(nodes: Node[], buildingId: string): string | undefined {
+  const node = nodes.find((n) => n.data.buildingId === buildingId)
+  return node?.id as string | undefined
 }
 
 export default memo(BuildingSelectorComponent)
