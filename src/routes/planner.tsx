@@ -1,7 +1,7 @@
 'use client'
 
-import { createFileRoute } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { createFileRoute } from '@tanstack/react-router'
 import { ReactFlowProvider } from '@xyflow/react'
 import { lazy, Suspense } from 'react'
 
