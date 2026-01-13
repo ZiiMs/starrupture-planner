@@ -20,6 +20,7 @@ interface BuildingNodeProps extends NodeProps {
   items: Record<string, Item>
   buildings: Record<string, Building>
   recipes: Record<string, Recipe>
+  onRecipeChange?: (nodeId: string, newRecipeId: string) => void
 }
 
 function BuildingNodeComponent({
@@ -28,6 +29,7 @@ function BuildingNodeComponent({
   items,
   buildings,
   recipes,
+  onRecipeChange,
 }: BuildingNodeProps) {
   const building = buildings[(data as any).buildingId]
   const recipe = recipes[(data as any).recipeId]
@@ -61,6 +63,20 @@ function BuildingNodeComponent({
           )
         })}
 
+        {((data as any).customInputs || []).map((customInput: any, index: number) => {
+          const yPos = ((index + recipe.inputs.length + 1) / (recipe.inputs.length + ((data as any).customInputs?.length || 0) + 1)) * 100
+          return (
+            <Handle
+              key={customInput.id}
+              type="target"
+              position={Position.Left}
+              id={String(customInput.id)}
+              style={{ top: `${yPos}%` }}
+              className="!bg-secondary !border-secondary-foreground"
+            />
+          )
+        })}
+
         {recipe.outputs.map((output, index) => {
           const yPos = ((index + 1) / (recipe.outputs.length + 1)) * 100
           return (
@@ -71,6 +87,20 @@ function BuildingNodeComponent({
               id={`output-${output.itemId}`}
               style={{ top: `${yPos}%` }}
               className="!bg-primary !border-primary-foreground"
+            />
+          )
+        })}
+
+        {((data as any).customOutputs || []).map((customOutput: any, index: number) => {
+          const yPos = ((index + recipe.outputs.length + 1) / (recipe.outputs.length + ((data as any).customOutputs?.length || 0) + 1)) * 100
+          return (
+            <Handle
+              key={customOutput.id}
+              type="source"
+              position={Position.Right}
+              id={String(customOutput.id)}
+              style={{ top: `${yPos}%` }}
+              className="!bg-secondary !border-secondary-foreground"
             />
           )
         })}
@@ -108,7 +138,10 @@ function BuildingNodeComponent({
           <label className="text-xs font-medium text-muted-foreground mb-1 block">
             Recipe
           </label>
-          <Select value={(data as any).recipeId}>
+          <Select
+            value={(data as any).recipeId}
+            onValueChange={(value) => onRecipeChange?.((data as any).id, value)}
+          >
             <SelectTrigger className="h-8 text-xs">
               <SelectValue placeholder="Select recipe" />
             </SelectTrigger>

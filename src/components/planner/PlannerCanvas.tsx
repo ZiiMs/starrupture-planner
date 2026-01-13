@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState, memo } from 'react'
+import { useCallback, useEffect, useState, memo, useRef } from 'react'
 import {
   ReactFlow,
   Background,
@@ -40,12 +40,14 @@ function PlannerCanvas() {
 
   const [nodes, setNodes, onNodesChange] = useNodesState<any>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<any>([])
-  const [contextMenu, setContextMenu] = useState<{
-    visible: boolean
-    x: number
-    y: number
-    nodeId: string | null
-  }>({ visible: false, x: 0, y: 0, nodeId: null })
+  const [menu, setMenu] = useState<{
+    id: string | null
+    top?: number
+    left?: number
+    right?: number
+    bottom?: number
+  } | null>(null)
+  const reactFlowWrapper = useRef<HTMLDivElement>(null)
 
   const onConnect = useCallback((params: Connection) => {
     const newEdge = { ...params, type: 'smoothstep' as const }
@@ -71,46 +73,106 @@ function PlannerCanvas() {
   const onNodeContextMenu = useCallback(
     (event: any, node: any) => {
       event.preventDefault()
-      setContextMenu({
-        visible: true,
-        x: event.clientX,
-        y: event.clientY,
-        nodeId: node.id,
+
+      const pane = reactFlowWrapper.current?.getBoundingClientRect()
+      if (!pane) return
+
+      setMenu({
+        id: node.id,
+        top: event.clientY < pane.height - 200 ? event.clientY : undefined,
+        left: event.clientX < pane.width - 200 ? event.clientX : undefined,
+        right: event.clientX >= pane.width - 200 ? pane.width - event.clientX : undefined,
+        bottom:
+          event.clientY >= pane.height - 200 ? pane.height - event.clientY : undefined,
       })
     },
     [],
   )
 
   const onPaneClick = useCallback(() => {
-    setContextMenu((prev) => ({ ...prev, visible: false, nodeId: null }))
+    setMenu(null)
   }, [])
 
   const handleDeleteNode = useCallback(() => {
-    if (contextMenu.nodeId) {
-      setNodes((nds) => nds.filter((n: any) => n.id !== contextMenu.nodeId))
+    if (menu?.id) {
+      setNodes((nds) => nds.filter((n: any) => n.id !== menu.id))
       setEdges((eds) =>
-        eds.filter(
-          (e: any) => e.source !== contextMenu.nodeId && e.target !== contextMenu.nodeId,
-        ),
+        eds.filter((e: any) => e.source !== menu.id && e.target !== menu.id),
       )
-      setContextMenu((prev) => ({ ...prev, visible: false, nodeId: null }))
+      setMenu(null)
       setTimeout(() => saveToLocalStorage(), 500)
     }
-  }, [contextMenu.nodeId, setNodes, setEdges, saveToLocalStorage])
+  }, [menu?.id, setNodes, setEdges, saveToLocalStorage])
 
   const handleAddInputConnector = useCallback(() => {
-    console.log('Add input connector for node:', contextMenu.nodeId)
-    setContextMenu((prev) => ({ ...prev, visible: false, nodeId: null }))
-  }, [contextMenu.nodeId])
+    if (menu?.id) {
+      setNodes((nds) =>
+        nds.map((n: any) => {
+          if (n.id === menu.id) {
+            const customInputs = n.data.customInputs || []
+            return {
+              ...n,
+              data: {
+                ...n.data,
+                customInputs: [...customInputs, { id: Date.now() }],
+              },
+            }
+          }
+          return n
+        }),
+      )
+      setMenu(null)
+      setTimeout(() => saveToLocalStorage(), 500)
+    }
+  }, [menu?.id, setNodes, saveToLocalStorage])
 
   const handleAddOutputConnector = useCallback(() => {
-    console.log('Add output connector for node:', contextMenu.nodeId)
-    setContextMenu((prev) => ({ ...prev, visible: false, nodeId: null }))
-  }, [contextMenu.nodeId])
+    if (menu?.id) {
+      setNodes((nds) =>
+        nds.map((n: any) => {
+          if (n.id === menu.id) {
+            const customOutputs = n.data.customOutputs || []
+            return {
+              ...n,
+              data: {
+                ...n.data,
+                customOutputs: [...customOutputs, { id: Date.now() }],
+              },
+            }
+          }
+          return n
+        }),
+      )
+      setMenu(null)
+      setTimeout(() => saveToLocalStorage(), 500)
+    }
+  }, [menu?.id, setNodes, saveToLocalStorage])
 
-  const handleMenuClose = useCallback(() => {
-    setContextMenu((prev) => ({ ...prev, visible: false, nodeId: null }))
-  }, [])
+  const handleRecipeChange = useCallback(
+    (nodeId: string, newRecipeId: string) => {
+      setNodes((nds) =>
+        nds.map((n: any) => {
+          if (n.id === nodeId) {
+            const newRecipe = plannerData?.recipes[newRecipeId]
+            if (newRecipe) {
+              return {
+                ...n,
+                data: {
+                  ...n.data,
+                  recipeId: newRecipeId,
+                  customInputs: [],
+                  customOutputs: [],
+                },
+              }
+            }
+          }
+          return n
+        }),
+      )
+      setTimeout(() => saveToLocalStorage(), 500)
+    },
+    [setNodes, plannerData?.recipes, saveToLocalStorage],
+  )
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -165,7 +227,7 @@ function PlannerCanvas() {
         />
       </div>
 
-      <div className="flex-1 relative">
+      <div className="flex-1 relative" ref={reactFlowWrapper}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -181,6 +243,7 @@ function PlannerCanvas() {
                 items={plannerData.items}
                 buildings={plannerData.buildings}
                 recipes={plannerData.recipes}
+                onRecipeChange={handleRecipeChange}
               />
             ),
           }}
@@ -196,23 +259,17 @@ function PlannerCanvas() {
           <Minimap />
         </ReactFlow>
 
-        {contextMenu.visible && (
-          <div
-            style={{
-              position: 'absolute',
-              left: contextMenu.x,
-              top: contextMenu.y,
-              zIndex: 9999,
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <NodeContextMenu
-              onMenuClose={handleMenuClose}
-              onDeleteNode={handleDeleteNode}
-              onAddInputConnector={handleAddInputConnector}
-              onAddOutputConnector={handleAddOutputConnector}
-            />
-          </div>
+        {menu && (
+          <NodeContextMenu
+            onClick={onPaneClick}
+            top={menu.top}
+            left={menu.left}
+            right={menu.right}
+            bottom={menu.bottom}
+            onDeleteNode={handleDeleteNode}
+            onAddInputConnector={handleAddInputConnector}
+            onAddOutputConnector={handleAddOutputConnector}
+          />
         )}
       </div>
     </div>
