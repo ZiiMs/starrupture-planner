@@ -1,8 +1,6 @@
 {
-  "active_plan": "/home/ziim/.claude-squad/7ca5efee1156c3bbb28f419e1ae3a9f4c985a71d334da2d85161a8d0f82e47ac/worktrees/ziim/peristant-state_188a6156a49d53da/.sisyphus/plans/zustand-persist.md",
-  "started_at": "2026-01-13T20:32:01.499Z",
-  "completed_at": "2026-01-13T20:38:00.000Z",
-  "session_ids": ["ses_447240f0cffeAEmiQy4YEc5MdT"],
-  "plan_name": "zustand-persist",
-  "status": "completed"
+  "active_plan": "/home/ziim/.claude-squad/7ca5efee1156c3bbb28f419e1ae3a9f4c985a71d334da2d85161a8d0f82e47ac/worktrees/ziim/fix-top-right-buttons_188a61401e5da962/.sisyphus/plans/store-sot-refactor.md",
+  "started_at": "2026-01-13T20:32:10.122Z",
+  "session_ids": ["ses_4472680b9ffej5PoHr6FiUp5ut"],
+  "plan_name": "store-sot-refactor"
 }
