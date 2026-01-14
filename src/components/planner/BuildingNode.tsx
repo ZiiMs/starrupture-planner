@@ -46,15 +46,21 @@ function BuildingNodeComponent({
   const building = buildings[(data as any).buildingId]
   const recipe = recipes[(data as any).recipeId]
 
+  // Helper to safely format rate
+  const formatRate = (rate: number | null | undefined): string => {
+    if (rate === null || rate === undefined || isNaN(rate)) return '0'
+    return rate.toFixed(0)
+  }
+
   // Local state for rate input - only updates on blur/enter
   const [rateInputValue, setRateInputValue] = useState<string>(
-    ((data as any).targetRate || (data as any).outputRate).toFixed(0),
+    formatRate((data as any).targetRate ?? (data as any).outputRate),
   )
 
   // Update local state when rate changes externally
   useEffect(() => {
     setRateInputValue(
-      ((data as any).targetRate || (data as any).outputRate).toFixed(0),
+      formatRate((data as any).targetRate ?? (data as any).outputRate),
     )
   }, [(data as any).targetRate, (data as any).outputRate])
 
@@ -272,7 +278,7 @@ function BuildingNodeComponent({
               <h3 className="font-bold text-sm text-muted-foreground">
                 {building.name}{' '}
                 <span className="font-bold text-foreground">
-                  {(data as any).count.toFixed(1).replace(/\.0$/, '')}x
+                  {Number((data as any).count || 0).toFixed(1).replace(/\.0$/, '')}x
                 </span>
               </h3>
               {efficiencyWarnings.length > 0 && (
@@ -305,7 +311,7 @@ function BuildingNodeComponent({
             <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
               <div className="flex items-center gap-1">
                 <span className="font-medium">Power:</span>
-                <span>{(data as any).powerConsumption.toFixed(0)} kW</span>
+                <span>{Number((data as any).powerConsumption || 0).toFixed(0)} kW</span>
               </div>
               {isOutputNode && onRateChange && (
                 <div className="flex items-center gap-1">
@@ -328,9 +334,7 @@ function BuildingNodeComponent({
                       } else {
                         // Reset to current rate if invalid
                         setRateInputValue(
-                          ((data as any).targetRate || (data as any).outputRate).toFixed(
-                            0,
-                          ),
+                          formatRate((data as any).targetRate ?? (data as any).outputRate),
                         )
                       }
                     }}

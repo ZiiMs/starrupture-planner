@@ -1,10 +1,22 @@
 {
-  "active_plan": "/home/ziim/.claude-squad/7ca5efee1156c3bbb28f419e1ae3a9f4c985a71d334da2d85161a8d0f82e47ac/worktrees/ziim/fix-top-right-buttons_188a61401e5da962/.sisyphus/plans/restore-persistence.md",
-  "started_at": "2026-01-13T23:51:58.657Z",
-  "session_ids": [
-    "ses_4472680b9ffej5PoHr6FiUp5ut",
-    "ses_445adccf3ffe8yVXLNV3e9qAPB",
-    "ses_44549e06bffeuE4HwjDG2ldsZX"
-  ],
-  "plan_name": "restore-persistence"
+  "active_plan": "/home/ziim/.claude-squad/7ca5efee1156c3bbb28f419e1ae3a9f4c985a71d334da2d85161a8d0f82e47ac/worktrees/ziim/new-recipes_188aa2fb3df843b9/.sisyphus/plans/fix-node-stacking.md",
+  "started_at": "2026-01-14T19:25:15.792Z",
+  "completed_at": "2026-01-14T19:45:00.000Z",
+  "status": "complete",
+  "plan_name": "fix-node-stacking",
+  "progress": {
+    "complete": true,
+    "checkboxes_complete": 6,
+    "checkboxes_total": 6
+  },
+  "summary": {
+    "tasks_completed": 6,
+    "files_modified": [
+      "src/components/planner/BuildingSelector.tsx",
+      "src/stores/__tests__/planner-store.test.ts"
+    ],
+    "tests_passed": 14,
+    "build_status": "clean",
+    "learnings_documented": true
+  }
 }

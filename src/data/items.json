@@ -1,14 +1,6 @@
 {
   "items": [
     {
-      "id": "impure-tungsten-ore",
-      "name": "Impure Tungsten Ore",
-      "category": "raw-resource",
-      "description": "Impure tungsten ore extracted from deposits",
-      "icon": "Package",
-      "iconColor": "#8B4513"
-    },
-    {
       "id": "titanium-ore",
       "name": "Titanium Ore",
       "category": "raw-resource",
@@ -23,38 +15,6 @@
       "description": "Impure titanium ore extracted from deposits",
       "icon": "Package",
       "iconColor": "#708090"
-    },
-    {
-      "id": "tungsten-ore",
-      "name": "Tungsten Ore",
-      "category": "raw-resource",
-      "description": "Tungsten ore extracted from deposits",
-      "icon": "Package",
-      "iconColor": "#8B4513"
-    },
-    {
-      "id": "tungsten-bar",
-      "name": "Tungsten Bar",
-      "category": "processed-material",
-      "description": "Smelted tungsten bar",
-      "icon": "Square",
-      "iconColor": "#C0C0C0"
-    },
-    {
-      "id": "tungsten-template",
-      "name": "Tungsten Template",
-      "category": "processed-material",
-      "description": "Tungsten template for fabrication",
-      "icon": "Square",
-      "iconColor": "#C0C0C0"
-    },
-    {
-      "id": "tungsten-wire",
-      "name": "Tungsten Wire",
-      "category": "processed-material",
-      "description": "Electrical tungsten wire",
-      "icon": "Cable",
-      "iconColor": "#FFD700"
     },
     {
       "id": "titanium-bar",
@@ -175,14 +135,6 @@
       "description": "Glass material",
       "icon": "Square",
       "iconColor": "#87CEEB"
-    },
-    {
-      "id": "tungsten-powder",
-      "name": "Tungsten Powder",
-      "category": "processed-material",
-      "description": "Ground tungsten powder",
-      "icon": "Square",
-      "iconColor": "#D3D3D3"
     },
     {
       "id": "calcium-powder",
@@ -495,6 +447,166 @@
       "description": "Superconducting material",
       "icon": "Zap",
       "iconColor": "#00BFFF"
+    },
+    {
+      "id": "electronics",
+      "name": "Electronics",
+      "category": "component",
+      "description": "Electronic component",
+      "icon": "Cpu",
+      "iconColor": "#00FF00"
+    },
+    {
+      "id": "chemicals",
+      "name": "Chemicals",
+      "category": "processed-material",
+      "description": "Industrial chemicals",
+      "icon": "Beaker",
+      "iconColor": "#FF00FF"
+    },
+    {
+      "id": "sulphuric-acid",
+      "name": "Sulphuric Acid",
+      "category": "processed-material",
+      "description": "Sulfuric acid solution",
+      "icon": "Beaker",
+      "iconColor": "#FFFF00"
+    },
+    {
+      "id": "basic-building-materials",
+      "name": "Basic Building Materials",
+      "category": "processed-material",
+      "description": "Basic construction materials",
+      "icon": "BrickWall",
+      "iconColor": "#8B4513"
+    },
+    {
+      "id": "intermediate-structure",
+      "name": "Intermediate Structure",
+      "category": "component",
+      "description": "Structural component",
+      "icon": "Box",
+      "iconColor": "#696969"
+    },
+    {
+      "id": "ceramics",
+      "name": "Ceramics",
+      "category": "processed-material",
+      "description": "Ceramic material",
+      "icon": "Square",
+      "iconColor": "#F5F5F5"
+    },
+    {
+      "id": "supermagnet",
+      "name": "Super Magnet",
+      "category": "component",
+      "description": "High-power magnet",
+      "icon": "Magnet",
+      "iconColor": "#FF0000"
+    },
+    {
+      "id": "pure-calcium-ore",
+      "name": "Pure Calcium Ore",
+      "category": "raw-resource",
+      "description": "Pure calcium ore",
+      "icon": "Package",
+      "iconColor": "#FFFFFF"
+    },
+    {
+      "id": "pure-titanium-ore",
+      "name": "Pure Titanium Ore",
+      "category": "raw-resource",
+      "description": "Pure titanium ore",
+      "icon": "Package",
+      "iconColor": "#708090"
+    },
+    {
+      "id": "impure-wolfram-ore",
+      "name": "Impure Wolfram Ore",
+      "category": "raw-resource",
+      "description": "Impure wolfram ore",
+      "icon": "Package",
+      "iconColor": "#8B4513"
+    },
+    {
+      "id": "wolfram-ore",
+      "name": "Wolfram Ore",
+      "category": "raw-resource",
+      "description": "Wolfram ore",
+      "icon": "Package",
+      "iconColor": "#8B4513"
+    },
+    {
+      "id": "pure-wolfram-ore",
+      "name": "Pure Wolfram Ore",
+      "category": "raw-resource",
+      "description": "Pure wolfram ore",
+      "icon": "Package",
+      "iconColor": "#8B4513"
+    },
+    {
+      "id": "wolfram-bar",
+      "name": "Wolfram Bar",
+      "category": "processed-material",
+      "description": "Smelted wolfram bar",
+      "icon": "Square",
+      "iconColor": "#C0C0C0"
+    },
+    {
+      "id": "wolfram-powder",
+      "name": "Wolfram Powder",
+      "category": "processed-material",
+      "description": "Ground wolfram powder",
+      "icon": "Square",
+      "iconColor": "#D3D3D3"
+    },
+    {
+      "id": "wolfram-wire",
+      "name": "Wolfram Wire",
+      "category": "processed-material",
+      "description": "Electrical wolfram wire",
+      "icon": "Cable",
+      "iconColor": "#FFD700"
+    },
+    {
+      "id": "wolfram-plate",
+      "name": "Wolfram Plate",
+      "category": "processed-material",
+      "description": "Wolfram plate",
+      "icon": "Square",
+      "iconColor": "#C0C0C0"
+    },
+    {
+      "id": "pistol-ammo",
+      "name": "Pistol Ammo",
+      "category": "component",
+      "description": "Ammunition for pistols",
+      "icon": "Box",
+      "iconColor": "#696969"
+    },
+    {
+      "id": "sulphur-ore",
+      "name": "Sulphur Ore",
+      "category": "raw-resource",
+      "description": "Sulphur ore",
+      "icon": "Package",
+      "iconColor": "#FFFF00"
+    },
+    {
+      "id": "standard-ammo",
+      "name": "Standard Ammo",
+      "category": "component",
+      "description": "Standard ammunition",
+      "icon": "Box",
+      "iconColor": "#696969"
+    },
+    {
+      "id": "intermediate-building-material",
+      "name": "Intermediate Building Material",
+      "category": "processed-material",
+      "description": "Intermediate building material",
+      "icon": "Box",
+      "iconColor": "#8B4513"
     }
   ]
 }

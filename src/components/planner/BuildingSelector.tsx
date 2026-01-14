@@ -204,10 +204,12 @@ function BuildingSelectorComponent({
         },
       })
 
-      nodeIdMap.set(buildingInfo.buildingId, [nodeId])
+      // Use composite key (buildingId:recipeId) for node ID mapping
+      const nodeKey = `${buildingInfo.buildingId}:${buildingInfo.recipeId}`
+      nodeIdMap.set(nodeKey, nodeId)
     })
 
-    // Pass 2: Create edges with proper distribution (not all-to-all)
+    // Pass 2: Create edges for ALL inputs of each recipe
     productionSummary.forEach((buildingInfo) => {
       const recipe = Object.values(recipes).find(
         (r) => r.id === buildingInfo.recipeId,
@@ -215,52 +217,60 @@ function BuildingSelectorComponent({
 
       if (!recipe || recipe.inputs.length === 0) return
 
-      const inputItemId = recipe.inputs[0].itemId
+      // Use composite key for target node
+      const targetNodeKey = `${buildingInfo.buildingId}:${buildingInfo.recipeId}`
+      const targetNodeId = nodeIdMap.get(targetNodeKey)
+      if (!targetNodeId) return
 
-      const inputBuildingSummary = productionSummary.find((bi) => {
-        const biRecipe = Object.values(recipes).find(
-          (r) => r.id === bi.recipeId,
-        )
-        return biRecipe?.outputs.some((o) => o.itemId === inputItemId)
-      })
+      // Loop through ALL inputs, not just the first!
+      for (const input of recipe.inputs) {
+        const inputItemId = input.itemId
+        const inputAmount = input.amount
 
-      if (!inputBuildingSummary) return
+        // Find ALL buildings that produce this input item
+        const producingBuildings = productionSummary.filter((bi) => {
+          const biRecipe = Object.values(recipes).find(
+            (r) => r.id === bi.recipeId,
+          )
+          return biRecipe?.outputs.some((o) => o.itemId === inputItemId)
+        })
 
-      const sourceNodeId = nodeIdMap.get(inputBuildingSummary.buildingId)?.[0]
-      const targetNodeId = nodeIdMap.get(buildingInfo.buildingId)?.[0]
+        // Create edges from each producer
+        producingBuildings.forEach((pb) => {
+          // Use composite key for source node
+          const sourceNodeKey = `${pb.buildingId}:${pb.recipeId}`
+          const sourceNodeId = nodeIdMap.get(sourceNodeKey)
+          if (!sourceNodeId) return
 
-      if (!sourceNodeId || !targetNodeId) return
+          const sourceRecipe = Object.values(recipes).find(
+            (r) => r.id === pb.recipeId,
+          )!
+          const sourceBuilding = buildings[pb.buildingId]
 
-      const sourceRecipe = Object.values(recipes).find(
-        (r) => r.id === inputBuildingSummary.recipeId,
-      )!
-      const sourceBuilding = buildings[inputBuildingSummary.buildingId]
-
-      const inputBuildingCount = inputBuildingSummary.count
-      const targetBuildingCount = buildingInfo.count
-
-      edgesToAdd.push({
-        id: nanoid(),
-        source: sourceNodeId,
-        target: targetNodeId,
-        targetHandle: `input-${inputItemId}`,
-        type: 'efficiency-edge',
-        animated: true,
-        data: {
-          itemId: inputItemId,
-          amount: recipe.inputs[0].amount,
-          usageRate:
-            (recipe.inputs[0].amount / recipe.time) * 60 * targetBuildingCount,
-          producerRate: calculateOutputRate(
-            sourceRecipe,
-            sourceBuilding,
-            inputBuildingCount,
-          ),
-          isWarning: false,
-          sourceNodeId,
-          targetNodeId,
-        },
-      })
+          edgesToAdd.push({
+            id: nanoid(),
+            source: sourceNodeId,
+            target: targetNodeId,
+            targetHandle: `input-${inputItemId}`,
+            type: 'efficiency-edge',
+            animated: true,
+            data: {
+              itemId: inputItemId,
+              amount: inputAmount,
+              usageRate:
+                (inputAmount / recipe.time) * 60 * buildingInfo.count,
+              producerRate: calculateOutputRate(
+                sourceRecipe,
+                sourceBuilding,
+                pb.count,
+              ),
+              isWarning: false,
+              sourceNodeId,
+              targetNodeId,
+            },
+          })
+        })
+      }
     })
 
     // Apply dagre layout
