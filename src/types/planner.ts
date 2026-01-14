@@ -54,6 +54,7 @@ export interface PlannerNodeData extends Record<string, unknown> {
   count: number
   outputRate: number
   powerConsumption: number
+  targetRate?: number // User-set target rate for output nodes
 }
 
 export type PlannerNode = Node<PlannerNodeData, 'planner-node'>

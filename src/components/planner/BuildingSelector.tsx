@@ -5,12 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { getIcon } from '@/lib/icons'
 import {
   calculateOutputRate,
   calculatePowerConsumption,
   calculateBuildingsNeeded,
 } from '@/lib/calculations'
-import { getIcon } from '@/lib/icons'
 import type {
   Building,
   Item,
@@ -22,6 +22,7 @@ import { usePlannerStore } from '@/stores/planner-store'
 import { nanoid } from 'nanoid'
 import { memo, useState, useCallback, useMemo } from 'react'
 import { getLayoutedElements } from '@/lib/dagre-layout'
+import { useReactFlow } from '@xyflow/react'
 import ElementSelector from './ElementSelector'
 
 interface BuildingSelectorProps {
@@ -46,6 +47,21 @@ function BuildingSelectorComponent({
   // Use store actions directly - they handle history capture internally
   const addNode = usePlannerStore((state) => state.addNode)
   const addEdge = usePlannerStore((state) => state.addEdge)
+  const { getViewport } = useReactFlow()
+
+  // Get viewport center position for placing new nodes
+  const getViewportCenter = useCallback(() => {
+    const viewport = getViewport()
+    const sidebarWidth = 320
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth - sidebarWidth : 1000
+    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 800
+    // Convert screen center to flow coordinates
+    // transform: translate(x,y) scale(zoom) means:
+    // flowX = (screenX - viewport.x) / zoom
+    const centerX = (viewportWidth / 2 - viewport.x) / viewport.zoom
+    const centerY = (viewportHeight / 2 - viewport.y) / viewport.zoom
+    return { x: centerX, y: centerY }
+  }, [getViewport])
 
   const [activeTab, setActiveTab] = useState<'buildings' | 'items'>('buildings')
   const [nodeCounter, setNodeCounter] = useState(0)
@@ -94,7 +110,7 @@ function BuildingSelectorComponent({
         buildingId: building.id,
         buildingName: building.name,
         recipeId: recipe.id,
-        count: Math.ceil(buildingsNeeded),
+        count: buildingsNeeded,
         outputRate: outputPerBuilding,
       })
 
@@ -124,8 +140,10 @@ function BuildingSelectorComponent({
       const outputRate = calculateOutputRate(firstRecipe, building, 1)
       const powerConsumption = calculatePowerConsumption(building, 1)
 
-      const x = 200 + (nodeCounter % 3) * 350
-      const y = 300 + Math.floor(nodeCounter / 3) * 250
+      const center = getViewportCenter()
+      // Offset slightly so nodes don't stack exactly on top of each other
+      const x = center.x + (nodeCounter % 3) * 20
+      const y = center.y + Math.floor(nodeCounter / 3) * 20
 
       const newNode: PlannerNode = {
         id: nanoid(),
@@ -162,42 +180,35 @@ function BuildingSelectorComponent({
 
     productionSummary.forEach((buildingInfo) => {
       const building = buildings[buildingInfo.buildingId]
-      // Use the stored recipeId, not search by building type
       const recipe = Object.values(recipes).find(
         (r) => r.id === buildingInfo.recipeId,
       )
 
       if (!building || !recipe) return
 
-      const nodeIds: string[] = []
+      const outputRate = calculateOutputRate(recipe, building, buildingInfo.count)
+      const powerConsumption = calculatePowerConsumption(building, buildingInfo.count)
 
-      for (let i = 0; i < buildingInfo.count; i++) {
-        const nodeId = nanoid()
-        const outputRate = calculateOutputRate(recipe, building, 1)
-        const powerConsumption = calculatePowerConsumption(building, 1)
+      const nodeId = nanoid()
 
-        nodesToAdd.push({
-          id: nodeId,
-          type: 'planner-node',
-          position: { x: 0, y: 0 },
-          data: {
-            buildingId: building.id,
-            recipeId: recipe.id,
-            count: 1,
-            outputRate,
-            powerConsumption,
-          },
-        })
+      nodesToAdd.push({
+        id: nodeId,
+        type: 'planner-node',
+        position: { x: 0, y: 0 },
+        data: {
+          buildingId: building.id,
+          recipeId: recipe.id,
+          count: buildingInfo.count,
+          outputRate,
+          powerConsumption,
+        },
+      })
 
-        nodeIds.push(nodeId)
-      }
-
-      nodeIdMap.set(buildingInfo.buildingId, nodeIds)
+      nodeIdMap.set(buildingInfo.buildingId, [nodeId])
     })
 
     // Pass 2: Create edges with proper distribution (not all-to-all)
     productionSummary.forEach((buildingInfo) => {
-      // Use the stored recipeId instead of searching by building type
       const recipe = Object.values(recipes).find(
         (r) => r.id === buildingInfo.recipeId,
       )
@@ -205,9 +216,7 @@ function BuildingSelectorComponent({
       if (!recipe || recipe.inputs.length === 0) return
 
       const inputItemId = recipe.inputs[0].itemId
-      const inputAmount = recipe.inputs[0].amount
 
-      // Find which building produces this input
       const inputBuildingSummary = productionSummary.find((bi) => {
         const biRecipe = Object.values(recipes).find(
           (r) => r.id === bi.recipeId,
@@ -217,54 +226,41 @@ function BuildingSelectorComponent({
 
       if (!inputBuildingSummary) return
 
-      const sourceNodeIds = nodeIdMap.get(inputBuildingSummary.buildingId) || []
-      const targetNodeIds = nodeIdMap.get(buildingInfo.buildingId) || []
+      const sourceNodeId = nodeIdMap.get(inputBuildingSummary.buildingId)?.[0]
+      const targetNodeId = nodeIdMap.get(buildingInfo.buildingId)?.[0]
 
-      // Calculate distribution - how many targets each source feeds
-      const targetCount = targetNodeIds.length
+      if (!sourceNodeId || !targetNodeId) return
 
-      if (sourceNodeIds.length === 0 || targetCount === 0) return
+      const sourceRecipe = Object.values(recipes).find(
+        (r) => r.id === inputBuildingSummary.recipeId,
+      )!
+      const sourceBuilding = buildings[inputBuildingSummary.buildingId]
 
-      // Each target needs connections from enough sources to get required input
-      // Spread sources evenly across targets
-      const edgesPerTarget = Math.ceil(sourceNodeIds.length / targetCount)
+      const inputBuildingCount = inputBuildingSummary.count
+      const targetBuildingCount = buildingInfo.count
 
-      // Create distributed edges
-      for (let targetIdx = 0; targetIdx < targetCount; targetIdx++) {
-        // Each target gets connected to `edgesPerTarget` sources
-        // Spread sources evenly: 0, 1, 2, ... modulo sourceNodeIds.length
-        for (let j = 0; j < edgesPerTarget; j++) {
-          const sourceIdx = (targetIdx + j) % sourceNodeIds.length
-          const sourceId = sourceNodeIds[sourceIdx]
-          const targetId = targetNodeIds[targetIdx]
-
-          const sourceRecipe = Object.values(recipes).find(
-            (r) => r.id === inputBuildingSummary.recipeId,
-          )!
-          const sourceBuilding = buildings[inputBuildingSummary.buildingId]
-
-          edgesToAdd.push({
-            id: nanoid(),
-            source: sourceId,
-            target: targetId,
-            type: 'efficiency-edge',
-            animated: true,
-            data: {
-              itemId: inputItemId,
-              amount: inputAmount,
-              usageRate: 0,
-              producerRate: calculateOutputRate(
-                sourceRecipe,
-                sourceBuilding,
-                1,
-              ),
-              isWarning: false,
-              sourceNodeId: sourceId,
-              targetNodeId: targetId,
-            },
-          })
-        }
-      }
+      edgesToAdd.push({
+        id: nanoid(),
+        source: sourceNodeId,
+        target: targetNodeId,
+        targetHandle: `input-${inputItemId}`,
+        type: 'efficiency-edge',
+        animated: true,
+        data: {
+          itemId: inputItemId,
+          amount: recipe.inputs[0].amount,
+          usageRate:
+            (recipe.inputs[0].amount / recipe.time) * 60 * targetBuildingCount,
+          producerRate: calculateOutputRate(
+            sourceRecipe,
+            sourceBuilding,
+            inputBuildingCount,
+          ),
+          isWarning: false,
+          sourceNodeId,
+          targetNodeId,
+        },
+      })
     })
 
     // Apply dagre layout
@@ -275,9 +271,37 @@ function BuildingSelectorComponent({
     )
 
     if (layoutedNodes.length > 0) {
+      // Calculate offset to center the layout in the viewport
+      const center = getViewportCenter()
+
+      // Find the center of the layouted nodes
+      let minX = Infinity
+      let minY = Infinity
+      let maxX = -Infinity
+      let maxY = -Infinity
+      for (const node of layoutedNodes) {
+        minX = Math.min(minX, node.position.x)
+        minY = Math.min(minY, node.position.y)
+        maxX = Math.max(maxX, node.position.x + (node.width || 300))
+        maxY = Math.max(maxY, node.position.y + (node.height || 150))
+      }
+      const layoutCenterX = (minX + maxX) / 2
+      const layoutCenterY = (minY + maxY) / 2
+
+      // Offset all nodes to center in viewport
+      const offsetX = center.x - layoutCenterX
+      const offsetY = center.y - layoutCenterY
+
       // addNode captures history before each addition
-      // Using individual adds to properly type the nodes
-      layoutedNodes.forEach((node) => addNode(node as PlannerNode))
+      layoutedNodes.forEach((node) => {
+        addNode({
+          ...node,
+          position: {
+            x: node.position.x + offsetX,
+            y: node.position.y + offsetY,
+          },
+        } as PlannerNode)
+      })
       edgesToAdd.forEach((edge) => addEdge(edge))
 
       setNodeCounter((c) => c + layoutedNodes.length)
@@ -292,6 +316,7 @@ function BuildingSelectorComponent({
     recipes,
     addNode,
     addEdge,
+    getViewportCenter,
   ])
 
   return (

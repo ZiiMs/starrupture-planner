@@ -19,28 +19,44 @@ import {
   useUpdateNodeInternals,
 } from '@xyflow/react'
 import { AlertTriangle } from 'lucide-react'
-import { memo, useEffect, useMemo } from 'react'
+import { memo, useEffect, useMemo, useState } from 'react'
 
 interface BuildingNodeProps extends NodeProps {
   items: Record<string, Item>
   buildings: Record<string, Building>
   recipes: Record<string, Recipe>
+  isOutputNode?: boolean
   onRecipeChange?: (nodeId: string, newRecipeId: string) => void
+  onRateChange?: (nodeId: string, newRate: number) => void
 }
 
 function BuildingNodeComponent({
-  id, // Add this - React Flow passes node id as a prop
+  id,
   data,
   selected,
   items,
   buildings,
   recipes,
+  isOutputNode,
   onRecipeChange,
+  onRateChange,
 }: BuildingNodeProps) {
   const edges = useEdges()
   const updateNodeInternals = useUpdateNodeInternals()
   const building = buildings[(data as any).buildingId]
   const recipe = recipes[(data as any).recipeId]
+
+  // Local state for rate input - only updates on blur/enter
+  const [rateInputValue, setRateInputValue] = useState<string>(
+    ((data as any).targetRate || (data as any).outputRate).toFixed(0),
+  )
+
+  // Update local state when rate changes externally
+  useEffect(() => {
+    setRateInputValue(
+      ((data as any).targetRate || (data as any).outputRate).toFixed(0),
+    )
+  }, [(data as any).targetRate, (data as any).outputRate])
 
   // Debug: log every render
   console.log(
@@ -253,8 +269,11 @@ function BuildingNodeComponent({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="font-bold text-sm text-foreground">
-                {building.name}
+              <h3 className="font-bold text-sm text-muted-foreground">
+                {building.name}{' '}
+                <span className="font-bold text-foreground">
+                  {(data as any).count.toFixed(1).replace(/\.0$/, '')}x
+                </span>
               </h3>
               {efficiencyWarnings.length > 0 && (
                 <Tooltip>
@@ -288,10 +307,38 @@ function BuildingNodeComponent({
                 <span className="font-medium">Power:</span>
                 <span>{(data as any).powerConsumption.toFixed(0)} kW</span>
               </div>
-              <div className="flex items-center gap-1">
-                <span className="font-medium">Output:</span>
-                <span>{(data as any).outputRate.toFixed(1)}/min</span>
-              </div>
+              {isOutputNode && onRateChange && (
+                <div className="flex items-center gap-1">
+                  <span className="font-medium">Target:</span>
+                  <input
+                    type="number"
+                    min="1"
+                    step="10"
+                    value={rateInputValue}
+                    onChange={(e) => setRateInputValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.currentTarget.blur()
+                      }
+                    }}
+                    onBlur={() => {
+                      const newRate = parseFloat(rateInputValue)
+                      if (!isNaN(newRate) && newRate > 0) {
+                        onRateChange(id, newRate)
+                      } else {
+                        // Reset to current rate if invalid
+                        setRateInputValue(
+                          ((data as any).targetRate || (data as any).outputRate).toFixed(
+                            0,
+                          ),
+                        )
+                      }
+                    }}
+                    className="w-16 h-5 text-xs border border-input bg-transparent px-1 text-foreground"
+                  />
+                  <span>/min</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -326,6 +373,7 @@ function BuildingNodeComponent({
               {recipe.inputs.map((input) => {
                 const item = items[input.itemId]
                 const ItemIcon = getIcon(item.icon)
+                const inputRate = (input.amount / recipe.time) * 60 * ((data as any).count || 1)
                 return (
                   <Badge
                     key={input.itemId}
@@ -337,6 +385,7 @@ function BuildingNodeComponent({
                       style={{ color: item.iconColor }}
                     />
                     <span>{item.name}</span>
+                    <span className="text-muted-foreground">({inputRate.toFixed(1)}/min)</span>
                   </Badge>
                 )
               })}
@@ -348,25 +397,27 @@ function BuildingNodeComponent({
           <div className="text-xs font-medium text-muted-foreground mb-1">
             Outputs
           </div>
-          <div className="flex gap-2 flex-wrap">
-            {recipe.outputs.map((output) => {
-              const item = items[output.itemId]
-              const ItemIcon = getIcon(item.icon)
-              return (
-                <Badge
-                  key={output.itemId}
-                  variant="secondary"
-                  className="h-7 px-2 gap-1.5 text-xs"
-                >
-                  <ItemIcon
-                    className="w-3.5 h-3.5"
-                    style={{ color: item.iconColor }}
-                  />
-                  <span>{item.name}</span>
-                </Badge>
-              )
-            })}
-          </div>
+            <div className="flex gap-2 flex-wrap">
+              {recipe.outputs.map((output) => {
+                const item = items[output.itemId]
+                const ItemIcon = getIcon(item.icon)
+                const outputRate = (output.amount / recipe.time) * 60 * ((data as any).count || 1)
+                return (
+                  <Badge
+                    key={output.itemId}
+                    variant="secondary"
+                    className="h-7 px-2 gap-1.5 text-xs"
+                  >
+                    <ItemIcon
+                      className="w-3.5 h-3.5"
+                      style={{ color: item.iconColor }}
+                    />
+                    <span>{item.name}</span>
+                    <span className="text-muted-foreground">({outputRate.toFixed(1)}/min)</span>
+                  </Badge>
+                )
+              })}
+            </div>
         </div>
       </CardContent>
     </Card>
