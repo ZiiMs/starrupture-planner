@@ -1,21 +1,30 @@
 'use client'
 
-import { memo, useEffect, useCallback } from 'react'
-import { Controls } from '@xyflow/react'
 import { Button } from '@/components/ui/button'
-import { Undo, Redo } from 'lucide-react'
 import {
-  usePlannerStore,
-  selectCanUndo,
   selectCanRedo,
+  selectCanUndo,
+  usePlannerStore,
 } from '@/stores/planner-store'
+import { Controls } from '@xyflow/react'
+import { Redo, Trash2, Undo } from 'lucide-react'
+import { memo, useCallback, useEffect, useState } from 'react'
+import LayoutControls from './LayoutControls'
 
 function ControlsComponent() {
-  const { undo, redo } = usePlannerStore()
+  const { undo, redo, clearAll } = usePlannerStore()
   const canUndo = usePlannerStore(selectCanUndo)
   const canRedo = usePlannerStore(selectCanRedo)
+  const [showConfirm, setShowConfirm] = useState(false)
 
-  // Keyboard shortcuts
+  const handleClear = useCallback(() => {
+    if (showConfirm) {
+      clearAll()
+      setShowConfirm(false)
+    } else {
+      setShowConfirm(true)
+    }
+  }, [clearAll, showConfirm])
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       // Ignore if typing in an input field
@@ -26,6 +35,11 @@ function ControlsComponent() {
         target.isContentEditable
       ) {
         return
+      }
+
+      // Clear confirmation state on any key press
+      if (showConfirm) {
+        setShowConfirm(false)
       }
 
       // Ctrl+Z = Undo
@@ -43,18 +57,20 @@ function ControlsComponent() {
         if (canRedo) redo()
       }
     },
-    [undo, redo, canUndo, canRedo],
+    [undo, redo, canUndo, canRedo, showConfirm],
   )
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [handleKeyDown])
+  }, [handleKeyDown, handleClear])
 
   return (
     <>
       <Controls />
       <div className="absolute top-4 right-4 flex gap-2 z-10">
+        <LayoutControls />
+
         <Button
           size="icon"
           variant="outline"
@@ -72,6 +88,14 @@ function ControlsComponent() {
           title="Redo (Ctrl+Y)"
         >
           <Redo className="w-4 h-4" />
+        </Button>
+        <Button
+          size="icon"
+          variant={showConfirm ? 'destructive' : 'outline'}
+          onClick={handleClear}
+          title={showConfirm ? 'Click again to confirm' : 'Clear all'}
+        >
+          <Trash2 className="w-4 h-4" />
         </Button>
       </div>
     </>
