@@ -104,11 +104,9 @@ function PlannerCanvasInner() {
   const pushToHistory = usePlannerStore((state) => state.pushToHistory)
 
   // Sync undo/redo from store to local ReactFlow state
-  // Use object selector to get both values together and avoid unnecessary re-renders
-  const { nodes: storeNodes, edges: storeEdges } = usePlannerStore((state) => ({
-    nodes: state.nodes,
-    edges: state.edges,
-  }))
+  // Use separate selectors to avoid creating new objects (causes infinite loop with persist middleware)
+  const storeNodes = usePlannerStore((state) => state.present.nodes)
+  const storeEdges = usePlannerStore((state) => state.present.edges)
   const lastSyncedRef = useRef<{ nodes: any[] | null; edges: any[] | null }>({
     nodes: null,
     edges: null,
@@ -363,33 +361,19 @@ function PlannerCanvasInner() {
     setMenu(null)
   }, [menu?.id, setEdges, pushToHistory])
 
-  // Load saved data
+  // Apply layout when nodes are added via production chain
+  const previousNodesLengthRef = useRef(nodes.length)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('starrupture-planner')
-      if (saved) {
-        try {
-          const loaded = JSON.parse(saved)
-          if (loaded?.nodes?.length > 0) {
-            setNodes(loaded.nodes)
-            setEdges(loaded.edges)
-          }
-        } catch (e) {}
-      }
+    if (nodes.length > previousNodesLengthRef.current) {
+      // New nodes were added, re-apply layout
+      const { nodes: layoutedNodes, edges: layoutedEdges } =
+        getLayoutedElements(getNodes(), edges, 'LR')
+      setNodes(layoutedNodes)
+      setEdges(layoutedEdges)
+      setTimeout(() => fitView({ padding: 0.1 }), 100)
     }
-  }, [setNodes, setEdges])
-
-  // Auto-save to localStorage whenever nodes or edges change
-  useEffect(() => {
-    if (typeof window !== 'undefined' && nodes.length > 0) {
-      localStorage.setItem(
-        'starrupture-planner',
-        JSON.stringify({ nodes, edges }),
-      )
-    }
-  }, [nodes, edges])
-
-  // Apply layout
+    previousNodesLengthRef.current = nodes.length
+  }, [nodes.length, getNodes, edges, setNodes, setEdges, fitView])
   useEffect(() => {
     if (nodesInitialized && nodes.length > 0 && !isLayouted) {
       const { nodes: layoutedNodes, edges: layoutedEdges } =

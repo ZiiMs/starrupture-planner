@@ -1,13 +1,9 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import type { PlannerNode, PlannerEdge } from '@/types/planner'
+import { toast } from 'sonner'
+import type { PlannerNode, PlannerEdge, HistoryState } from '@/types/planner'
 
-interface PlannerState {
-  nodes: PlannerNode[]
-  edges: PlannerEdge[]
-  past: Array<{ nodes: PlannerNode[]; edges: PlannerEdge[] }>
-  future: Array<{ nodes: PlannerNode[]; edges: PlannerEdge[] }>
-
+interface PlannerState extends HistoryState {
   setNodes: (nodes: PlannerNode[]) => void
   setEdges: (edges: PlannerEdge[]) => void
   addNode: (node: PlannerNode) => void
@@ -16,7 +12,6 @@ interface PlannerState {
   updateNode: (nodeId: string, data: Partial<PlannerNode['data']>) => void
   addEdge: (edge: PlannerEdge) => void
   removeEdge: (edgeId: string) => void
-
   pushToHistory: () => void
   undo: () => void
   redo: () => void
@@ -26,113 +21,126 @@ interface PlannerState {
 export const usePlannerStore = create<PlannerState>()(
   persist(
     (set, get) => ({
-      nodes: [],
-      edges: [],
       past: [],
+      present: { nodes: [], edges: [] },
       future: [],
 
-      setNodes: (nodes: PlannerNode[]) => {
-        set({ nodes })
+      setNodes: (nodes) => {
+        set({ present: { ...get().present, nodes } })
       },
 
-      setEdges: (edges: PlannerEdge[]) => {
-        set({ edges })
+      setEdges: (edges) => {
+        set({ present: { ...get().present, edges } })
       },
 
-      addNode: (node: PlannerNode) => {
+      addNode: (node) => {
         get().pushToHistory()
-        const { nodes } = get()
-        set({ nodes: [...nodes, node] })
+        const { present } = get()
+        set({ present: { ...present, nodes: [...present.nodes, node] } })
       },
 
-      addNodes: (newNodes: PlannerNode[]) => {
+      addNodes: (newNodes) => {
         get().pushToHistory()
-        const { nodes } = get()
-        set({ nodes: [...nodes, ...newNodes] })
+        const { present } = get()
+        set({ present: { ...present, nodes: [...present.nodes, ...newNodes] } })
       },
 
-      removeNode: (nodeId: string) => {
+      removeNode: (nodeId) => {
         get().pushToHistory()
-        const { nodes } = get()
-        set({ nodes: nodes.filter((n) => n.id !== nodeId) })
-      },
-
-      updateNode: (nodeId: string, data: Partial<PlannerNode['data']>) => {
-        get().pushToHistory()
-        const { nodes } = get()
+        const { present } = get()
         set({
-          nodes: nodes.map((n) =>
-            n.id === nodeId ? { ...n, data: { ...n.data, ...data } } : n
-          ),
+          present: {
+            ...present,
+            nodes: present.nodes.filter((n) => n.id !== nodeId),
+          },
         })
       },
 
-      addEdge: (edge: PlannerEdge) => {
+      updateNode: (nodeId, data) => {
         get().pushToHistory()
-        const { edges } = get()
-        set({ edges: [...edges, edge] })
+        const { present } = get()
+        set({
+          present: {
+            ...present,
+            nodes: present.nodes.map((n) =>
+              n.id === nodeId ? { ...n, data: { ...n.data, ...data } } : n
+            ),
+          },
+        })
       },
 
-      removeEdge: (edgeId: string) => {
+      addEdge: (edge) => {
         get().pushToHistory()
-        const { edges } = get()
-        set({ edges: edges.filter((e) => e.id !== edgeId) })
+        const { present } = get()
+        set({ present: { ...present, edges: [...present.edges, edge] } })
+      },
+
+      removeEdge: (edgeId) => {
+        get().pushToHistory()
+        const { present } = get()
+        set({
+          present: {
+            ...present,
+            edges: present.edges.filter((e) => e.id !== edgeId),
+          },
+        })
       },
 
       pushToHistory: () => {
-        const { past, nodes, edges } = get()
+        const { past, present } = get()
         set({
-          past: [...past, { nodes, edges }].slice(-50),
+          past: [...past, present].slice(-50),
           future: [],
         })
       },
 
       undo: () => {
-        const { past, nodes, edges, future } = get()
+        const { past, present, future } = get()
         if (past.length === 0) return
 
         const previous = past[past.length - 1]
         set({
-          nodes: previous.nodes,
-          edges: previous.edges,
           past: past.slice(0, -1),
-          future: [{ nodes, edges }, ...future],
+          present: previous,
+          future: [present, ...future],
         })
       },
 
       redo: () => {
-        const { future, nodes, edges, past } = get()
+        const { future, present, past } = get()
         if (future.length === 0) return
 
         const next = future[0]
         set({
-          nodes: next.nodes,
-          edges: next.edges,
           future: future.slice(1),
-          past: [...past, { nodes, edges }],
+          present: next,
+          past: [...past, present],
         })
       },
 
       clearHistory: () => {
+        const { present } = get()
         set({
           past: [],
           future: [],
+          present,
         })
       },
     }),
-    {
-      name: 'starrupture-planner',
-      storage: createJSONStorage(() => localStorage),
-      skipHydration: true,
-      partialize: (state) => ({
-        nodes: state.nodes,
-        edges: state.edges,
-      }),
-    },
+      {
+        name: 'starrupture-planner',
+        storage: createJSONStorage(() => localStorage),
+        partialize: (state) => ({ present: state.present }),
+        onRehydrateStorage: () => (state) => {
+          if (state?.present?.nodes && state.present.nodes.length > 0) {
+            toast.success('Saved state loaded')
+          }
+        },
+      },
   ),
 )
 
 export const selectCanUndo = (state: PlannerState) => state.past.length > 0
 export const selectCanRedo = (state: PlannerState) => state.future.length > 0
-export const selectNodes = (state: PlannerState) => state.nodes
-export const selectEdges = (state: PlannerState) => state.edges
+export const selectNodes = (state: PlannerState) => state.present.nodes
+export const selectEdges = (state: PlannerState) => state.present.edges
