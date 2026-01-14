@@ -3,7 +3,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { ReactFlowProvider } from '@xyflow/react'
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
+import { usePlannerStore } from '@/stores/planner-store'
 
 const PlannerCanvas = lazy(() => import('@/components/planner/PlannerCanvas'))
 
@@ -25,6 +26,19 @@ function LoadingFallback() {
   )
 }
 
+function HydrationTrigger() {
+  const [, setTick] = useState(0)
+
+  useEffect(() => {
+    // Rehydrate and force re-render when done
+    Promise.resolve(usePlannerStore.persist.rehydrate()).then(() => {
+      setTick(t => t + 1)
+    })
+  }, [])
+
+  return null
+}
+
 export const Route = createFileRoute('/planner')({
   component: PlannerPage,
 })
@@ -33,6 +47,7 @@ function PlannerPage() {
   return (
     <QueryClientProvider client={queryClient}>
       <ReactFlowProvider>
+        <HydrationTrigger />
         <Suspense fallback={<LoadingFallback />}>
           <PlannerCanvas />
         </Suspense>

@@ -130,6 +130,7 @@ export const usePlannerStore = create<PlannerState>()(
       {
         name: 'starrupture-planner',
         storage: createJSONStorage(() => localStorage),
+        skipHydration: true,
         partialize: (state) => ({ present: state.present }),
         onRehydrateStorage: () => (state) => {
           if (state?.present?.nodes && state.present.nodes.length > 0) {
