@@ -6,10 +6,20 @@ const createMockNode = (id: string): PlannerNode => ({
   id,
   type: 'planner-node',
   position: { x: 0, y: 0 },
-  data: { buildingId: 'b1', recipeId: 'r1', count: 1, outputRate: 10, powerConsumption: 5 },
+  data: {
+    buildingId: 'b1',
+    recipeId: 'r1',
+    count: 1,
+    outputRate: 10,
+    powerConsumption: 5,
+  },
 })
 
-const createMockEdge = (id: string, source: string, target: string): PlannerEdge => ({
+const createMockEdge = (
+  id: string,
+  source: string,
+  target: string,
+): PlannerEdge => ({
   id,
   source,
   target,
@@ -59,7 +69,11 @@ describe('pushToHistory', () => {
 
   test('pushToHistory with 50+ entries keeps only last 50', () => {
     // Reset store explicitly
-    usePlannerStore.setState({ past: [], present: { nodes: [], edges: [] }, future: [] })
+    usePlannerStore.setState({
+      past: [],
+      present: { nodes: [], edges: [] },
+      future: [],
+    })
 
     // Push entries until we hit the 50 limit
     // After 50 pushes, past will have 50 entries and we break
@@ -67,7 +81,12 @@ describe('pushToHistory', () => {
       const state = usePlannerStore.getState()
       if (state.past.length >= 50) break
       // Replace nodes entirely, then push to history
-      usePlannerStore.setState({ present: { nodes: [createMockNode(`n${i}`)], edges: state.present.edges } })
+      usePlannerStore.setState({
+        present: {
+          nodes: [createMockNode(`n${i}`)],
+          edges: state.present.edges,
+        },
+      })
       usePlannerStore.getState().pushToHistory()
     }
 
@@ -80,7 +99,11 @@ describe('pushToHistory', () => {
   })
 
   test('undo after pushToHistory restores previous state', () => {
-    usePlannerStore.setState({ past: [], present: { nodes: [], edges: [] }, future: [] })
+    usePlannerStore.setState({
+      past: [],
+      present: { nodes: [], edges: [] },
+      future: [],
+    })
 
     const node1 = createMockNode('node1')
     const node2 = createMockNode('node2')
@@ -108,7 +131,11 @@ describe('pushToHistory', () => {
   })
 
   test('redo after undo restores next state', () => {
-    usePlannerStore.setState({ past: [], present: { nodes: [], edges: [] }, future: [] })
+    usePlannerStore.setState({
+      past: [],
+      present: { nodes: [], edges: [] },
+      future: [],
+    })
 
     const node1 = createMockNode('node1')
     const node2 = createMockNode('node2')
@@ -130,7 +157,11 @@ describe('pushToHistory', () => {
 
 describe('addNode', () => {
   beforeEach(() => {
-    usePlannerStore.setState({ past: [], present: { nodes: [], edges: [] }, future: [] })
+    usePlannerStore.setState({
+      past: [],
+      present: { nodes: [], edges: [] },
+      future: [],
+    })
   })
 
   test('addNode adds node and captures history', () => {
@@ -146,7 +177,11 @@ describe('addNode', () => {
 
 describe('removeNode', () => {
   beforeEach(() => {
-    usePlannerStore.setState({ past: [], present: { nodes: [], edges: [] }, future: [] })
+    usePlannerStore.setState({
+      past: [],
+      present: { nodes: [], edges: [] },
+      future: [],
+    })
   })
 
   test('removeNode removes node and captures history', () => {
@@ -165,7 +200,11 @@ describe('removeNode', () => {
 
 describe('addEdge', () => {
   beforeEach(() => {
-    usePlannerStore.setState({ past: [], present: { nodes: [], edges: [] }, future: [] })
+    usePlannerStore.setState({
+      past: [],
+      present: { nodes: [], edges: [] },
+      future: [],
+    })
   })
 
   test('addEdge adds edge and captures history', () => {
@@ -181,7 +220,11 @@ describe('addEdge', () => {
 
 describe('removeEdge', () => {
   beforeEach(() => {
-    usePlannerStore.setState({ past: [], present: { nodes: [], edges: [] }, future: [] })
+    usePlannerStore.setState({
+      past: [],
+      present: { nodes: [], edges: [] },
+      future: [],
+    })
   })
 
   test('removeEdge removes edge and captures history', () => {

@@ -2,19 +2,16 @@
 
 import { usePlannerData } from '@/hooks/use-planner-data'
 import { calculateOutputRate } from '@/lib/calculations'
-import { getLayoutedElements } from '@/lib/dagre-layout'
 import {
   Background,
   ConnectionMode,
   ReactFlow,
   ReactFlowProvider,
-  useNodesInitialized,
-  useReactFlow,
   type NodeChange,
   type EdgeChange,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import { memo, useCallback, useRef, useState } from 'react'
 import { BuildingNode } from './BuildingNode'
 import BuildingSelector from './BuildingSelector'
 import Controls from './Controls'
@@ -97,16 +94,11 @@ function PlannerCanvasInner() {
   const edges = usePlannerStore((state) => state.present.edges)
   const applyNodeChanges = usePlannerStore((state) => state.applyNodeChanges)
   const applyEdgeChanges = usePlannerStore((state) => state.applyEdgeChanges)
-  const setNodes = usePlannerStore((state) => state.setNodes)
   const setEdges = usePlannerStore((state) => state.setEdges)
   const removeNode = usePlannerStore((state) => state.removeNode)
   const removeEdge = usePlannerStore((state) => state.removeEdge)
   const pushToHistory = usePlannerStore((state) => state.pushToHistory)
   const updateNode = usePlannerStore((state) => state.updateNode)
-
-  const [isLayouted, setIsLayouted] = useState(false)
-  const nodesInitialized = useNodesInitialized()
-  const { fitView } = useReactFlow()
 
   const [menu, setMenu] = useState<{
     id: string | null
@@ -203,7 +195,8 @@ function PlannerCanvasInner() {
 
     updateNode(menu.id, {
       customInputs: [
-        ...((nodes.find((n) => n.id === menu.id)?.data as any)?.customInputs || []),
+        ...((nodes.find((n) => n.id === menu.id)?.data as any)?.customInputs ||
+          []),
         { id: `custom-input-${crypto.randomUUID()}` },
       ],
     })
@@ -217,7 +210,8 @@ function PlannerCanvasInner() {
 
     updateNode(menu.id, {
       customOutputs: [
-        ...((nodes.find((n) => n.id === menu.id)?.data as any)?.customOutputs || []),
+        ...((nodes.find((n) => n.id === menu.id)?.data as any)?.customOutputs ||
+          []),
         { id: `custom-output-${crypto.randomUUID()}` },
       ],
     })
@@ -285,70 +279,6 @@ function PlannerCanvasInner() {
     setMenu(null)
   }, [menu?.id, pushToHistory, removeEdge])
 
-  // Apply layout when nodes are added via production chain
-  const previousNodesLengthRef = useRef(nodes.length)
-  useEffect(() => {
-    if (nodes.length > previousNodesLengthRef.current) {
-      const { nodes: layoutedNodes, edges: layoutedEdges } =
-        getLayoutedElements(nodes, edges, 'LR')
-      setNodes(layoutedNodes as any)
-      setEdges(layoutedEdges as any)
-      setTimeout(() => fitView({ padding: 0.1 }), 100)
-    }
-    previousNodesLengthRef.current = nodes.length
-  }, [nodes.length, nodes, edges, setNodes, setEdges, fitView])
-  useEffect(() => {
-    if (nodesInitialized && nodes.length > 0 && !isLayouted) {
-      const { nodes: layoutedNodes, edges: layoutedEdges } =
-        getLayoutedElements(nodes, edges, 'LR')
-      setNodes(layoutedNodes as any)
-      setEdges(layoutedEdges as any)
-      setIsLayouted(true)
-      setTimeout(() => fitView({ padding: 0.1 }), 100)
-    }
-  }, [
-    nodesInitialized,
-    nodes.length,
-    nodes,
-    isLayouted,
-    edges,
-    setNodes,
-    setEdges,
-    fitView,
-  ])
-
-  // Calculate edge efficiency when nodes or planner data changes
-  useEffect(() => {
-    if (!plannerData?.recipes || !plannerData?.buildings || nodes.length === 0)
-      return
-
-    const currentEdges = usePlannerStore.getState().present.edges
-    let hasChanges = false
-    const updatedEdges = currentEdges.map((edge: any) => {
-      const edgeData = calculateEdgeEfficiencyData(
-        edge,
-        nodes,
-        plannerData.recipes,
-        plannerData.buildings,
-      )
-      if (edgeData) {
-        const needsUpdate =
-          edge.data?.itemId !== edgeData.itemId ||
-          edge.data?.usageRate !== edgeData.usageRate ||
-          edge.data?.producerRate !== edgeData.producerRate ||
-          edge.data?.isWarning !== edgeData.isWarning
-        if (needsUpdate) {
-          hasChanges = true
-          return { ...edge, data: { ...edge.data, ...edgeData } }
-        }
-      }
-      return edge
-    })
-    if (hasChanges) {
-      setEdges(updatedEdges)
-    }
-  }, [nodes, plannerData, setEdges])
-
   const handleRecipeChange = useCallback(
     (nodeId: string, newRecipeId: string) => {
       pushToHistory()
@@ -364,7 +294,11 @@ function PlannerCanvasInner() {
 
       updateNode(nodeId, {
         recipeId: newRecipeId,
-        outputRate: calculateOutputRate(recipe, buildingData, oldBuilding.data.count || 1),
+        outputRate: calculateOutputRate(
+          recipe,
+          buildingData,
+          oldBuilding.data.count || 1,
+        ),
       })
     },
     [plannerData, nodes, pushToHistory, updateNode],

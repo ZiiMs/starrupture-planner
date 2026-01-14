@@ -2,13 +2,6 @@
 
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import {
   Tooltip,
@@ -73,8 +66,12 @@ function BuildingNodeComponent({
 
   const BuildingIcon = getIcon(building.icon)
 
-  const availableRecipes = Object.values(recipes).filter((r) =>
-    r.producers.includes((data as any).buildingId),
+  const availableRecipes = useMemo(
+    () =>
+      Object.values(recipes).filter((r) =>
+        r.producers.includes((data as any).buildingId),
+      ),
+    [recipes, (data as any).buildingId],
   )
 
   const totalLeftHandles =
@@ -305,21 +302,19 @@ function BuildingNodeComponent({
           <label className="text-xs font-medium text-muted-foreground mb-1 block">
             Recipe
           </label>
-          <Select
-            value={(data as any).recipeId}
-            onValueChange={(value) => onRecipeChange?.(id, value)}
+          <select
+            value={(data as any).recipeId || ''}
+            onChange={(e) => onRecipeChange?.(id, e.target.value)}
+            className="h-8 text-xs rounded-none border border-input bg-transparent px-2 py-1 w-full cursor-pointer"
+            style={{ appearance: 'menulist' }}
           >
-            <SelectTrigger className="h-8 text-xs">
-              <SelectValue placeholder="Select recipe" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableRecipes.map((r) => (
-                <SelectItem key={r.id} value={r.id} className="text-xs">
-                  {r.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <option value="">Select recipe</option>
+            {availableRecipes.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         {recipe.inputs.length > 0 && (
@@ -378,4 +373,33 @@ function BuildingNodeComponent({
   )
 }
 
-export const BuildingNode = memo(BuildingNodeComponent)
+// Custom comparison to prevent unnecessary re-renders
+// Only re-render when these specific props change
+function areBuildingNodePropsEqual(
+  prev: BuildingNodeProps,
+  next: BuildingNodeProps,
+): boolean {
+  const prevData = prev.data as any
+  const nextData = next.data as any
+
+  return (
+    prev.id === next.id &&
+    prev.selected === next.selected &&
+    prevData?.buildingId === nextData?.buildingId &&
+    prevData?.recipeId === nextData?.recipeId &&
+    JSON.stringify(prevData?.customInputs) ===
+      JSON.stringify(nextData?.customInputs) &&
+    JSON.stringify(prevData?.customOutputs) ===
+      JSON.stringify(nextData?.customOutputs) &&
+    prevData?.powerConsumption === nextData?.powerConsumption &&
+    prevData?.outputRate === nextData?.outputRate &&
+    prev.items === next.items &&
+    prev.buildings === next.buildings &&
+    prev.recipes === next.recipes
+  )
+}
+
+export const BuildingNode = memo(
+  BuildingNodeComponent,
+  areBuildingNodePropsEqual,
+)

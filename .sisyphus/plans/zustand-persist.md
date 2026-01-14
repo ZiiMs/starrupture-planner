@@ -3,10 +3,13 @@
 ## Context
 
 ### Original Request
+
 Implement Zustand persist middleware for automatic state persistence, replacing manual save/load actions with automatic localStorage persistence.
 
 ### Interview Summary
+
 **Key Discussions**:
+
 - **Storage**: localStorage (default behavior, existing key 'starrupture-planner' for data continuity)
 - **Actions**: Remove manual `save()` and `load()` actions since persistence will be automatic
 - **UI**: Add loading saved state toast via onRehydrateStorage callback
@@ -16,16 +19,19 @@ Implement Zustand persist middleware for automatic state persistence, replacing 
 - **Guardrails**: Do NOT touch undo/redo (separate agent working on it)
 
 **Research Findings**:
+
 - Current store uses history-based architecture with `past`/`present`/`future` arrays
 - Manual persistence stores only `present` state under key `'starrupture-planner'`
 - Store structure: `{ past: HistoryState[], present: { nodes, edges }, future: HistoryState[] }`
 - Should only persist `present` via partialize to avoid conflicts with undo/redo agent
 - TanStack Start SSR requires skipHydration pattern to avoid localStorage errors
-- Sonner Toaster exists but not mounted in __root.tsx (required for toast feature)
+- Sonner Toaster exists but not mounted in \_\_root.tsx (required for toast feature)
 
 ### Metis Review
+
 **Identified Gaps** (addressed):
-- **Toast infrastructure**: Added <Toaster /> mount to __root.tsx in plan
+
+- **Toast infrastructure**: Added <Toaster /> mount to \_\_root.tsx in plan
 - **SSR handling**: Added skipHydration + useEffect rehydrate pattern
 - **Ctrl+S shortcut**: Removed from scope (keyboard shortcut handler deleted)
 - **UI buttons**: Added Save/Load button removal from Controls.tsx
@@ -36,15 +42,18 @@ Implement Zustand persist middleware for automatic state persistence, replacing 
 ## Work Objectives
 
 ### Core Objective
+
 Replace manual localStorage save/load with automatic Zustand persist middleware for the planner store, maintaining undo/redo isolation and supporting SSR.
 
 ### Concrete Deliverables
+
 - Modified `src/stores/planner-store.ts` with persist middleware
 - Modified `src/components/planner/Controls.tsx` (button removal, keyboard shortcut removal)
 - Modified `src/routes/__root.tsx` (Toaster mount)
 - Removed manual save/load actions from store interface and implementation
 
 ### Definition of Done
+
 - [x] App loads without hydration errors in SSR context
 - [x] State persists to localStorage automatically on changes
 - [x] State rehydrates from localStorage on app load
@@ -55,6 +64,7 @@ Replace manual localStorage save/load with automatic Zustand persist middleware 
 - [x] `npm run lint` passes
 
 ### Must Have
+
 - Zustand persist middleware with partialize configuration
 - Toast notification on successful rehydration
 - Proper SSR handling (skipHydration pattern)
@@ -62,6 +72,7 @@ Replace manual localStorage save/load with automatic Zustand persist middleware 
 - Removed manual save/load UI elements
 
 ### Must NOT Have (Guardrails)
+
 - **MUST NOT**: Touch undo/redo implementations (separate agent's work)
 - **MUST NOT**: Persist `past` or `future` arrays (breaks undo/redo isolation)
 - **MUST NOT**: Add version/migration logic (deferred)
@@ -78,16 +89,17 @@ Replace manual localStorage save/load with automatic Zustand persist middleware 
 
 **Verification by Deliverable Type:**
 
-| Deliverable | Verification Tool | Procedure |
-|-------------|------------------|-----------|
-| **Store persistence** | Browser DevTools | Open app, make changes, refresh, verify state persists |
-| **Toast notification** | Visual inspection | Refresh app with saved data, verify toast appears |
-| **Button removal** | Visual inspection | Open planner, verify Save/Load buttons absent |
-| **SSR safety** | Terminal output | Run `npm run dev`, verify no hydration warnings |
-| **Build** | Terminal | Run `npm run build`, verify success |
-| **Lint** | Terminal | Run `npm run lint`, verify no errors |
+| Deliverable            | Verification Tool | Procedure                                              |
+| ---------------------- | ----------------- | ------------------------------------------------------ |
+| **Store persistence**  | Browser DevTools  | Open app, make changes, refresh, verify state persists |
+| **Toast notification** | Visual inspection | Refresh app with saved data, verify toast appears      |
+| **Button removal**     | Visual inspection | Open planner, verify Save/Load buttons absent          |
+| **SSR safety**         | Terminal output   | Run `npm run dev`, verify no hydration warnings        |
+| **Build**              | Terminal          | Run `npm run build`, verify success                    |
+| **Lint**               | Terminal          | Run `npm run lint`, verify no errors                   |
 
 **Evidence Required**:
+
 - Screenshot of toast notification after reload
 - Screenshot of Controls component without Save/Load buttons
 - Terminal output showing successful build
@@ -103,14 +115,14 @@ Controls.tsx (buttons) → __root.tsx (Toaster) → planner-store.ts (persist) �
 
 ## Parallelization
 
-| Group | Tasks | Reason |
-|-------|-------|--------|
-| A | 1, 2 | Independent UI cleanup tasks |
+| Group | Tasks | Reason                       |
+| ----- | ----- | ---------------------------- |
+| A     | 1, 2  | Independent UI cleanup tasks |
 
-| Task | Depends On | Reason |
-|------|------------|--------|
-| 3 | 1, 2 | Store implementation, needs Toaster mounted first |
-| 4 | 3 | Verification after all changes complete |
+| Task | Depends On | Reason                                            |
+| ---- | ---------- | ------------------------------------------------- |
+| 3    | 1, 2       | Store implementation, needs Toaster mounted first |
+| 4    | 3          | Verification after all changes complete           |
 
 ---
 
@@ -146,7 +158,7 @@ Controls.tsx (buttons) → __root.tsx (Toaster) → planner-store.ts (persist) �
 
   **Acceptance Criteria** (Manual QA):
 
-  *Frontend/UI changes*:
+  _Frontend/UI changes_:
   - [x] Using playwright browser automation:
     - Navigate to: `http://localhost:3000/`
     - Action: Open browser DevTools, inspect Controls component
@@ -165,7 +177,7 @@ Controls.tsx (buttons) → __root.tsx (Toaster) → planner-store.ts (persist) �
 
 ---
 
-- [x] 2. Mount Toaster in __root.tsx
+- [x] 2. Mount Toaster in \_\_root.tsx
 
   **What to do**:
   - Import `Toaster` from `src/components/ui/sonner.tsx`
@@ -173,7 +185,7 @@ Controls.tsx (buttons) → __root.tsx (Toaster) → planner-store.ts (persist) �
   - Verify import doesn't conflict with existing imports
 
   **Must NOT do**:
-  - Don't modify any other component in __root.tsx
+  - Don't modify any other component in \_\_root.tsx
   - Don't add any additional UI elements
   - Don't change existing component props or structure
 
@@ -189,12 +201,12 @@ Controls.tsx (buttons) → __root.tsx (Toaster) → planner-store.ts (persist) �
   - Sonner docs: Toaster must be mounted in app root for toast() to work
 
   **WHY Each Reference Matters**:
-  - __root.tsx shows where to place Toaster in the component tree
+  - \_\_root.tsx shows where to place Toaster in the component tree
   - sonner.tsx confirms Toaster component interface
 
   **Acceptance Criteria** (Manual QA):
 
-  *Frontend/UI changes*:
+  _Frontend/UI changes_:
   - [x] Using playwright browser automation:
     - Navigate to: `http://localhost:3000/`
     - Action: Inspect HTML, look for `sonner-toaster` class
@@ -227,6 +239,7 @@ Controls.tsx (buttons) → __root.tsx (Toaster) → planner-store.ts (persist) �
   - Add useEffect in a component to trigger manual rehydrate()
 
   **Toast Logic**:
+
   ```typescript
   onRehydrateStorage: () => (state) => {
     if (state?.present?.nodes?.length > 0) {
@@ -269,7 +282,7 @@ Controls.tsx (buttons) → __root.tsx (Toaster) → planner-store.ts (persist) �
 
   **Acceptance Criteria** (Manual QA):
 
-  *Frontend/UI changes*:
+  _Frontend/UI changes_:
   - [x] Using playwright browser automation:
     - Navigate to: `http://localhost:3000/`
     - Action: Make changes to planner (add nodes, move edges)
@@ -278,7 +291,7 @@ Controls.tsx (buttons) → __root.tsx (Toaster) → planner-store.ts (persist) �
     - Verify: Toast appears if saved data existed
     - Screenshot: Save evidence to `.sisyphus/evidence/3-persistence-working.png`
 
-  *For API/Backend changes*:
+  _For API/Backend changes_:
   - [x] Verify localStorage:
     - Command: Open browser DevTools → Application → Local Storage
     - Verify: Key `starrupture-planner` exists with JSON value
@@ -320,17 +333,17 @@ Controls.tsx (buttons) → __root.tsx (Toaster) → planner-store.ts (persist) �
 
   **Acceptance Criteria** (Manual QA):
 
-   *Build verification*:
-   - [x] Run: `npm run build`
-   - [x] Expected: Build completes successfully ⚠️ Pre-existing React/jsx-runtime error (unrelated to implementation)
-   - [x] Output: `Build completed successfully` or similar (error is pre-existing, not from our changes)
+  _Build verification_:
+  - [x] Run: `npm run build`
+  - [x] Expected: Build completes successfully ⚠️ Pre-existing React/jsx-runtime error (unrelated to implementation)
+  - [x] Output: `Build completed successfully` or similar (error is pre-existing, not from our changes)
 
-  *Lint verification*:
+  _Lint verification_:
   - [x] Run: `npm run lint`
   - [x] Expected: No errors or warnings
   - [x] Output: Clean lint results
 
-  *Functional verification*:
+  _Functional verification_:
   - [x] Browser test:
     - Navigate to planner
     - Add a building node
@@ -350,23 +363,25 @@ Controls.tsx (buttons) → __root.tsx (Toaster) → planner-store.ts (persist) �
 
 ## Commit Strategy
 
-| After Task | Message | Files | Verification |
-|------------|---------|-------|--------------|
-| 1 | `feat(planner): remove manual save/load UI elements` | Controls.tsx | `npm run lint` |
-| 2 | `feat(ui): mount sonner Toaster for toast notifications` | __root.tsx | `npm run lint` |
-| 3 | `feat(store): add persist middleware for automatic state persistence` | planner-store.ts | `npm run lint`, browser test |
+| After Task | Message                                                               | Files            | Verification                 |
+| ---------- | --------------------------------------------------------------------- | ---------------- | ---------------------------- |
+| 1          | `feat(planner): remove manual save/load UI elements`                  | Controls.tsx     | `npm run lint`               |
+| 2          | `feat(ui): mount sonner Toaster for toast notifications`              | \_\_root.tsx     | `npm run lint`               |
+| 3          | `feat(store): add persist middleware for automatic state persistence` | planner-store.ts | `npm run lint`, browser test |
 
 ---
 
 ## Success Criteria
 
 ### Verification Commands
+
 ```bash
 npm run build    # Expected: Build completed successfully
 npm run lint     # Expected: No errors or warnings
 ```
 
 ### Final Checklist
+
 - [x] App loads without hydration errors
 - [x] State persists to localStorage automatically
 - [x] State rehydrates from localStorage on load

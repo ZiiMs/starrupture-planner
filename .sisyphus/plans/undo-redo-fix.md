@@ -3,11 +3,13 @@
 ## Context
 
 ### Original Request
+
 The undo/redo buttons don't work - clicking them has no effect.
 
 ### Interview Summary
 
 **Key Discussions**:
+
 - **Root cause identified**: Canvas uses local `useNodesState`/`useEdgesState` while store has history state that's never connected to the canvas
 - **Solution chosen**: Make Zustand store the single source of truth for nodes, edges, and history
 - **User confirmed**: Add persistence middleware for automatic localStorage saving
@@ -15,6 +17,7 @@ The undo/redo buttons don't work - clicking them has no effect.
 - **User confirmed**: Limit history to 50 entries, start fresh (existing data lost)
 
 **Research Findings**:
+
 - `PlannerCanvas.tsx` uses local ReactFlow state (`useNodesState`/`useEdgesState`)
 - `planner-store.ts` has history state (`past`/`present`/`future`) but canvas ignores it
 - `Controls.tsx` calls `undo()`/`redo()` but store updates don't propagate to canvas
@@ -22,7 +25,9 @@ The undo/redo buttons don't work - clicking them has no effect.
 - `PlannerCanvas.tsx:276-289` has direct localStorage access that conflicts with store
 
 ### Metis Review
+
 **Identified Gaps** (addressed):
+
 - BuildingSelector bypasses store → Will update to use store actions
 - History granularity undefined → Confirmed: only structural changes create history
 - SSR hydration → Will use `skipHydration` option
@@ -33,15 +38,18 @@ The undo/redo buttons don't work - clicking them has no effect.
 ## Work Objectives
 
 ### Core Objective
+
 Fix broken undo/redo functionality by making Zustand store the source of truth for canvas state, and add automatic persistence for data survival across browser refreshes.
 
 ### Concrete Deliverables
+
 - `src/stores/planner-store.ts` - Extended with nodes/edges state, history actions, persist middleware
 - `src/components/planner/PlannerCanvas.tsx` - Reads from store, removes localStorage
 - `src/components/planner/Controls.tsx` - Undo/redo works, save/load removed
 - `src/components/planner/BuildingSelector.tsx` - Uses store actions for node/edge operations
 
 ### Definition of Done
+
 - [ ] Undo button reverses the last structural change
 - [ ] Redo button restores the last undone change
 - [ ] Canvas state persists across browser refresh
@@ -52,6 +60,7 @@ Fix broken undo/redo functionality by making Zustand store the source of truth f
 - [ ] No hydration mismatch warnings in console
 
 ### Must Have
+
 - Zustand store as single source of truth for nodes and edges
 - History tracking (undo/redo) for structural changes only
 - Automatic persistence to localStorage
@@ -59,6 +68,7 @@ Fix broken undo/redo functionality by making Zustand store the source of truth f
 - History limit of 50 entries
 
 ### Must NOT Have (Guardrails)
+
 - History entries for position updates (dragging nodes)
 - Past/future arrays persisted (only present)
 - Duplicate localStorage access in PlannerCanvas
@@ -73,13 +83,13 @@ Fix broken undo/redo functionality by making Zustand store the source of truth f
 
 ### Verification Procedures
 
-| Action | Verification Tool | Procedure |
-|--------|------------------|-----------|
-| Add node → Undo | Browser + Playwright | Add node, click Undo, verify node gone |
-| Add edge → Undo | Browser + Playwright | Connect nodes, click Undo, verify edge gone |
-| Delete node → Redo | Browser + Playwright | Delete node, click Redo, verify node back |
-| Refresh page | Browser + Playwright | Add nodes, refresh, verify nodes still there |
-| History limit | Browser + Playwright | Add 60 nodes, verify only last 50 can be undone |
+| Action             | Verification Tool    | Procedure                                       |
+| ------------------ | -------------------- | ----------------------------------------------- |
+| Add node → Undo    | Browser + Playwright | Add node, click Undo, verify node gone          |
+| Add edge → Undo    | Browser + Playwright | Connect nodes, click Undo, verify edge gone     |
+| Delete node → Redo | Browser + Playwright | Delete node, click Redo, verify node back       |
+| Refresh page       | Browser + Playwright | Add nodes, refresh, verify nodes still there    |
+| History limit      | Browser + Playwright | Add 60 nodes, verify only last 50 can be undone |
 
 ---
 
@@ -102,12 +112,12 @@ Task 4: Update BuildingSelector to use store actions
 
 ## Parallelization
 
-| Task | Depends On | Reason |
-|------|------------|--------|
-| 1 | None | Foundation - must be first |
-| 2 | 1 | Requires store actions to exist |
-| 3 | 1 | Requires store actions to exist |
-| 4 | 1 | Requires store actions to exist |
+| Task | Depends On | Reason                          |
+| ---- | ---------- | ------------------------------- |
+| 1    | None       | Foundation - must be first      |
+| 2    | 1          | Requires store actions to exist |
+| 3    | 1          | Requires store actions to exist |
+| 4    | 1          | Requires store actions to exist |
 
 ---
 
@@ -168,7 +178,7 @@ Task 4: Update BuildingSelector to use store actions
         name: 'starrupture-planner',
         partialize: (state) => ({ present: state.present }),
         skipHydration: true,
-      }
+      },
     )
     ```
 
@@ -446,24 +456,26 @@ Task 4: Update BuildingSelector to use store actions
 
 ## Commit Strategy
 
-| After Task | Message | Files | Verification |
-|------------|---------|-------|--------------|
-| 1 | `refactor(store): add nodes/edges state with persistence and history` | `src/stores/planner-store.ts`, `src/types/planner.ts` | `npm run lint` |
-| 2 | `refactor(canvas): read from Zustand store instead of local state` | `src/components/planner/PlannerCanvas.tsx` | `npm run lint` |
-| 3 | `refactor(controls): remove save/load buttons, keep undo/redo` | `src/components/planner/Controls.tsx` | `npm run lint` |
-| 4 | `refactor(selector): use store actions instead of useReactFlow` | `src/components/planner/BuildingSelector.tsx` | `npm run lint` |
+| After Task | Message                                                               | Files                                                 | Verification   |
+| ---------- | --------------------------------------------------------------------- | ----------------------------------------------------- | -------------- |
+| 1          | `refactor(store): add nodes/edges state with persistence and history` | `src/stores/planner-store.ts`, `src/types/planner.ts` | `npm run lint` |
+| 2          | `refactor(canvas): read from Zustand store instead of local state`    | `src/components/planner/PlannerCanvas.tsx`            | `npm run lint` |
+| 3          | `refactor(controls): remove save/load buttons, keep undo/redo`        | `src/components/planner/Controls.tsx`                 | `npm run lint` |
+| 4          | `refactor(selector): use store actions instead of useReactFlow`       | `src/components/planner/BuildingSelector.tsx`         | `npm run lint` |
 
 ---
 
 ## Success Criteria
 
 ### Verification Commands
+
 ```bash
 npm run dev  # Start dev server on port 3000
 # Then manually test in browser
 ```
 
 ### Final Checklist
+
 - [ ] All "Must Have" present
 - [ ] All "Must NOT Have" absent
 - [ ] Undo reverses structural changes

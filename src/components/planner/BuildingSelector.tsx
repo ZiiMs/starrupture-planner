@@ -11,7 +11,13 @@ import {
   calculateBuildingsNeeded,
 } from '@/lib/calculations'
 import { getIcon } from '@/lib/icons'
-import type { Building, Item, Recipe, PlannerNode, PlannerEdge } from '@/types/planner'
+import type {
+  Building,
+  Item,
+  Recipe,
+  PlannerNode,
+  PlannerEdge,
+} from '@/types/planner'
 import { usePlannerStore } from '@/stores/planner-store'
 import { nanoid } from 'nanoid'
 import { memo, useState, useCallback, useMemo } from 'react'

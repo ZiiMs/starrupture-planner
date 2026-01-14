@@ -3,10 +3,13 @@
 ## Context
 
 ### Original Request
+
 User: "The top right buttons seem to do nothing. The undo button and redo button don't work. We previously had a plan to implement this but I believe I lost some data when pushing it up to main. Lets take our time and figure out best way to implement the undo/redo history. I think we should use zustand to store the data."
 
 ### Interview Summary
+
 **Key Discussions**:
+
 - Found existing Zustand store has `undo`/`redo` actions but no way to capture state changes
 - ReactFlow uses local `useNodesState`/`useEdgesState` - disconnected from store history
 - Buttons exist in `Controls.tsx` but have no effect on actual state
@@ -14,6 +17,7 @@ User: "The top right buttons seem to do nothing. The undo button and redo button
 - Button disabled states not wired to store selectors
 
 **Research Findings**:
+
 - Store at `src/stores/planner-store.ts` has history infrastructure (past/present/future) but missing `pushToHistory` action
 - `PlannerCanvas.tsx` has 30+ state mutation points via `setNodes`/`setEdges`
 - `BuildingSelector.tsx` uses `useReactFlow().addNodes`/`addEdges` directly, bypassing local state
@@ -21,7 +25,9 @@ User: "The top right buttons seem to do nothing. The undo button and redo button
 - ReactFlow docs recommend capturing state before applying changes in `onNodesChange`/`onEdgesChange`
 
 ### Metis Review
+
 **Identified Gaps** (addressed):
+
 - Missing `pushToHistory` action - root cause of non-functional buttons
 - 30+ mutation points need history capture wrapper
 - BuildingSelector bypasses local state - requires refactor to use local state
@@ -32,9 +38,11 @@ User: "The top right buttons seem to do nothing. The undo button and redo button
 ## Work Objectives
 
 ### Core Objective
+
 Make undo/redo buttons fully functional by integrating Zustand history store with ReactFlow state mutations, adding keyboard shortcuts, and implementing proper button disabled states.
 
 ### Concrete Deliverables
+
 - `src/stores/planner-store.ts` - Updated store with `pushToHistory` action and history limit
 - `src/components/planner/Controls.tsx` - Buttons with disabled states via selectors
 - `src/components/planner/PlannerCanvas.tsx` - History capture before state mutations
@@ -42,6 +50,7 @@ Make undo/redo buttons fully functional by integrating Zustand history store wit
 - `src/stores/__tests__/planner-store.test.ts` - Unit tests for history logic
 
 ### Definition of Done
+
 - [x] Clicking Undo button reverts the last user action
 - [x] Clicking Redo button re-applies the last undone action
 - [x] Ctrl+Z triggers undo when canvas is focused
@@ -55,6 +64,7 @@ Make undo/redo buttons fully functional by integrating Zustand history store wit
 - [x] All unit tests pass
 
 ### Must Have
+
 - [x] Functional undo/redo buttons
 - [x] Ctrl+Z / Ctrl+Y keyboard shortcuts
 - [x] Proper disabled states on buttons
@@ -63,6 +73,7 @@ Make undo/redo buttons fully functional by integrating Zustand history store wit
 - [x] History depth limit (50 entries)
 
 ### Must NOT Have (Guardrails)
+
 - Refactoring to single source of truth architecture
 - Zundo middleware integration
 - Ctrl+S save shortcut
@@ -77,17 +88,20 @@ Make undo/redo buttons fully functional by integrating Zustand history store wit
 ## Verification Strategy
 
 ### Test Decision
+
 - **Infrastructure exists**: YES (Vitest configured)
 - **User wants tests**: YES (after implementation)
 - **Framework**: vitest + @testing-library/react
 
 ### Test Setup Task
+
 - [x] 0. Setup Test Infrastructure
   - [x] Verify: `npm run test` → shows vitest help
   - [x] Create: `src/stores/__tests__/planner-store.test.ts`
   - [x] Verify: `npm run test` → runs with 0 failures
 
 ### Test Coverage Required
+
 - History state transitions (past → present → future)
 - Edge cases: empty history, boundary conditions
 - Selector functions (`selectCanUndo`, `selectCanRedo`)
@@ -114,11 +128,11 @@ Task 1 (Store) ──→ Task 2 (Canvas mutations) ──→ Task 6 (Tests)
 
 ## Parallelization
 
-| Group | Tasks | Reason |
-|-------|-------|--------|
-| A | 1, 2, 3 | Independent files, can be done in parallel |
-| B | 4, 5 | Both UI changes, share context |
-| C | 6 | Depends on store implementation |
+| Group | Tasks   | Reason                                     |
+| ----- | ------- | ------------------------------------------ |
+| A     | 1, 2, 3 | Independent files, can be done in parallel |
+| B     | 4, 5    | Both UI changes, share context             |
+| C     | 6       | Depends on store implementation            |
 
 ---
 
@@ -169,17 +183,17 @@ Task 1 (Store) ──→ Task 2 (Canvas mutations) ──→ Task 6 (Tests)
 
   **Acceptance Criteria**:
 
-   *Tests:*
-   - [x] Test file created: `src/stores/__tests__/planner-store.test.ts`
-   - [x] Test: `pushToHistory` adds to past array
-   - [x] Test: `pushToHistory` with 50+ entries keeps only last 50
-   - [x] Test: `undo` after `pushToHistory` restores previous state
-   - [x] Test: `redo` after `undo` restores next state
-   - [x] `npm run test` → PASS (6 tests, 0 failures)
+  _Tests:_
+  - [x] Test file created: `src/stores/__tests__/planner-store.test.ts`
+  - [x] Test: `pushToHistory` adds to past array
+  - [x] Test: `pushToHistory` with 50+ entries keeps only last 50
+  - [x] Test: `undo` after `pushToHistory` restores previous state
+  - [x] Test: `redo` after `undo` restores next state
+  - [x] `npm run test` → PASS (6 tests, 0 failures)
 
-   *Manual Execution Verification:*
-   - [x] Using lsp_diagnostics: No type errors in store file
-   - [x] Using bash: `npm run lint` → No errors
+  _Manual Execution Verification:_
+  - [x] Using lsp_diagnostics: No type errors in store file
+  - [x] Using bash: `npm run lint` → No errors
 
   **Commit**: YES
   - Message: `feat(undo-redo): add pushToHistory action with limit`
@@ -228,7 +242,7 @@ Task 1 (Store) ──→ Task 2 (Canvas mutations) ──→ Task 6 (Tests)
 
   **Acceptance Criteria**:
 
-  *Manual Execution Verification:*
+  _Manual Execution Verification:_
   - [ ] Using interactive_bash (tmux session):
     - Command: `npm run dev`
     - Navigate to: `http://localhost:3000`
@@ -283,7 +297,7 @@ Task 1 (Store) ──→ Task 2 (Canvas mutations) ──→ Task 6 (Tests)
 
   **Acceptance Criteria**:
 
-  *Manual Execution Verification:*
+  _Manual Execution Verification:_
   - [ ] Using interactive_bash (tmux session):
     - Command: `npm run dev`
     - Navigate to: `http://localhost:3000`
@@ -330,7 +344,7 @@ Task 1 (Store) ──→ Task 2 (Canvas mutations) ──→ Task 6 (Tests)
 
   **Acceptance Criteria**:
 
-  *Manual Execution Verification:*
+  _Manual Execution Verification:_
   - [ ] Using interactive_bash (tmux session):
     - Command: `npm run dev`
     - Navigate to: `http://localhost:3000`
@@ -381,7 +395,7 @@ Task 1 (Store) ──→ Task 2 (Canvas mutations) ──→ Task 6 (Tests)
 
   **Acceptance Criteria**:
 
-  *Manual Execution Verification:*
+  _Manual Execution Verification:_
   - [ ] Using interactive_bash (tmux session):
     - Command: `npm run dev`
     - Navigate to: `http://localhost:3000`
@@ -419,12 +433,12 @@ Task 1 (Store) ──→ Task 2 (Canvas mutations) ──→ Task 6 (Tests)
 
   **Acceptance Criteria**:
 
-  *Tests:*
+  _Tests:_
   - [ ] `npm run test` → All tests pass
   - [ ] `npm run lint` → No errors
   - [ ] `npm run format:check` → No formatting issues
 
-  *Manual Execution Verification:*
+  _Manual Execution Verification:_
   - [ ] Using interactive_bash (tmux session):
     - Command: `npm run dev`
     - Navigate to: `http://localhost:3000`
@@ -444,14 +458,14 @@ Task 1 (Store) ──→ Task 2 (Canvas mutations) ──→ Task 6 (Tests)
 
 ## Commit Strategy
 
-| After Task | Message | Files | Verification |
-|------------|---------|-------|--------------|
-| 1 | `feat(undo-redo): add pushToHistory action with limit` | planner-store.ts, test file | `npm run lint` |
-| 2 | `feat(undo-redo): capture history before ReactFlow mutations` | PlannerCanvas.tsx | Manual test: undo node |
-| 3 | `feat(undo-redo): refactor BuildingSelector to use local state` | BuildingSelector.tsx, PlannerCanvas.tsx | Manual test: undo chain |
-| 4 | `feat(undo-redo): wire button disabled states` | Controls.tsx | Manual test: button states |
-| 5 | `feat(undo-redo): add keyboard shortcuts` | Controls.tsx or PlannerCanvas.tsx | Manual test: Ctrl+Z/Y |
-| 6 | `test(undo-redo): run full test suite` | All files | `npm run test` |
+| After Task | Message                                                         | Files                                   | Verification               |
+| ---------- | --------------------------------------------------------------- | --------------------------------------- | -------------------------- |
+| 1          | `feat(undo-redo): add pushToHistory action with limit`          | planner-store.ts, test file             | `npm run lint`             |
+| 2          | `feat(undo-redo): capture history before ReactFlow mutations`   | PlannerCanvas.tsx                       | Manual test: undo node     |
+| 3          | `feat(undo-redo): refactor BuildingSelector to use local state` | BuildingSelector.tsx, PlannerCanvas.tsx | Manual test: undo chain    |
+| 4          | `feat(undo-redo): wire button disabled states`                  | Controls.tsx                            | Manual test: button states |
+| 5          | `feat(undo-redo): add keyboard shortcuts`                       | Controls.tsx or PlannerCanvas.tsx       | Manual test: Ctrl+Z/Y      |
+| 6          | `test(undo-redo): run full test suite`                          | All files                               | `npm run test`             |
 
 ---
 
@@ -486,6 +500,7 @@ These can be added with minimal changes since the architecture is now in place.
 ## Success Criteria
 
 ### Verification Commands
+
 ```bash
 npm run test          # All tests pass (including new undo/redo tests)
 npm run lint          # No lint errors
@@ -493,6 +508,7 @@ npm run dev           # Manual testing in browser
 ```
 
 ### Final Checklist
+
 - [x] All "Must Have" present
 - [x] All "Must NOT Have" absent
 - [x] All tests pass

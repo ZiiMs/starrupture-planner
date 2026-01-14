@@ -1,6 +1,11 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { applyNodeChanges, applyEdgeChanges, type NodeChange, type EdgeChange } from '@xyflow/react'
+import {
+  applyNodeChanges,
+  applyEdgeChanges,
+  type NodeChange,
+  type EdgeChange,
+} from '@xyflow/react'
 import { toast } from 'sonner'
 import type { PlannerNode, PlannerEdge, HistoryState } from '@/types/planner'
 
@@ -66,7 +71,7 @@ export const usePlannerStore = create<PlannerState>()(
           present: {
             ...present,
             nodes: present.nodes.map((n) =>
-              n.id === nodeId ? { ...n, data: { ...n.data, ...data } } : n
+              n.id === nodeId ? { ...n, data: { ...n.data, ...data } } : n,
             ),
           },
         })
@@ -162,17 +167,17 @@ export const usePlannerStore = create<PlannerState>()(
         })
       },
     }),
-      {
-        name: 'starrupture-planner',
-        storage: createJSONStorage(() => localStorage),
-        skipHydration: true,
-        partialize: (state) => ({ present: state.present }),
-        onRehydrateStorage: () => (state) => {
-          if (state?.present?.nodes && state.present.nodes.length > 0) {
-            toast.success('Saved state loaded')
-          }
-        },
+    {
+      name: 'starrupture-planner',
+      storage: createJSONStorage(() => localStorage),
+      skipHydration: true,
+      partialize: (state) => ({ present: state.present }),
+      onRehydrateStorage: () => (state) => {
+        if (state?.present?.nodes && state.present.nodes.length > 0) {
+          toast.success('Saved state loaded')
+        }
       },
+    },
   ),
 )
 

@@ -10,24 +10,27 @@ Successfully implemented Zustand persist middleware for automatic state persiste
 
 ## Files Modified
 
-| File | Changes |
-|------|---------|
-| `src/components/planner/Controls.tsx` | Removed Save/Load buttons and icon imports (-21 lines) |
-| `src/routes/__root.tsx` | Added Toaster mount (+2 lines) |
-| `src/stores/planner-store.ts` | Added persist middleware, removed manual save/load actions |
-| `src/components/planner/PlannerCanvas.tsx` | Added auto-save useEffect |
+| File                                       | Changes                                                    |
+| ------------------------------------------ | ---------------------------------------------------------- |
+| `src/components/planner/Controls.tsx`      | Removed Save/Load buttons and icon imports (-21 lines)     |
+| `src/routes/__root.tsx`                    | Added Toaster mount (+2 lines)                             |
+| `src/stores/planner-store.ts`              | Added persist middleware, removed manual save/load actions |
+| `src/components/planner/PlannerCanvas.tsx` | Added auto-save useEffect                                  |
 
 ## Key Implementation Details
 
 ### Persist Middleware Configuration
+
 ```typescript
 persist(
-  (set, get) => ({ /* state creator */ }),
+  (set, get) => ({
+    /* state creator */
+  }),
   {
-    name: 'starrupture-planner',      // existing key for data continuity
+    name: 'starrupture-planner', // existing key for data continuity
     storage: createJSONStorage(() => localStorage),
-    skipHydration: true,               // SSR compatibility
-    partialize: (state) => ({ present: state.present }),  // only persist present
+    skipHydration: true, // SSR compatibility
+    partialize: (state) => ({ present: state.present }), // only persist present
     onRehydrateStorage: () => (state) => {
       if (state?.present?.nodes && state.present.nodes.length > 0) {
         toast.success('Saved state loaded')
@@ -38,6 +41,7 @@ persist(
 ```
 
 ### Auto-Save in PlannerCanvas (CRITICAL FIX)
+
 After initial implementation, discovered that nodes/edges are managed in ReactFlow's local state (`useNodesState`, `useEdgesState`), NOT in the Zustand store. Added auto-save useEffect:
 
 ```typescript
@@ -64,14 +68,14 @@ This ensures state is persisted whenever nodes or edges change.
 
 ## Verification Results
 
-| Check | Result |
-|-------|--------|
-| `npm run lint` on Controls.tsx | ✅ 0 errors |
-| `npm run lint` on __root.tsx | ✅ 0 errors |
-| `npm run lint` on planner-store.ts | ✅ 0 errors |
-| `npm run lint` on PlannerCanvas.tsx | ⚠️ Pre-existing warning in catch block |
-| `npm run lint` (full project) | ⚠️ Pre-existing warning in PlannerCanvas.tsx |
-| `npm run build` | ⚠️ Pre-existing React/jsx-runtime error |
+| Check                               | Result                                       |
+| ----------------------------------- | -------------------------------------------- |
+| `npm run lint` on Controls.tsx      | ✅ 0 errors                                  |
+| `npm run lint` on \_\_root.tsx      | ✅ 0 errors                                  |
+| `npm run lint` on planner-store.ts  | ✅ 0 errors                                  |
+| `npm run lint` on PlannerCanvas.tsx | ⚠️ Pre-existing warning in catch block       |
+| `npm run lint` (full project)       | ⚠️ Pre-existing warning in PlannerCanvas.tsx |
+| `npm run build`                     | ⚠️ Pre-existing React/jsx-runtime error      |
 
 ## Known Issues
 
@@ -83,5 +87,5 @@ This ensures state is persisted whenever nodes or edges change.
 1. **skipHydration: true** - Required for TanStack Start SSR to avoid localStorage errors on server
 2. **partialize present only** - Prevents persisting history arrays, maintaining undo/redo isolation
 3. **onRehydrateStorage callback** - Shows toast only when saved data exists (nodes.length > 0)
-4. **Toaster mount** - Added to __root.tsx after Outlet for proper toast infrastructure
+4. **Toaster mount** - Added to \_\_root.tsx after Outlet for proper toast infrastructure
 5. **Auto-save in PlannerCanvas** - Nodes/edges managed in ReactFlow local state, not store; added useEffect for automatic persistence

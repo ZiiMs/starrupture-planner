@@ -34,7 +34,7 @@ function HydrationWaiter() {
 
     const unsubFinish = usePlannerStore.persist.onFinishHydration(() => {
       hasHydrated = true
-      setTick(t => t + 1)
+      setTick((t) => t + 1)
     })
 
     usePlannerStore.persist.rehydrate()
@@ -42,7 +42,7 @@ function HydrationWaiter() {
     const timeout = setTimeout(() => {
       if (!hasHydrated) {
         hasHydrated = true
-        setTick(t => t + 1)
+        setTick((t) => t + 1)
       }
     }, 100)
 

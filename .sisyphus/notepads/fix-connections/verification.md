@@ -5,16 +5,17 @@
 **File:** `src/components/planner/PlannerCanvas.tsx`
 
 **Changes:**
+
 1. Added import: `ConnectionMode` from `@xyflow/react`
 2. Added prop: `connectionMode={ConnectionMode.Loose}` to `<ReactFlow>` component
 
 ## Automated Verification Results
 
-| Check | Status | Command |
-|-------|--------|---------|
-| Lint | ✅ Pass | `npm run lint` |
+| Check      | Status  | Command         |
+| ---------- | ------- | --------------- |
+| Lint       | ✅ Pass | `npm run lint`  |
 | Type check | ✅ Pass | `npm run check` |
-| Build | ✅ Pass | `npm run build` |
+| Build      | ✅ Pass | `npm run build` |
 
 ## Manual Verification Required
 
