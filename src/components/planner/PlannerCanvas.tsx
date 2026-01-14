@@ -1,7 +1,7 @@
 'use client'
 
 import { usePlannerData } from '@/hooks/use-planner-data'
-import { calculateOutputRate } from '@/lib/calculations'
+import { calculateOutputRate, calculatePowerConsumption } from '@/lib/calculations'
 import {
   Background,
   ConnectionMode,
@@ -11,7 +11,7 @@ import {
   type EdgeChange,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { memo, useCallback, useRef, useState } from 'react'
+import { memo, useCallback, useRef, useState, useMemo } from 'react'
 import { BuildingNode } from './BuildingNode'
 import BuildingSelector from './BuildingSelector'
 import Controls from './Controls'
@@ -305,6 +305,128 @@ function PlannerCanvasInner() {
     },
     [plannerData, nodes, pushToHistory, updateNode],
   )
+
+  // Handle rate changes on output nodes - recalculate upstream chain
+  const handleRateChange = useCallback(
+    (nodeId: string, newTargetRate: number) => {
+      pushToHistory()
+
+      const targetNode = usePlannerStore.getState().present.nodes.find(
+        (n) => n.id === nodeId,
+      )
+      if (!targetNode || !plannerData) return
+
+      const targetRecipe = plannerData.recipes[targetNode.data.recipeId]
+      const targetBuilding = plannerData.buildings[targetNode.data.buildingId]
+
+      if (!targetRecipe || !targetBuilding) return
+
+      // Calculate new count for target node based on target rate
+      const targetOutputPerBuilding = calculateOutputRate(
+        targetRecipe,
+        targetBuilding,
+        1,
+      )
+      const newTargetCount = newTargetRate / targetOutputPerBuilding
+
+      // Update target node
+      updateNode(nodeId, {
+        count: newTargetCount,
+        targetRate: newTargetRate,
+        outputRate: newTargetRate,
+        powerConsumption: calculatePowerConsumption(
+          targetBuilding,
+          newTargetCount,
+        ),
+      })
+
+      // Recursively update upstream nodes using fresh state
+      const updateUpstream = (
+        currentNodeId: string,
+        requiredRate: number,
+      ) => {
+        const currentNodes = usePlannerStore.getState().present.nodes
+        const currentEdges = usePlannerStore.getState().present.edges
+
+        const currentNode = currentNodes.find((n) => n.id === currentNodeId)
+        if (!currentNode) return
+
+        const currentRecipe = plannerData.recipes[currentNode.data.recipeId]
+        const currentBuilding = plannerData.buildings[currentNode.data.buildingId]
+        if (!currentRecipe || !currentBuilding) return
+
+        // Calculate count for this node
+        const outputPerBuilding = calculateOutputRate(
+          currentRecipe,
+          currentBuilding,
+          1,
+        )
+        const count = requiredRate / outputPerBuilding
+
+        // Update this node
+        updateNode(currentNodeId, {
+          count,
+          outputRate: calculateOutputRate(currentRecipe, currentBuilding, count),
+          powerConsumption: calculatePowerConsumption(currentBuilding, count),
+        })
+
+        // Recurse for inputs
+        for (const input of currentRecipe.inputs) {
+          // Find the edge that connects to this input
+          const incomingEdge = currentEdges.find(
+            (e) =>
+              e.target === currentNodeId &&
+              (e.targetHandle?.replace('input-', '') === input.itemId ||
+                e.data?.itemId === input.itemId),
+          )
+
+          if (incomingEdge) {
+            const sourceNode = currentNodes.find(
+              (n) => n.id === incomingEdge.source,
+            )
+            if (sourceNode) {
+              // Calculate required rate for the source
+              const inputRate =
+                (input.amount / currentRecipe.time) * 60 * count
+              updateUpstream(sourceNode.id, inputRate)
+            }
+          }
+        }
+      }
+
+      // Start from target and work backwards
+      for (const input of targetRecipe.inputs) {
+        const currentEdges = usePlannerStore.getState().present.edges
+        const currentNodes = usePlannerStore.getState().present.nodes
+
+        const incomingEdge = currentEdges.find(
+          (e) =>
+            e.target === nodeId &&
+            (e.targetHandle?.replace('input-', '') === input.itemId ||
+              e.data?.itemId === input.itemId),
+        )
+
+        if (incomingEdge) {
+          const sourceNode = currentNodes.find(
+            (n) => n.id === incomingEdge.source,
+          )
+          if (sourceNode) {
+            const inputRate =
+              (input.amount / targetRecipe.time) * 60 * newTargetCount
+            updateUpstream(sourceNode.id, inputRate)
+          }
+        }
+      }
+    },
+    [plannerData, pushToHistory, updateNode],
+  )
+
+  // Compute output nodes (nodes with no outgoing edges) - before early returns
+  const outputNodeIds = useMemo(() => {
+    const nodeIdsWithOutgoingEdges = new Set(edges.map((e) => e.source))
+    return new Set(nodes.filter((n) => !nodeIdsWithOutgoingEdges.has(n.id)).map((n) => n.id))
+  }, [nodes, edges])
+
   if (isLoading) {
     return (
       <div className="h-screen w-full flex items-center justify-center">
@@ -348,7 +470,9 @@ function PlannerCanvasInner() {
               items={plannerData.items}
               buildings={plannerData.buildings}
               recipes={plannerData.recipes}
+              isOutputNode={outputNodeIds.has(props.id)}
               onRecipeChange={handleRecipeChange}
+              onRateChange={handleRateChange}
             />
           ),
         }}
