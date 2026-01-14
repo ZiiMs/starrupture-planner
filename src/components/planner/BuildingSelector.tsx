@@ -162,42 +162,35 @@ function BuildingSelectorComponent({
 
     productionSummary.forEach((buildingInfo) => {
       const building = buildings[buildingInfo.buildingId]
-      // Use the stored recipeId, not search by building type
       const recipe = Object.values(recipes).find(
         (r) => r.id === buildingInfo.recipeId,
       )
 
       if (!building || !recipe) return
 
-      const nodeIds: string[] = []
+      const outputRate = calculateOutputRate(recipe, building, buildingInfo.count)
+      const powerConsumption = calculatePowerConsumption(building, buildingInfo.count)
 
-      for (let i = 0; i < buildingInfo.count; i++) {
-        const nodeId = nanoid()
-        const outputRate = calculateOutputRate(recipe, building, 1)
-        const powerConsumption = calculatePowerConsumption(building, 1)
+      const nodeId = nanoid()
 
-        nodesToAdd.push({
-          id: nodeId,
-          type: 'planner-node',
-          position: { x: 0, y: 0 },
-          data: {
-            buildingId: building.id,
-            recipeId: recipe.id,
-            count: 1,
-            outputRate,
-            powerConsumption,
-          },
-        })
+      nodesToAdd.push({
+        id: nodeId,
+        type: 'planner-node',
+        position: { x: 0, y: 0 },
+        data: {
+          buildingId: building.id,
+          recipeId: recipe.id,
+          count: buildingInfo.count,
+          outputRate,
+          powerConsumption,
+        },
+      })
 
-        nodeIds.push(nodeId)
-      }
-
-      nodeIdMap.set(buildingInfo.buildingId, nodeIds)
+      nodeIdMap.set(buildingInfo.buildingId, [nodeId])
     })
 
     // Pass 2: Create edges with proper distribution (not all-to-all)
     productionSummary.forEach((buildingInfo) => {
-      // Use the stored recipeId instead of searching by building type
       const recipe = Object.values(recipes).find(
         (r) => r.id === buildingInfo.recipeId,
       )
@@ -205,9 +198,7 @@ function BuildingSelectorComponent({
       if (!recipe || recipe.inputs.length === 0) return
 
       const inputItemId = recipe.inputs[0].itemId
-      const inputAmount = recipe.inputs[0].amount
 
-      // Find which building produces this input
       const inputBuildingSummary = productionSummary.find((bi) => {
         const biRecipe = Object.values(recipes).find(
           (r) => r.id === bi.recipeId,
@@ -217,54 +208,40 @@ function BuildingSelectorComponent({
 
       if (!inputBuildingSummary) return
 
-      const sourceNodeIds = nodeIdMap.get(inputBuildingSummary.buildingId) || []
-      const targetNodeIds = nodeIdMap.get(buildingInfo.buildingId) || []
+      const sourceNodeId = nodeIdMap.get(inputBuildingSummary.buildingId)?.[0]
+      const targetNodeId = nodeIdMap.get(buildingInfo.buildingId)?.[0]
 
-      // Calculate distribution - how many targets each source feeds
-      const targetCount = targetNodeIds.length
+      if (!sourceNodeId || !targetNodeId) return
 
-      if (sourceNodeIds.length === 0 || targetCount === 0) return
+      const sourceRecipe = Object.values(recipes).find(
+        (r) => r.id === inputBuildingSummary.recipeId,
+      )!
+      const sourceBuilding = buildings[inputBuildingSummary.buildingId]
 
-      // Each target needs connections from enough sources to get required input
-      // Spread sources evenly across targets
-      const edgesPerTarget = Math.ceil(sourceNodeIds.length / targetCount)
+      const inputBuildingCount = inputBuildingSummary.count
+      const targetBuildingCount = buildingInfo.count
 
-      // Create distributed edges
-      for (let targetIdx = 0; targetIdx < targetCount; targetIdx++) {
-        // Each target gets connected to `edgesPerTarget` sources
-        // Spread sources evenly: 0, 1, 2, ... modulo sourceNodeIds.length
-        for (let j = 0; j < edgesPerTarget; j++) {
-          const sourceIdx = (targetIdx + j) % sourceNodeIds.length
-          const sourceId = sourceNodeIds[sourceIdx]
-          const targetId = targetNodeIds[targetIdx]
-
-          const sourceRecipe = Object.values(recipes).find(
-            (r) => r.id === inputBuildingSummary.recipeId,
-          )!
-          const sourceBuilding = buildings[inputBuildingSummary.buildingId]
-
-          edgesToAdd.push({
-            id: nanoid(),
-            source: sourceId,
-            target: targetId,
-            type: 'efficiency-edge',
-            animated: true,
-            data: {
-              itemId: inputItemId,
-              amount: inputAmount,
-              usageRate: 0,
-              producerRate: calculateOutputRate(
-                sourceRecipe,
-                sourceBuilding,
-                1,
-              ),
-              isWarning: false,
-              sourceNodeId: sourceId,
-              targetNodeId: targetId,
-            },
-          })
-        }
-      }
+      edgesToAdd.push({
+        id: nanoid(),
+        source: sourceNodeId,
+        target: targetNodeId,
+        type: 'efficiency-edge',
+        animated: true,
+        data: {
+          itemId: inputItemId,
+          amount: recipe.inputs[0].amount,
+          usageRate:
+            (recipe.inputs[0].amount / recipe.time) * 60 * targetBuildingCount,
+          producerRate: calculateOutputRate(
+            sourceRecipe,
+            sourceBuilding,
+            inputBuildingCount,
+          ),
+          isWarning: false,
+          sourceNodeId,
+          targetNodeId,
+        },
+      })
     })
 
     // Apply dagre layout

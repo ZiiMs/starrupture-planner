@@ -68,14 +68,16 @@ function calculateEdgeEfficiencyData(
 
   const inputAmount =
     targetRecipe.inputs.find((i: any) => i.itemId === itemId)?.amount || 1
-  const usageRate = (inputAmount / targetRecipe.time) * 60
+  const targetCount = targetNode.data.count || 1
+  const usageRate = (inputAmount / targetRecipe.time) * 60 * targetCount
 
   const sourceOutputAmount =
     sourceRecipe.outputs.find((o: any) => o.itemId === itemId)?.amount ||
     sourceRecipe.outputs[0]?.amount ||
     1
+  const sourceCount = sourceNode.data.count || 1
   const craftsPerSecond =
-    (sourceNode.data.count * sourceBuilding.speed) / sourceRecipe.time
+    (sourceCount * sourceBuilding.speed) / sourceRecipe.time
   const producerRate = craftsPerSecond * 60 * sourceOutputAmount
 
   return {

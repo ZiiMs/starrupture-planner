@@ -253,8 +253,11 @@ function BuildingNodeComponent({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="font-bold text-sm text-foreground">
-                {building.name}
+              <h3 className="font-bold text-sm text-muted-foreground">
+                {building.name}{' '}
+                <span className="text-lg font-bold text-foreground">
+                  {(data as any).count.toFixed(1).replace(/\.0$/, '')}x
+                </span>
               </h3>
               {efficiencyWarnings.length > 0 && (
                 <Tooltip>
