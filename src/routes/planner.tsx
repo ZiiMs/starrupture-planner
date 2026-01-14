@@ -26,14 +26,30 @@ function LoadingFallback() {
   )
 }
 
-function HydrationTrigger() {
+function HydrationWaiter() {
   const [, setTick] = useState(0)
 
   useEffect(() => {
-    // Rehydrate and force re-render when done
-    Promise.resolve(usePlannerStore.persist.rehydrate()).then(() => {
+    let hasHydrated = false
+
+    const unsubFinish = usePlannerStore.persist.onFinishHydration(() => {
+      hasHydrated = true
       setTick(t => t + 1)
     })
+
+    usePlannerStore.persist.rehydrate()
+
+    const timeout = setTimeout(() => {
+      if (!hasHydrated) {
+        hasHydrated = true
+        setTick(t => t + 1)
+      }
+    }, 100)
+
+    return () => {
+      unsubFinish()
+      clearTimeout(timeout)
+    }
   }, [])
 
   return null
@@ -47,7 +63,7 @@ function PlannerPage() {
   return (
     <QueryClientProvider client={queryClient}>
       <ReactFlowProvider>
-        <HydrationTrigger />
+        <HydrationWaiter />
         <Suspense fallback={<LoadingFallback />}>
           <PlannerCanvas />
         </Suspense>

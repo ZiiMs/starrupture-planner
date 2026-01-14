@@ -8,10 +8,10 @@ import {
   ConnectionMode,
   ReactFlow,
   ReactFlowProvider,
-  useEdgesState,
   useNodesInitialized,
-  useNodesState,
   useReactFlow,
+  type NodeChange,
+  type EdgeChange,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
@@ -93,79 +93,20 @@ function calculateEdgeEfficiencyData(
 function PlannerCanvasInner() {
   const { data: plannerData, isLoading } = usePlannerData()
 
-  const [nodes, setNodes, onNodesChangeOrig] = useNodesState<any>([])
-  const [edges, setEdges, onEdgesChangeOrig] = useEdgesState<any>([])
-  const [isLayouted, setIsLayouted] = useState(false)
-
-  const nodesInitialized = useNodesInitialized()
-  const { getNodes, fitView } = useReactFlow()
-
-  // Get pushToHistory from store
+  const nodes = usePlannerStore((state) => state.present.nodes)
+  const edges = usePlannerStore((state) => state.present.edges)
+  const applyNodeChanges = usePlannerStore((state) => state.applyNodeChanges)
+  const applyEdgeChanges = usePlannerStore((state) => state.applyEdgeChanges)
+  const setNodes = usePlannerStore((state) => state.setNodes)
+  const setEdges = usePlannerStore((state) => state.setEdges)
+  const removeNode = usePlannerStore((state) => state.removeNode)
+  const removeEdge = usePlannerStore((state) => state.removeEdge)
   const pushToHistory = usePlannerStore((state) => state.pushToHistory)
+  const updateNode = usePlannerStore((state) => state.updateNode)
 
-  // Sync undo/redo from store to local ReactFlow state
-  // Use separate selectors to avoid creating new objects (causes infinite loop with persist middleware)
-  const storeNodes = usePlannerStore((state) => state.present.nodes)
-  const storeEdges = usePlannerStore((state) => state.present.edges)
-  const lastSyncedRef = useRef<{ nodes: any[] | null; edges: any[] | null }>({
-    nodes: null,
-    edges: null,
-  })
-  useEffect(() => {
-    // Sync if store nodes/edges changed and local state hasn't caught up yet
-    // Use JSON comparison for deep equality since arrays are reference types
-    const nodesNeedSync =
-      storeNodes &&
-      lastSyncedRef.current.nodes !== storeNodes &&
-      JSON.stringify(storeNodes) !== JSON.stringify(lastSyncedRef.current.nodes)
-
-    const edgesNeedSync =
-      storeEdges &&
-      lastSyncedRef.current.edges !== storeEdges &&
-      JSON.stringify(storeEdges) !== JSON.stringify(lastSyncedRef.current.edges)
-
-    if (nodesNeedSync) {
-      setNodes(storeNodes)
-      lastSyncedRef.current.nodes = storeNodes
-    }
-    if (edgesNeedSync) {
-      setEdges(storeEdges)
-      lastSyncedRef.current.edges = storeEdges
-    }
-  }, [storeNodes, storeEdges, setNodes, setEdges])
-
-  // Wrap onNodesChange to capture history for meaningful changes
-  const onNodesChange = useCallback(
-    (changes: any[]) => {
-      // Only capture history for non-selection, non-drag changes
-      const meaningfulChanges = changes.filter(
-        (change) =>
-          change.type !== 'select' &&
-          change.type !== 'dimensions' &&
-          !(change.type === 'position' && !change.force),
-      )
-      if (meaningfulChanges.length > 0) {
-        pushToHistory()
-      }
-      onNodesChangeOrig(changes)
-    },
-    [onNodesChangeOrig, pushToHistory],
-  )
-
-  // Wrap onEdgesChange to capture history for meaningful changes
-  const onEdgesChange = useCallback(
-    (changes: any[]) => {
-      // Only capture history for non-selection changes
-      const meaningfulChanges = changes.filter(
-        (change) => change.type !== 'select',
-      )
-      if (meaningfulChanges.length > 0) {
-        pushToHistory()
-      }
-      onEdgesChangeOrig(changes)
-    },
-    [onEdgesChangeOrig, pushToHistory],
-  )
+  const [isLayouted, setIsLayouted] = useState(false)
+  const nodesInitialized = useNodesInitialized()
+  const { fitView } = useReactFlow()
 
   const [menu, setMenu] = useState<{
     id: string | null
@@ -176,10 +117,25 @@ function PlannerCanvasInner() {
   } | null>(null)
   const reactFlowWrapper = useRef<HTMLDivElement>(null)
 
+  // Wrap onNodesChange to use store action
+  const onNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      applyNodeChanges(changes)
+    },
+    [applyNodeChanges],
+  )
+
+  // Wrap onEdgesChange to use store action
+  const onEdgesChange = useCallback(
+    (changes: EdgeChange[]) => {
+      applyEdgeChanges(changes)
+    },
+    [applyEdgeChanges],
+  )
+
   // ALL HOOKS MUST BE DEFINED BEFORE ANY EARLY RETURNS
   const onConnect = useCallback(
     (params: any) => {
-      // Capture history before adding edge
       pushToHistory()
 
       const newEdge = {
@@ -194,26 +150,25 @@ function PlannerCanvasInner() {
           dataReady: false,
         },
       }
-      setEdges((eds) => {
-        const updatedEdges = [...eds, newEdge]
-        // Calculate edge data for all edges
-        if (plannerData?.recipes && plannerData?.buildings) {
-          updatedEdges.forEach((edge: any) => {
-            const edgeData = calculateEdgeEfficiencyData(
-              edge,
-              nodes,
-              plannerData.recipes,
-              plannerData.buildings,
-            )
-            if (edgeData) {
-              edge.data = { ...edge.data, ...edgeData }
-            }
-          })
-        }
-        return updatedEdges
-      })
+      const currentEdges = usePlannerStore.getState().present.edges
+      const updatedEdges = [...currentEdges, newEdge]
+      // Calculate edge data for all edges
+      if (plannerData?.recipes && plannerData?.buildings) {
+        updatedEdges.forEach((edge: any) => {
+          const edgeData = calculateEdgeEfficiencyData(
+            edge,
+            nodes,
+            plannerData.recipes,
+            plannerData.buildings,
+          )
+          if (edgeData) {
+            edge.data = { ...edge.data, ...edgeData }
+          }
+        })
+      }
+      setEdges(updatedEdges)
     },
-    [setEdges, nodes, plannerData, pushToHistory],
+    [pushToHistory, nodes, plannerData, setEdges],
   )
 
   const onPaneClick = useCallback(() => setMenu(null), [])
@@ -230,164 +185,132 @@ function PlannerCanvasInner() {
 
   const handleDeleteNode = useCallback(() => {
     if (menu?.id) {
-      // Capture history before deleting
       pushToHistory()
-
-      setNodes((nds) => nds.filter((n: any) => n.id !== menu.id))
-      setEdges((eds) =>
-        eds.filter((e: any) => e.source !== menu.id && e.target !== menu.id),
+      removeNode(menu.id)
+      const currentEdges = usePlannerStore.getState().present.edges
+      const edgesToRemove = currentEdges.filter(
+        (e) => e.source === menu.id || e.target === menu.id,
       )
+      edgesToRemove.forEach((e) => removeEdge(e.id))
       setMenu(null)
     }
-  }, [menu, setNodes, setEdges, pushToHistory])
+  }, [menu, pushToHistory, removeNode, removeEdge])
 
   const handleAddInputConnector = useCallback(() => {
     if (!menu?.id) return
 
-    // Capture history before adding connector
     pushToHistory()
 
-    setNodes((nds) =>
-      nds.map((node) => {
-        if (node.id === menu.id) {
-          const customInputs = [
-            ...((node.data as any).customInputs || []),
-            { id: `custom-input-${crypto.randomUUID()}` },
-          ]
-          return { ...node, data: { ...node.data, customInputs } }
-        }
-        return node
-      }),
-    )
+    updateNode(menu.id, {
+      customInputs: [
+        ...((nodes.find((n) => n.id === menu.id)?.data as any)?.customInputs || []),
+        { id: `custom-input-${crypto.randomUUID()}` },
+      ],
+    })
     setMenu(null)
-  }, [menu?.id, setNodes, pushToHistory])
+  }, [menu?.id, pushToHistory, updateNode, nodes])
 
   const handleAddOutputConnector = useCallback(() => {
     if (!menu?.id) return
 
-    // Capture history before adding connector
     pushToHistory()
 
-    setNodes((nds) =>
-      nds.map((node) => {
-        if (node.id === menu.id) {
-          const customOutputs = [
-            ...((node.data as any).customOutputs || []),
-            { id: `custom-output-${crypto.randomUUID()}` },
-          ]
-          return { ...node, data: { ...node.data, customOutputs } }
-        }
-        return node
-      }),
-    )
+    updateNode(menu.id, {
+      customOutputs: [
+        ...((nodes.find((n) => n.id === menu.id)?.data as any)?.customOutputs || []),
+        { id: `custom-output-${crypto.randomUUID()}` },
+      ],
+    })
     setMenu(null)
-  }, [menu?.id, setNodes, pushToHistory])
+  }, [menu?.id, pushToHistory, updateNode, nodes])
 
   const handleRemoveInputConnector = useCallback(
     (connectorId: string) => {
       if (!menu?.id) return
 
-      // Capture history before removing connector
       pushToHistory()
 
-      // First, remove any edges connected to this handle
-      setEdges((eds) =>
-        eds.filter((edge) => {
-          // Keep edge if it's NOT connected to the target handle
-          return !(edge.target === menu.id && edge.targetHandle === connectorId)
-        }),
+      const currentEdges = usePlannerStore.getState().present.edges
+      const edgesToRemove = currentEdges.filter(
+        (edge) => edge.target === menu.id && edge.targetHandle === connectorId,
       )
+      edgesToRemove.forEach((e) => removeEdge(e.id))
 
-      // Then, remove the handle from customInputs
-      setNodes((nds) =>
-        nds.map((node) => {
-          if (node.id === menu.id) {
-            const customInputs = ((node.data as any).customInputs || []).filter(
-              (input: any) => input.id !== connectorId,
-            )
-            return { ...node, data: { ...node.data, customInputs } }
-          }
-          return node
-        }),
-      )
+      const node = nodes.find((n) => n.id === menu.id)
+      if (node) {
+        const customInputs = ((node.data as any)?.customInputs || []).filter(
+          (input: any) => input.id !== connectorId,
+        )
+        updateNode(menu.id, { customInputs })
+      }
       setMenu(null)
     },
-    [menu?.id, setNodes, setEdges, pushToHistory],
+    [menu?.id, pushToHistory, removeEdge, updateNode, nodes],
   )
 
   const handleRemoveOutputConnector = useCallback(
     (connectorId: string) => {
       if (!menu?.id) return
 
-      // Capture history before removing connector
       pushToHistory()
 
-      // First, remove any edges connected to this handle
-      setEdges((eds) =>
-        eds.filter((edge) => {
-          // Keep edge if it's NOT connected to the source handle
-          return !(edge.source === menu.id && edge.sourceHandle === connectorId)
-        }),
+      const currentEdges = usePlannerStore.getState().present.edges
+      const edgesToRemove = currentEdges.filter(
+        (edge) => edge.source === menu.id && edge.sourceHandle === connectorId,
       )
+      edgesToRemove.forEach((e) => removeEdge(e.id))
 
-      // Then, remove the handle from customOutputs
-      setNodes((nds) =>
-        nds.map((node) => {
-          if (node.id === menu.id) {
-            const customOutputs = (
-              (node.data as any).customOutputs || []
-            ).filter((output: any) => output.id !== connectorId)
-            return { ...node, data: { ...node.data, customOutputs } }
-          }
-          return node
-        }),
-      )
+      const node = nodes.find((n) => n.id === menu.id)
+      if (node) {
+        const customOutputs = ((node.data as any)?.customOutputs || []).filter(
+          (output: any) => output.id !== connectorId,
+        )
+        updateNode(menu.id, { customOutputs })
+      }
       setMenu(null)
     },
-    [menu?.id, setNodes, setEdges, pushToHistory],
+    [menu?.id, pushToHistory, removeEdge, updateNode, nodes],
   )
 
   const handleDisconnect = useCallback(() => {
     if (!menu?.id) return
 
-    // Capture history before disconnecting
     pushToHistory()
 
-    setEdges((eds) =>
-      eds.filter(
-        (edge) => edge.source !== menu.id && edge.target !== menu.id,
-      ),
+    const currentEdges = usePlannerStore.getState().present.edges
+    const edgesToRemove = currentEdges.filter(
+      (edge) => edge.source === menu.id || edge.target === menu.id,
     )
+    edgesToRemove.forEach((e) => removeEdge(e.id))
     setMenu(null)
-  }, [menu?.id, setEdges, pushToHistory])
+  }, [menu?.id, pushToHistory, removeEdge])
 
   // Apply layout when nodes are added via production chain
   const previousNodesLengthRef = useRef(nodes.length)
   useEffect(() => {
     if (nodes.length > previousNodesLengthRef.current) {
-      // New nodes were added, re-apply layout
       const { nodes: layoutedNodes, edges: layoutedEdges } =
-        getLayoutedElements(getNodes(), edges, 'LR')
-      setNodes(layoutedNodes)
-      setEdges(layoutedEdges)
+        getLayoutedElements(nodes, edges, 'LR')
+      setNodes(layoutedNodes as any)
+      setEdges(layoutedEdges as any)
       setTimeout(() => fitView({ padding: 0.1 }), 100)
     }
     previousNodesLengthRef.current = nodes.length
-  }, [nodes.length, getNodes, edges, setNodes, setEdges, fitView])
+  }, [nodes.length, nodes, edges, setNodes, setEdges, fitView])
   useEffect(() => {
     if (nodesInitialized && nodes.length > 0 && !isLayouted) {
       const { nodes: layoutedNodes, edges: layoutedEdges } =
-        getLayoutedElements(getNodes(), edges, 'LR')
-      setNodes(layoutedNodes)
-      setEdges(layoutedEdges)
+        getLayoutedElements(nodes, edges, 'LR')
+      setNodes(layoutedNodes as any)
+      setEdges(layoutedEdges as any)
       setIsLayouted(true)
       setTimeout(() => fitView({ padding: 0.1 }), 100)
     }
   }, [
     nodesInitialized,
     nodes.length,
+    nodes,
     isLayouted,
-    getNodes,
     edges,
     setNodes,
     setEdges,
@@ -399,58 +322,52 @@ function PlannerCanvasInner() {
     if (!plannerData?.recipes || !plannerData?.buildings || nodes.length === 0)
       return
 
-    setEdges((eds) => {
-      let hasChanges = false
-      const updatedEdges = eds.map((edge: any) => {
-        const edgeData = calculateEdgeEfficiencyData(
-          edge,
-          nodes,
-          plannerData.recipes,
-          plannerData.buildings,
-        )
-        if (edgeData) {
-          const needsUpdate =
-            edge.data?.itemId !== edgeData.itemId ||
-            edge.data?.usageRate !== edgeData.usageRate ||
-            edge.data?.producerRate !== edgeData.producerRate ||
-            edge.data?.isWarning !== edgeData.isWarning
-          if (needsUpdate) {
-            hasChanges = true
-            return { ...edge, data: { ...edge.data, ...edgeData } }
-          }
+    const currentEdges = usePlannerStore.getState().present.edges
+    let hasChanges = false
+    const updatedEdges = currentEdges.map((edge: any) => {
+      const edgeData = calculateEdgeEfficiencyData(
+        edge,
+        nodes,
+        plannerData.recipes,
+        plannerData.buildings,
+      )
+      if (edgeData) {
+        const needsUpdate =
+          edge.data?.itemId !== edgeData.itemId ||
+          edge.data?.usageRate !== edgeData.usageRate ||
+          edge.data?.producerRate !== edgeData.producerRate ||
+          edge.data?.isWarning !== edgeData.isWarning
+        if (needsUpdate) {
+          hasChanges = true
+          return { ...edge, data: { ...edge.data, ...edgeData } }
         }
-        return edge
-      })
-      return hasChanges ? updatedEdges : eds
+      }
+      return edge
     })
+    if (hasChanges) {
+      setEdges(updatedEdges)
+    }
   }, [nodes, plannerData, setEdges])
 
   const handleRecipeChange = useCallback(
     (nodeId: string, newRecipeId: string) => {
-      // Capture history before changing recipe
       pushToHistory()
 
-      setNodes((nds) =>
-        nds.map((node) => {
-          if (node.id === nodeId) {
-            const recipe = plannerData?.recipes[newRecipeId]
-            const building = plannerData?.buildings[node.data.buildingId]
-            if (!recipe || !building) return node
+      const recipe = plannerData?.recipes[newRecipeId]
+      const building = nodes.find((n) => n.id === nodeId)?.data.buildingId
+      const oldBuilding = nodes.find((n) => n.id === nodeId)
 
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                recipeId: newRecipeId,
-                outputRate: calculateOutputRate(recipe, building, node.data.count || 1),
-              },
-            }
-          }
-          return node
-        }),
-      )
+      if (!recipe || !building || !oldBuilding) return
+
+      const buildingData = plannerData?.buildings[building]
+      if (!buildingData) return
+
+      updateNode(nodeId, {
+        recipeId: newRecipeId,
+        outputRate: calculateOutputRate(recipe, buildingData, oldBuilding.data.count || 1),
+      })
     },
-    [plannerData, setNodes, pushToHistory],
+    [plannerData, nodes, pushToHistory, updateNode],
   )
   if (isLoading) {
     return (

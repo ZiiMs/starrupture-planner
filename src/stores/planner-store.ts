@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import { applyNodeChanges, applyEdgeChanges, type NodeChange, type EdgeChange } from '@xyflow/react'
 import { toast } from 'sonner'
 import type { PlannerNode, PlannerEdge, HistoryState } from '@/types/planner'
 
@@ -12,6 +13,8 @@ interface PlannerState extends HistoryState {
   updateNode: (nodeId: string, data: Partial<PlannerNode['data']>) => void
   addEdge: (edge: PlannerEdge) => void
   removeEdge: (edgeId: string) => void
+  applyNodeChanges: (changes: NodeChange[]) => void
+  applyEdgeChanges: (changes: EdgeChange[]) => void
   pushToHistory: () => void
   undo: () => void
   redo: () => void
@@ -82,6 +85,38 @@ export const usePlannerStore = create<PlannerState>()(
           present: {
             ...present,
             edges: present.edges.filter((e) => e.id !== edgeId),
+          },
+        })
+      },
+
+      applyNodeChanges: (changes) => {
+        const { present } = get()
+        // Check if any meaningful changes (not just selection/dimensions)
+        const meaningfulChanges = changes.filter(
+          (c) => c.type !== 'select' && c.type !== 'dimensions',
+        )
+        if (meaningfulChanges.length > 0) {
+          get().pushToHistory()
+        }
+        set({
+          present: {
+            ...present,
+            nodes: applyNodeChanges(changes, present.nodes) as PlannerNode[],
+          },
+        })
+      },
+
+      applyEdgeChanges: (changes) => {
+        const { present } = get()
+        // Check if any meaningful changes (not just selection)
+        const meaningfulChanges = changes.filter((c) => c.type !== 'select')
+        if (meaningfulChanges.length > 0) {
+          get().pushToHistory()
+        }
+        set({
+          present: {
+            ...present,
+            edges: applyEdgeChanges(changes, present.edges) as PlannerEdge[],
           },
         })
       },
