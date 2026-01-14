@@ -1,24 +1,26 @@
 'use client'
 
 import { usePlannerData } from '@/hooks/use-planner-data'
+import { useAutoLayout } from '@/hooks/useAutoLayout'
 import { calculateOutputRate, calculatePowerConsumption } from '@/lib/calculations'
+import { usePlannerStore } from '@/stores/planner-store'
 import {
   Background,
   ConnectionMode,
   ReactFlow,
   ReactFlowProvider,
-  type NodeChange,
   type EdgeChange,
+  type NodeChange,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { memo, useCallback, useRef, useState, useMemo } from 'react'
+import { memo, useCallback, useMemo, useRef, useState } from 'react'
 import { BuildingNode } from './BuildingNode'
 import BuildingSelector from './BuildingSelector'
 import Controls from './Controls'
 import { EfficiencyEdge } from './EfficiencyEdge'
+import LayoutControls from './LayoutControls'
 import Minimap from './Minimap'
 import { NodeContextMenu } from './NodeContextMenu'
-import { usePlannerStore } from '@/stores/planner-store'
 
 interface EnhancedBuildingNodeProps {
   items: Record<string, any>
@@ -101,6 +103,8 @@ function PlannerCanvasInner() {
   const removeEdge = usePlannerStore((state) => state.removeEdge)
   const pushToHistory = usePlannerStore((state) => state.pushToHistory)
   const updateNode = usePlannerStore((state) => state.updateNode)
+
+  const { runAutoLayout } = useAutoLayout(plannerData?.recipes)
 
   const [menu, setMenu] = useState<{
     id: string | null
@@ -203,7 +207,10 @@ function PlannerCanvasInner() {
       ],
     })
     setMenu(null)
-  }, [menu?.id, pushToHistory, updateNode, nodes])
+
+    // Re-layout to account for new input handle
+    runAutoLayout()
+  }, [menu?.id, pushToHistory, updateNode, nodes, runAutoLayout])
 
   const handleAddOutputConnector = useCallback(() => {
     if (!menu?.id) return
@@ -218,7 +225,10 @@ function PlannerCanvasInner() {
       ],
     })
     setMenu(null)
-  }, [menu?.id, pushToHistory, updateNode, nodes])
+
+    // Re-layout to account for new output handle
+    runAutoLayout()
+  }, [menu?.id, pushToHistory, updateNode, nodes, runAutoLayout])
 
   const handleRemoveInputConnector = useCallback(
     (connectorId: string) => {
@@ -240,8 +250,11 @@ function PlannerCanvasInner() {
         updateNode(menu.id, { customInputs })
       }
       setMenu(null)
+
+      // Re-layout to account for removed input handle
+      runAutoLayout()
     },
-    [menu?.id, pushToHistory, removeEdge, updateNode, nodes],
+    [menu?.id, pushToHistory, removeEdge, updateNode, nodes, runAutoLayout],
   )
 
   const handleRemoveOutputConnector = useCallback(
@@ -264,8 +277,11 @@ function PlannerCanvasInner() {
         updateNode(menu.id, { customOutputs })
       }
       setMenu(null)
+
+      // Re-layout to account for removed output handle
+      runAutoLayout()
     },
-    [menu?.id, pushToHistory, removeEdge, updateNode, nodes],
+    [menu?.id, pushToHistory, removeEdge, updateNode, nodes, runAutoLayout],
   )
 
   const handleDisconnect = useCallback(() => {
@@ -302,8 +318,11 @@ function PlannerCanvasInner() {
           oldBuilding.data.count || 1,
         ),
       })
+
+      // Re-layout to account for height changes
+      runAutoLayout()
     },
-    [plannerData, nodes, pushToHistory, updateNode],
+    [plannerData, nodes, pushToHistory, updateNode, runAutoLayout],
   )
 
   // Handle rate changes on output nodes - recalculate upstream chain

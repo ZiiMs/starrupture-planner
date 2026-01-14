@@ -1,26 +1,34 @@
 import dagre from '@dagrejs/dagre'
 import type { Edge, Node, Position } from '@xyflow/react'
+import type { Recipe } from '@/types/planner'
 
-const NODE_WIDTH = 310
+export const NODE_WIDTH = 310
 
 /**
- * Estimates node height based on actual BuildingNode rendering.
- *
  * Height breakdown (BuildingNode.tsx):
  * - Card padding + header + recipe selector: ~140px
  * - Each input/output badge: ~32px (Badge component + gap)
- * - Separator: ~12px (between sections)
  *
  * Formula:
  * height = 140 + (recipe_inputs * 32) + (recipe_outputs * 32)
  *        + (custom_inputs * 32) + (custom_outputs * 32)
  */
-function estimateNodeHeight(node: Node): number {
+export function estimateNodeHeight(node: Node, recipes?: Record<string, Recipe>): number {
   const data = node.data as Record<string, unknown>
 
-  // Recipe inputs/outputs (from recipe data referenced in node)
-  const recipeInputs = (data.recipeInputs as unknown[])?.length || 0
-  const recipeOutputs = (data.recipeOutputs as unknown[])?.length || 0
+  // Try to get recipe inputs/outputs from node data first (populated by parent)
+  let recipeInputs = (data.recipeInputs as unknown[])?.length || 0
+  let recipeOutputs = (data.recipeOutputs as unknown[])?.length || 0
+
+  // If not on node data, look up recipe by recipeId
+  if (recipeInputs === 0 && recipeOutputs === 0 && recipes) {
+    const recipeId = data.recipeId as string
+    const recipe = recipes[recipeId]
+    if (recipe) {
+      recipeInputs = recipe.inputs.length
+      recipeOutputs = recipe.outputs.length
+    }
+  }
 
   // Custom inputs/outputs (user-added)
   const customInputs = (data.customInputs as unknown[])?.length || 0
@@ -45,6 +53,7 @@ export function getLayoutedElements(
   nodes: Node[],
   edges: Edge[],
   direction: 'LR' | 'TB' = 'TB',
+  recipes?: Record<string, Recipe>,
 ): LayoutedElements {
   // Create a NEW graph each time - this is the fix!
   const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}))
@@ -54,15 +63,15 @@ export function getLayoutedElements(
     rankdir: direction,
     // nodesep: horizontal spacing between nodes in the same rank
     nodesep: 80,
-    // ranksep: vertical spacing between ranks (must be >= max node height)
-    // Our nodes range from ~200px to ~344px, so 360px ensures no overlap
-    ranksep: 360,
+    // ranksep: vertical spacing between ranks (columns in LR mode)
+    // In LR mode, this controls vertical spacing between node columns
+    ranksep: 100,
     align: 'UL', // left-align nodes within each rank
   })
 
   nodes.forEach((node) => {
     const width = node.measured?.width ?? NODE_WIDTH
-    const height = node.measured?.height ?? estimateNodeHeight(node)
+    const height = node.measured?.height ?? estimateNodeHeight(node, recipes)
     dagreGraph.setNode(node.id, { width, height })
   })
 
@@ -74,7 +83,7 @@ export function getLayoutedElements(
 
   const newNodes = nodes.map((node) => {
     const width = node.measured?.width ?? NODE_WIDTH
-    const height = node.measured?.height ?? estimateNodeHeight(node)
+    const height = node.measured?.height ?? estimateNodeHeight(node, recipes)
     const nodeWithPosition = dagreGraph.node(node.id)
 
     return {
