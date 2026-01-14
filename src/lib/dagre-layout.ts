@@ -6,8 +6,9 @@ const nodeWidth = 310
 function estimateNodeHeight(node: Node): number {
   const baseHeight = 200
   const data = node.data as any
-  const inputCount = data.inputs?.length || 0
-  const outputCount = data.outputs?.length || 0
+  // Use customInputs/customOutputs which are the actual property names
+  const inputCount = data.customInputs?.length || 0
+  const outputCount = data.customOutputs?.length || 0
   const badgeCount = inputCount + outputCount
   return baseHeight + badgeCount * 40
 }

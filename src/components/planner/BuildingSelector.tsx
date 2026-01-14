@@ -11,11 +11,10 @@ import {
   calculateBuildingsNeeded,
 } from '@/lib/calculations'
 import { getIcon } from '@/lib/icons'
-import type { Building, Item, Recipe } from '@/types/planner'
-import { useReactFlow } from '@xyflow/react'
+import type { Building, Item, Recipe, PlannerNode, PlannerEdge } from '@/types/planner'
+import { usePlannerStore } from '@/stores/planner-store'
 import { nanoid } from 'nanoid'
-import { memo, useState, useMemo } from 'react'
-import type { Edge, Node } from '@xyflow/react'
+import { memo, useState, useCallback, useMemo } from 'react'
 import { getLayoutedElements } from '@/lib/dagre-layout'
 import ElementSelector from './ElementSelector'
 
@@ -38,7 +37,10 @@ function BuildingSelectorComponent({
   recipes,
   items,
 }: BuildingSelectorProps) {
-  const { addNodes, addEdges } = useReactFlow()
+  // Use store actions directly - they handle history capture internally
+  const addNode = usePlannerStore((state) => state.addNode)
+  const addEdge = usePlannerStore((state) => state.addEdge)
+
   const [activeTab, setActiveTab] = useState<'buildings' | 'items'>('buildings')
   const [nodeCounter, setNodeCounter] = useState(0)
 
@@ -101,48 +103,53 @@ function BuildingSelectorComponent({
     return summary
   }, [selectedItemId, itemsPerMinute, buildings, recipes])
 
-  const addBuildingNode = (buildingId: string) => {
-    const building = buildings[buildingId]
-    const firstRecipe = Object.values(recipes).find((r) =>
-      r.producers.includes(buildingId),
-    )
+  const addBuildingNode = useCallback(
+    (buildingId: string) => {
+      const building = buildings[buildingId]
+      const firstRecipe = Object.values(recipes).find((r) =>
+        r.producers.includes(buildingId),
+      )
 
-    if (!firstRecipe) {
-      console.error(`No recipe found for building: ${buildingId}`)
-      return
-    }
+      if (!firstRecipe) {
+        console.error(`No recipe found for building: ${buildingId}`)
+        return
+      }
 
-    const outputRate = calculateOutputRate(firstRecipe, building, 1)
-    const powerConsumption = calculatePowerConsumption(building, 1)
+      const outputRate = calculateOutputRate(firstRecipe, building, 1)
+      const powerConsumption = calculatePowerConsumption(building, 1)
 
-    const x = 200 + (nodeCounter % 3) * 350
-    const y = 300 + Math.floor(nodeCounter / 3) * 250
+      const x = 200 + (nodeCounter % 3) * 350
+      const y = 300 + Math.floor(nodeCounter / 3) * 250
 
-    addNodes({
-      id: nanoid(),
-      type: 'planner-node',
-      position: { x, y },
-      data: {
-        buildingId,
-        recipeId: firstRecipe.id,
-        count: 1,
-        outputRate,
-        powerConsumption,
-      },
-    })
+      const newNode: PlannerNode = {
+        id: nanoid(),
+        type: 'planner-node',
+        position: { x, y },
+        data: {
+          buildingId,
+          recipeId: firstRecipe.id,
+          count: 1,
+          outputRate,
+          powerConsumption,
+        },
+      }
 
-    setNodeCounter((c) => c + 1)
-  }
+      // addNode captures history internally before adding
+      addNode(newNode)
+      setNodeCounter((c) => c + 1)
+    },
+    [buildings, recipes, nodeCounter, addNode],
+  )
 
-  const addProductionChain = () => {
+  const addProductionChain = useCallback(() => {
     if (!selectedItemId || !itemsPerMinute || productionSummary.length === 0)
       return
 
     const targetRate = parseFloat(itemsPerMinute)
     if (isNaN(targetRate) || targetRate <= 0) return
 
-    const nodesToAdd: Node[] = []
-    const edgesToAdd: Edge[] = []
+    const nodesToAdd: PlannerNode[] = []
+    const edgesToAdd: PlannerEdge[] = []
 
     // Pass 1: Create all nodes, track IDs by building type
     const nodeIdMap = new Map<string, string[]>()
@@ -262,13 +269,24 @@ function BuildingSelectorComponent({
     )
 
     if (layoutedNodes.length > 0) {
-      addNodes(layoutedNodes)
-      addEdges(edgesToAdd)
+      // addNode captures history before each addition
+      // Using individual adds to properly type the nodes
+      layoutedNodes.forEach((node) => addNode(node as PlannerNode))
+      edgesToAdd.forEach((edge) => addEdge(edge))
+
       setNodeCounter((c) => c + layoutedNodes.length)
       setSelectedItemId(null)
       setItemsPerMinute('60')
     }
-  }
+  }, [
+    selectedItemId,
+    itemsPerMinute,
+    productionSummary,
+    buildings,
+    recipes,
+    addNode,
+    addEdge,
+  ])
 
   return (
     <Card className="w-80 shadow-lg">
