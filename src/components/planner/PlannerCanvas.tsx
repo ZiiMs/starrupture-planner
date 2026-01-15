@@ -1,24 +1,29 @@
 'use client'
 
 import { usePlannerData } from '@/hooks/use-planner-data'
-import { calculateOutputRate, calculatePowerConsumption } from '@/lib/calculations'
+import { useAutoLayout } from '@/hooks/useAutoLayout'
+import {
+  calculateOutputRate,
+  calculatePowerConsumption,
+} from '@/lib/calculations'
+import { usePlannerStore } from '@/stores/planner-store'
 import {
   Background,
   ConnectionMode,
   ReactFlow,
   ReactFlowProvider,
-  type NodeChange,
   type EdgeChange,
+  type NodeChange,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { memo, useCallback, useRef, useState, useMemo } from 'react'
+import { memo, useCallback, useMemo, useRef, useState } from 'react'
 import { BuildingNode } from './BuildingNode'
 import BuildingSelector from './BuildingSelector'
 import Controls from './Controls'
 import { EfficiencyEdge } from './EfficiencyEdge'
+import LayoutControls from './LayoutControls'
 import Minimap from './Minimap'
 import { NodeContextMenu } from './NodeContextMenu'
-import { usePlannerStore } from '@/stores/planner-store'
 
 interface EnhancedBuildingNodeProps {
   items: Record<string, any>
@@ -101,6 +106,8 @@ function PlannerCanvasInner() {
   const removeEdge = usePlannerStore((state) => state.removeEdge)
   const pushToHistory = usePlannerStore((state) => state.pushToHistory)
   const updateNode = usePlannerStore((state) => state.updateNode)
+
+  const { runAutoLayout } = useAutoLayout(plannerData?.recipes)
 
   const [menu, setMenu] = useState<{
     id: string | null
@@ -203,7 +210,10 @@ function PlannerCanvasInner() {
       ],
     })
     setMenu(null)
-  }, [menu?.id, pushToHistory, updateNode, nodes])
+
+    // Re-layout to account for new input handle
+    runAutoLayout()
+  }, [menu?.id, pushToHistory, updateNode, nodes, runAutoLayout])
 
   const handleAddOutputConnector = useCallback(() => {
     if (!menu?.id) return
@@ -218,7 +228,10 @@ function PlannerCanvasInner() {
       ],
     })
     setMenu(null)
-  }, [menu?.id, pushToHistory, updateNode, nodes])
+
+    // Re-layout to account for new output handle
+    runAutoLayout()
+  }, [menu?.id, pushToHistory, updateNode, nodes, runAutoLayout])
 
   const handleRemoveInputConnector = useCallback(
     (connectorId: string) => {
@@ -240,8 +253,11 @@ function PlannerCanvasInner() {
         updateNode(menu.id, { customInputs })
       }
       setMenu(null)
+
+      // Re-layout to account for removed input handle
+      runAutoLayout()
     },
-    [menu?.id, pushToHistory, removeEdge, updateNode, nodes],
+    [menu?.id, pushToHistory, removeEdge, updateNode, nodes, runAutoLayout],
   )
 
   const handleRemoveOutputConnector = useCallback(
@@ -264,8 +280,11 @@ function PlannerCanvasInner() {
         updateNode(menu.id, { customOutputs })
       }
       setMenu(null)
+
+      // Re-layout to account for removed output handle
+      runAutoLayout()
     },
-    [menu?.id, pushToHistory, removeEdge, updateNode, nodes],
+    [menu?.id, pushToHistory, removeEdge, updateNode, nodes, runAutoLayout],
   )
 
   const handleDisconnect = useCallback(() => {
@@ -302,8 +321,11 @@ function PlannerCanvasInner() {
           oldBuilding.data.count || 1,
         ),
       })
+
+      // Re-layout to account for height changes
+      runAutoLayout()
     },
-    [plannerData, nodes, pushToHistory, updateNode],
+    [plannerData, nodes, pushToHistory, updateNode, runAutoLayout],
   )
 
   // Handle rate changes on output nodes - recalculate upstream chain
@@ -311,9 +333,9 @@ function PlannerCanvasInner() {
     (nodeId: string, newTargetRate: number) => {
       pushToHistory()
 
-      const targetNode = usePlannerStore.getState().present.nodes.find(
-        (n) => n.id === nodeId,
-      )
+      const targetNode = usePlannerStore
+        .getState()
+        .present.nodes.find((n) => n.id === nodeId)
       if (!targetNode || !plannerData) return
 
       const targetRecipe = plannerData.recipes[targetNode.data.recipeId]
@@ -341,10 +363,7 @@ function PlannerCanvasInner() {
       })
 
       // Recursively update upstream nodes using fresh state
-      const updateUpstream = (
-        currentNodeId: string,
-        requiredRate: number,
-      ) => {
+      const updateUpstream = (currentNodeId: string, requiredRate: number) => {
         const currentNodes = usePlannerStore.getState().present.nodes
         const currentEdges = usePlannerStore.getState().present.edges
 
@@ -352,7 +371,8 @@ function PlannerCanvasInner() {
         if (!currentNode) return
 
         const currentRecipe = plannerData.recipes[currentNode.data.recipeId]
-        const currentBuilding = plannerData.buildings[currentNode.data.buildingId]
+        const currentBuilding =
+          plannerData.buildings[currentNode.data.buildingId]
         if (!currentRecipe || !currentBuilding) return
 
         // Calculate count for this node
@@ -366,7 +386,11 @@ function PlannerCanvasInner() {
         // Update this node
         updateNode(currentNodeId, {
           count,
-          outputRate: calculateOutputRate(currentRecipe, currentBuilding, count),
+          outputRate: calculateOutputRate(
+            currentRecipe,
+            currentBuilding,
+            count,
+          ),
           powerConsumption: calculatePowerConsumption(currentBuilding, count),
         })
 
@@ -386,8 +410,7 @@ function PlannerCanvasInner() {
             )
             if (sourceNode) {
               // Calculate required rate for the source
-              const inputRate =
-                (input.amount / currentRecipe.time) * 60 * count
+              const inputRate = (input.amount / currentRecipe.time) * 60 * count
               updateUpstream(sourceNode.id, inputRate)
             }
           }
@@ -424,7 +447,9 @@ function PlannerCanvasInner() {
   // Compute output nodes (nodes with no outgoing edges) - before early returns
   const outputNodeIds = useMemo(() => {
     const nodeIdsWithOutgoingEdges = new Set(edges.map((e) => e.source))
-    return new Set(nodes.filter((n) => !nodeIdsWithOutgoingEdges.has(n.id)).map((n) => n.id))
+    return new Set(
+      nodes.filter((n) => !nodeIdsWithOutgoingEdges.has(n.id)).map((n) => n.id),
+    )
   }, [nodes, edges])
 
   if (isLoading) {

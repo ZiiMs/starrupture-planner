@@ -24,6 +24,7 @@ interface PlannerState extends HistoryState {
   undo: () => void
   redo: () => void
   clearHistory: () => void
+  clearAll: () => void
 }
 
 export const usePlannerStore = create<PlannerState>()(
@@ -165,6 +166,15 @@ export const usePlannerStore = create<PlannerState>()(
           future: [],
           present,
         })
+      },
+
+      clearAll: () => {
+        set({
+          past: [],
+          present: { nodes: [], edges: [] },
+          future: [],
+        })
+        localStorage.removeItem('starrupture-planner')
       },
     }),
     {

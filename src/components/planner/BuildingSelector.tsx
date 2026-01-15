@@ -5,24 +5,29 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { getIcon } from '@/lib/icons'
+import { useAutoLayout } from '@/hooks/useAutoLayout'
 import {
+  calculateBuildingsNeeded,
   calculateOutputRate,
   calculatePowerConsumption,
-  calculateBuildingsNeeded,
 } from '@/lib/calculations'
+import {
+  estimateNodeHeight,
+  getLayoutedElements,
+  NODE_WIDTH,
+} from '@/lib/dagre-layout'
+import { getIcon } from '@/lib/icons'
+import { usePlannerStore } from '@/stores/planner-store'
 import type {
   Building,
   Item,
-  Recipe,
-  PlannerNode,
   PlannerEdge,
+  PlannerNode,
+  Recipe,
 } from '@/types/planner'
-import { usePlannerStore } from '@/stores/planner-store'
-import { nanoid } from 'nanoid'
-import { memo, useState, useCallback, useMemo } from 'react'
-import { getLayoutedElements } from '@/lib/dagre-layout'
 import { useReactFlow } from '@xyflow/react'
+import { nanoid } from 'nanoid'
+import { memo, useCallback, useMemo, useState } from 'react'
 import ElementSelector from './ElementSelector'
 
 interface BuildingSelectorProps {
@@ -53,8 +58,10 @@ function BuildingSelectorComponent({
   const getViewportCenter = useCallback(() => {
     const viewport = getViewport()
     const sidebarWidth = 320
-    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth - sidebarWidth : 1000
-    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 800
+    const viewportWidth =
+      typeof window !== 'undefined' ? window.innerWidth - sidebarWidth : 1000
+    const viewportHeight =
+      typeof window !== 'undefined' ? window.innerHeight : 800
     // Convert screen center to flow coordinates
     // transform: translate(x,y) scale(zoom) means:
     // flowX = (screenX - viewport.x) / zoom
@@ -62,6 +69,8 @@ function BuildingSelectorComponent({
     const centerY = (viewportHeight / 2 - viewport.y) / viewport.zoom
     return { x: centerX, y: centerY }
   }, [getViewport])
+
+  const { runAutoLayout } = useAutoLayout()
 
   const [activeTab, setActiveTab] = useState<'buildings' | 'items'>('buildings')
   const [nodeCounter, setNodeCounter] = useState(0)
@@ -186,8 +195,15 @@ function BuildingSelectorComponent({
 
       if (!building || !recipe) return
 
-      const outputRate = calculateOutputRate(recipe, building, buildingInfo.count)
-      const powerConsumption = calculatePowerConsumption(building, buildingInfo.count)
+      const outputRate = calculateOutputRate(
+        recipe,
+        building,
+        buildingInfo.count,
+      )
+      const powerConsumption = calculatePowerConsumption(
+        building,
+        buildingInfo.count,
+      )
 
       const nodeId = nanoid()
 
@@ -204,10 +220,12 @@ function BuildingSelectorComponent({
         },
       })
 
-      nodeIdMap.set(buildingInfo.buildingId, [nodeId])
+      // Use composite key (buildingId:recipeId) for node ID mapping
+      const nodeKey = `${buildingInfo.buildingId}:${buildingInfo.recipeId}`
+      nodeIdMap.set(nodeKey, nodeId)
     })
 
-    // Pass 2: Create edges with proper distribution (not all-to-all)
+    // Pass 2: Create edges for ALL inputs of each recipe
     productionSummary.forEach((buildingInfo) => {
       const recipe = Object.values(recipes).find(
         (r) => r.id === buildingInfo.recipeId,
@@ -215,75 +233,85 @@ function BuildingSelectorComponent({
 
       if (!recipe || recipe.inputs.length === 0) return
 
-      const inputItemId = recipe.inputs[0].itemId
+      // Use composite key for target node
+      const targetNodeKey = `${buildingInfo.buildingId}:${buildingInfo.recipeId}`
+      const targetNodeId = nodeIdMap.get(targetNodeKey)
+      if (!targetNodeId) return
 
-      const inputBuildingSummary = productionSummary.find((bi) => {
-        const biRecipe = Object.values(recipes).find(
-          (r) => r.id === bi.recipeId,
-        )
-        return biRecipe?.outputs.some((o) => o.itemId === inputItemId)
-      })
+      // Loop through ALL inputs, not just the first!
+      for (const input of recipe.inputs) {
+        const inputItemId = input.itemId
+        const inputAmount = input.amount
 
-      if (!inputBuildingSummary) return
+        // Find ALL buildings that produce this input item
+        const producingBuildings = productionSummary.filter((bi) => {
+          const biRecipe = Object.values(recipes).find(
+            (r) => r.id === bi.recipeId,
+          )
+          return biRecipe?.outputs.some((o) => o.itemId === inputItemId)
+        })
 
-      const sourceNodeId = nodeIdMap.get(inputBuildingSummary.buildingId)?.[0]
-      const targetNodeId = nodeIdMap.get(buildingInfo.buildingId)?.[0]
+        // Create edges from each producer
+        producingBuildings.forEach((pb) => {
+          // Use composite key for source node
+          const sourceNodeKey = `${pb.buildingId}:${pb.recipeId}`
+          const sourceNodeId = nodeIdMap.get(sourceNodeKey)
+          if (!sourceNodeId) return
 
-      if (!sourceNodeId || !targetNodeId) return
+          const sourceRecipe = Object.values(recipes).find(
+            (r) => r.id === pb.recipeId,
+          )!
+          const sourceBuilding = buildings[pb.buildingId]
 
-      const sourceRecipe = Object.values(recipes).find(
-        (r) => r.id === inputBuildingSummary.recipeId,
-      )!
-      const sourceBuilding = buildings[inputBuildingSummary.buildingId]
-
-      const inputBuildingCount = inputBuildingSummary.count
-      const targetBuildingCount = buildingInfo.count
-
-      edgesToAdd.push({
-        id: nanoid(),
-        source: sourceNodeId,
-        target: targetNodeId,
-        targetHandle: `input-${inputItemId}`,
-        type: 'efficiency-edge',
-        animated: true,
-        data: {
-          itemId: inputItemId,
-          amount: recipe.inputs[0].amount,
-          usageRate:
-            (recipe.inputs[0].amount / recipe.time) * 60 * targetBuildingCount,
-          producerRate: calculateOutputRate(
-            sourceRecipe,
-            sourceBuilding,
-            inputBuildingCount,
-          ),
-          isWarning: false,
-          sourceNodeId,
-          targetNodeId,
-        },
-      })
+          edgesToAdd.push({
+            id: nanoid(),
+            source: sourceNodeId,
+            target: targetNodeId,
+            targetHandle: `input-${inputItemId}`,
+            type: 'efficiency-edge',
+            animated: true,
+            data: {
+              itemId: inputItemId,
+              amount: inputAmount,
+              usageRate: (inputAmount / recipe.time) * 60 * buildingInfo.count,
+              producerRate: calculateOutputRate(
+                sourceRecipe,
+                sourceBuilding,
+                pb.count,
+              ),
+              isWarning: false,
+              sourceNodeId,
+              targetNodeId,
+            },
+          })
+        })
+      }
     })
 
-    // Apply dagre layout
+    // Apply dagre layout for centering calculation
     const { nodes: layoutedNodes } = getLayoutedElements(
       nodesToAdd,
       edgesToAdd,
       'LR',
+      recipes,
     )
 
     if (layoutedNodes.length > 0) {
       // Calculate offset to center the layout in the viewport
       const center = getViewportCenter()
 
-      // Find the center of the layouted nodes
+      // Find the center of the layouted nodes using estimated heights
       let minX = Infinity
       let minY = Infinity
       let maxX = -Infinity
       let maxY = -Infinity
       for (const node of layoutedNodes) {
+        const nodeWidth = node.measured?.width ?? NODE_WIDTH
+        const nodeHeight = node.measured?.height ?? estimateNodeHeight(node)
         minX = Math.min(minX, node.position.x)
         minY = Math.min(minY, node.position.y)
-        maxX = Math.max(maxX, node.position.x + (node.width || 300))
-        maxY = Math.max(maxY, node.position.y + (node.height || 150))
+        maxX = Math.max(maxX, node.position.x + nodeWidth)
+        maxY = Math.max(maxY, node.position.y + nodeHeight)
       }
       const layoutCenterX = (minX + maxX) / 2
       const layoutCenterY = (minY + maxY) / 2
@@ -308,6 +336,7 @@ function BuildingSelectorComponent({
       setSelectedItemId(null)
       setItemsPerMinute('60')
     }
+    runAutoLayout()
   }, [
     selectedItemId,
     itemsPerMinute,

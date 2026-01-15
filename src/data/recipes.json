@@ -1,189 +1,8 @@
 {
   "recipes": [
     {
-      "id": "mine-impure-tungsten-ore",
-      "name": "Mine Impure Tungsten Ore",
-      "category": "extraction",
-      "time": 2,
-      "inputs": [],
-      "outputs": [
-        {
-          "itemId": "impure-tungsten-ore",
-          "amount": 2
-        }
-      ],
-      "producers": ["ore-excavator"],
-      "outputRate": 0
-    },
-    {
-      "id": "mine-titanium-ore",
-      "name": "Mine Titanium Ore",
-      "category": "extraction",
-      "time": 2,
-      "inputs": [],
-      "outputs": [
-        {
-          "itemId": "titanium-ore",
-          "amount": 4
-        }
-      ],
-      "producers": ["ore-excavator"],
-      "outputRate": 0
-    },
-    {
-      "id": "mine-impure-titanium-ore",
-      "name": "Mine Impure Titanium Ore",
-      "category": "extraction",
-      "time": 2,
-      "inputs": [],
-      "outputs": [
-        {
-          "itemId": "impure-titanium-ore",
-          "amount": 2
-        }
-      ],
-      "producers": ["ore-excavator"],
-      "outputRate": 0
-    },
-    {
-      "id": "smelt-tungsten-bar",
-      "name": "Smelt Tungsten Bar",
-      "category": "smelting",
-      "time": 2,
-      "inputs": [
-        {
-          "itemId": "tungsten-ore",
-          "amount": 2
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "tungsten-bar",
-          "amount": 2
-        }
-      ],
-      "producers": ["smelter"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-tungsten-template",
-      "name": "Craft Tungsten Template",
-      "category": "crafting",
-      "time": 1,
-      "inputs": [
-        {
-          "itemId": "tungsten-bar",
-          "amount": 1
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "tungsten-template",
-          "amount": 1
-        }
-      ],
-      "producers": ["fabricator"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-tungsten-wire",
-      "name": "Craft Tungsten Wire",
-      "category": "crafting",
-      "time": 4,
-      "inputs": [
-        {
-          "itemId": "tungsten-bar",
-          "amount": 1
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "tungsten-wire",
-          "amount": 2
-        }
-      ],
-      "producers": ["fabricator"],
-      "outputRate": 0
-    },
-    {
-      "id": "smelt-titanium-bar",
-      "name": "Smelt Titanium Bar",
-      "category": "smelting",
-      "time": 2,
-      "inputs": [
-        {
-          "itemId": "titanium-ore",
-          "amount": 2
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "titanium-bar",
-          "amount": 2
-        }
-      ],
-      "producers": ["smelter"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-titanium-beam",
-      "name": "Craft Titanium Beam",
-      "category": "crafting",
-      "time": 3,
-      "inputs": [
-        {
-          "itemId": "titanium-bar",
-          "amount": 1
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "titanium-beam",
-          "amount": 1
-        }
-      ],
-      "producers": ["fabricator"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-titanium-rod",
-      "name": "Craft Titanium Rod",
-      "category": "crafting",
-      "time": 2,
-      "inputs": [
-        {
-          "itemId": "titanium-bar",
-          "amount": 1
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "titanium-rod",
-          "amount": 1
-        }
-      ],
-      "producers": ["fabricator"],
-      "outputRate": 0
-    },
-    {
-      "id": "mine-impure-calcium-ore",
-      "name": "Mine Impure Calcium Ore",
-      "category": "extraction",
-      "time": 2,
-      "inputs": [],
-      "outputs": [
-        {
-          "itemId": "impure-calcium-ore",
-          "amount": 2
-        }
-      ],
-      "producers": ["ore-excavator"],
-      "outputRate": 0
-    },
-    {
       "id": "smelt-calcium-block",
       "name": "Smelt Calcium Block",
-      "category": "smelting",
       "time": 2,
       "inputs": [
         {
@@ -197,33 +16,617 @@
           "amount": 2
         }
       ],
-      "producers": ["smelter"],
+      "producers": [
+        "smelter"
+      ],
+      "category": "smelting",
       "outputRate": 0
     },
     {
-      "id": "craft-calcite-sheet",
-      "name": "Craft Calcite Sheet",
-      "category": "crafting",
+      "id": "smelt-titanium-bar",
+      "name": "Smelt Titanium Bar",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "titanium-ore",
+          "amount": 2
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "titanium-bar",
+          "amount": 2
+        }
+      ],
+      "producers": [
+        "smelter"
+      ],
+      "category": "smelting",
+      "outputRate": 0
+    },
+    {
+      "id": "smelt-wolfram-bar",
+      "buildingId": "smelter",
+      "name": "Smelt Wolfram Bar",
+      "inputs": [
+        {
+          "itemId": "wolfram-ore",
+          "amount": 2
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "wolfram-bar",
+          "amount": 2
+        }
+      ],
+      "producers": [
+        "smelter"
+      ],
+      "time": 2
+    },
+    {
+      "id": "mine-calcium-ore-impure",
+      "buildingId": "ore-excavator",
+      "name": "Mine Impure Calcium Ore",
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "impure-calcium-ore",
+          "amount": 2
+        }
+      ],
+      "producers": [
+        "ore-excavator"
+      ],
+      "time": 2
+    },
+    {
+      "id": "mine-calcium-ore",
+      "buildingId": "ore-excavator",
+      "name": "Mine Calcium Ore",
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "calcium-ore",
+          "amount": 4
+        }
+      ],
+      "producers": [
+        "ore-excavator"
+      ],
+      "time": 2
+    },
+    {
+      "id": "mine-calcium-ore-pure",
+      "buildingId": "ore-excavator",
+      "name": "Mine Pure Calcium Ore",
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "pure-calcium-ore",
+          "amount": 8
+        }
+      ],
+      "producers": [
+        "ore-excavator"
+      ],
+      "time": 2
+    },
+    {
+      "id": "mine-wolfram-ore-impure",
+      "buildingId": "ore-excavator",
+      "name": "Mine Impure Wolfram Ore",
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "impure-wolfram-ore",
+          "amount": 2
+        }
+      ],
+      "producers": [
+        "ore-excavator"
+      ],
+      "time": 2
+    },
+    {
+      "id": "mine-wolfram-ore",
+      "buildingId": "ore-excavator",
+      "name": "Mine Wolfram Ore",
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "wolfram-ore",
+          "amount": 4
+        }
+      ],
+      "producers": [
+        "ore-excavator"
+      ],
+      "time": 2
+    },
+    {
+      "id": "mine-wolfram-ore-pure",
+      "buildingId": "ore-excavator",
+      "name": "Mine Pure Wolfram Ore",
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "pure-wolfram-ore",
+          "amount": 8
+        }
+      ],
+      "producers": [
+        "ore-excavator"
+      ],
+      "time": 2
+    },
+    {
+      "id": "mine-titanium-ore-impure",
+      "buildingId": "ore-excavator",
+      "name": "Mine Impure Titanium Ore",
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "impure-titanium-ore",
+          "amount": 2
+        }
+      ],
+      "producers": [
+        "ore-excavator"
+      ],
+      "time": 2
+    },
+    {
+      "id": "mine-titanium-ore",
+      "buildingId": "ore-excavator",
+      "name": "Mine Titanium Ore",
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "titanium-ore",
+          "amount": 4
+        }
+      ],
+      "producers": [
+        "ore-excavator"
+      ],
+      "time": 2
+    },
+    {
+      "id": "mine-titanium-ore-pure",
+      "buildingId": "ore-excavator",
+      "name": "Mine Pure Titanium Ore",
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "pure-titanium-ore",
+          "amount": 8
+        }
+      ],
+      "producers": [
+        "ore-excavator"
+      ],
+      "time": 2
+    },
+    {
+      "id": "craft-wolfram-powder",
+      "name": "Craft Wolfram Powder",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "wolfram-bar",
+          "amount": 30
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "wolfram-powder",
+          "amount": 90
+        }
+      ],
+      "producers": [
+        "furnace"
+      ],
+      "category": "furnace",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-titanium-housing",
+      "name": "Craft Titanium Housing",
+      "time": 60,
+      "inputs": [
+        {
+          "itemId": "titanium-beam",
+          "amount": 30
+        },
+        {
+          "itemId": "titanium-sheet",
+          "amount": 60
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "titanium-housing",
+          "amount": 30
+        }
+      ],
+      "producers": [
+        "furnace"
+      ],
+      "category": "furnace",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-ceramics",
+      "name": "Craft Ceramics",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "calcite-sheet",
+          "amount": 30
+        },
+        {
+          "itemId": "wolfram-powder",
+          "amount": 30
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "ceramics",
+          "amount": 60
+        }
+      ],
+      "producers": [
+        "furnace"
+      ],
+      "category": "furnace",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-calcium-powder",
+      "name": "Craft Calcium Powder",
       "time": 2,
       "inputs": [
         {
           "itemId": "calcium-block",
+          "amount": 20
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "calcium-powder",
+          "amount": 60
+        }
+      ],
+      "producers": [
+        "furnace"
+      ],
+      "category": "furnace",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-inductor",
+      "name": "Craft Inductor",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "tube",
+          "amount": 40
+        },
+        {
+          "itemId": "wolfram-wire",
+          "amount": 20
+        },
+        {
+          "itemId": "ceramics",
+          "amount": 40
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "inductor",
+          "amount": 20
+        }
+      ],
+      "producers": [
+        "furnace"
+      ],
+      "category": "furnace",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-synthetic-silicon",
+      "name": "Craft Synthetic Silicon",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "calcium-powder",
+          "amount": 60
+        },
+        {
+          "itemId": "helium-3",
+          "amount": 30
+        },
+        {
+          "itemId": "ceramics",
+          "amount": 60
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "synthetic-silicon",
+          "amount": 60
+        }
+      ],
+      "producers": [
+        "furnace"
+      ],
+      "category": "furnace",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-electronics",
+      "name": "Craft Electronics",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "synthetic-silicon",
+          "amount": 24
+        },
+        {
+          "itemId": "inductor",
+          "amount": 12
+        },
+        {
+          "itemId": "stator",
+          "amount": 12
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "electronics",
+          "amount": 12
+        }
+      ],
+      "producers": [
+        "furnace"
+      ],
+      "category": "furnace",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-supermagnet",
+      "name": "Craft Supermagnet",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "sulphuric-acid",
+          "amount": 100
+        },
+        {
+          "itemId": "wolfram-plate",
+          "amount": 100
+        },
+        {
+          "itemId": "chemicals",
+          "amount": 40
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "supermagnet",
+          "amount": 20
+        }
+      ],
+      "producers": [
+        "furnace"
+      ],
+      "category": "furnace",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-glass",
+      "name": "Craft Glass",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "helium-3",
+          "amount": 20
+        },
+        {
+          "itemId": "calcium-powder",
+          "amount": 40
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "glass",
+          "amount": 20
+        }
+      ],
+      "producers": [
+        "furnace"
+      ],
+      "category": "furnace",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-chemicals",
+      "name": "Craft Chemicals",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "synthetic-silicon",
+          "amount": 30
+        },
+        {
+          "itemId": "wolfram-powder",
+          "amount": 90
+        },
+        {
+          "itemId": "helium-3",
+          "amount": 30
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "chemicals",
+          "amount": 60
+        }
+      ],
+      "producers": [
+        "furnace"
+      ],
+      "category": "furnace",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-heat-resistant-sheet",
+      "name": "Craft Heat Resistant Sheet",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "wolfram-plate",
+          "amount": 15
+        },
+        {
+          "itemId": "titanium-sheet",
+          "amount": 30
+        },
+        {
+          "itemId": "glass",
+          "amount": 15
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "heat-resistant-sheet",
+          "amount": 15
+        }
+      ],
+      "producers": [
+        "furnace"
+      ],
+      "category": "furnace",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-hardening-agent",
+      "name": "Craft Hardening Agent",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "sulphuric-acid",
+          "amount": 75
+        },
+        {
+          "itemId": "synthetic-silicon",
+          "amount": 15
+        },
+        {
+          "itemId": "applicator",
+          "amount": 15
+        }
+      ],
+      "outputs": [],
+      "producers": [
+        "furnace"
+      ],
+      "category": "furnace",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-wolfram-wire",
+      "name": "Craft Wolfram Wire",
+      "time": 4,
+      "inputs": [
+        {
+          "itemId": "wolfram-bar",
           "amount": 1
         }
       ],
       "outputs": [
         {
-          "itemId": "calcite-sheet",
+          "itemId": "wolfram-wire",
           "amount": 2
         }
       ],
-      "producers": ["fabricator"],
+      "producers": [
+        "fabricator"
+      ],
+      "category": "fabrication",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-wolfram-plate",
+      "name": "Craft Wolfram Plate",
+      "time": 1,
+      "inputs": [
+        {
+          "itemId": "wolfram-bar",
+          "amount": 1
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "wolfram-plate",
+          "amount": 1
+        }
+      ],
+      "producers": [
+        "fabricator"
+      ],
+      "category": "fabrication",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-titanium-beam",
+      "name": "Craft Titanium Beam",
+      "time": 3,
+      "inputs": [
+        {
+          "itemId": "titanium-bar",
+          "amount": 1
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "titanium-beam",
+          "amount": 1
+        }
+      ],
+      "producers": [
+        "fabricator"
+      ],
+      "category": "fabrication",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-titanium-rod",
+      "name": "Craft Titanium Rod",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "titanium-bar",
+          "amount": 1
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "titanium-rod",
+          "amount": 1
+        }
+      ],
+      "producers": [
+        "fabricator"
+      ],
+      "category": "fabrication",
       "outputRate": 0
     },
     {
       "id": "craft-titanium-sheet",
       "name": "Craft Titanium Sheet",
-      "category": "crafting",
       "time": 2,
       "inputs": [
         {
@@ -237,37 +640,15 @@
           "amount": 2
         }
       ],
-      "producers": ["fabricator"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-rotor",
-      "name": "Craft Rotor",
-      "category": "crafting",
-      "time": 6,
-      "inputs": [
-        {
-          "itemId": "titanium-rod",
-          "amount": 2
-        },
-        {
-          "itemId": "tungsten-wire",
-          "amount": 2
-        }
+      "producers": [
+        "fabricator"
       ],
-      "outputs": [
-        {
-          "itemId": "rotor",
-          "amount": 1
-        }
-      ],
-      "producers": ["fabricator"],
+      "category": "fabrication",
       "outputRate": 0
     },
     {
       "id": "craft-tube",
       "name": "Craft Tube",
-      "category": "crafting",
       "time": 2,
       "inputs": [
         {
@@ -285,106 +666,42 @@
           "amount": 2
         }
       ],
-      "producers": ["fabricator"],
+      "producers": [
+        "fabricator"
+      ],
+      "category": "fabrication",
       "outputRate": 0
     },
     {
-      "id": "craft-stabilizer",
-      "name": "Craft Stabilizer",
-      "category": "crafting",
+      "id": "craft-rotor",
+      "name": "Craft Rotor",
       "time": 6,
       "inputs": [
         {
-          "itemId": "rotor",
-          "amount": 1
-        },
-        {
           "itemId": "titanium-rod",
           "amount": 2
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "stabilizer",
-          "amount": 1
-        }
-      ],
-      "producers": ["fabricator"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-stator",
-      "name": "Craft Stator",
-      "category": "crafting",
-      "time": 3,
-      "inputs": [
-        {
-          "itemId": "titanium-housing",
-          "amount": 2
         },
         {
-          "itemId": "tungsten-wire",
-          "amount": 1
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "stator",
-          "amount": 1
-        }
-      ],
-      "producers": ["fabricator"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-applicator",
-      "name": "Craft Applicator",
-      "category": "crafting",
-      "time": 4,
-      "inputs": [
-        {
-          "itemId": "tube",
-          "amount": 8
-        },
-        {
-          "itemId": "glass",
+          "itemId": "wolfram-wire",
           "amount": 2
         }
       ],
       "outputs": [
         {
-          "itemId": "applicator",
+          "itemId": "rotor",
           "amount": 1
         }
       ],
-      "producers": ["fabricator"],
+      "producers": [
+        "fabricator"
+      ],
+      "category": "fabrication",
       "outputRate": 0
     },
     {
-      "id": "grind-tungsten-powder",
-      "name": "Grind Tungsten Powder",
-      "category": "smelting",
+      "id": "craft-calcite-sheets",
+      "name": "Craft Calcite Sheets",
       "time": 2,
-      "inputs": [
-        {
-          "itemId": "tungsten-bar",
-          "amount": 1
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "tungsten-powder",
-          "amount": 3
-        }
-      ],
-      "producers": ["furnace"],
-      "outputRate": 0
-    },
-    {
-      "id": "grind-calcium-powder",
-      "name": "Grind Calcium Powder",
-      "category": "smelting",
-      "time": 3,
       "inputs": [
         {
           "itemId": "calcium-block",
@@ -393,553 +710,23 @@
       ],
       "outputs": [
         {
-          "itemId": "calcium-powder",
-          "amount": 3
-        }
-      ],
-      "producers": ["furnace"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-ceramic",
-      "name": "Craft Ceramic",
-      "category": "smelting",
-      "time": 2,
-      "inputs": [
-        {
           "itemId": "calcite-sheet",
-          "amount": 1
-        },
-        {
-          "itemId": "tungsten-powder",
-          "amount": 1
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "ceramic",
           "amount": 2
         }
       ],
-      "producers": ["furnace"],
+      "producers": [
+        "fabricator"
+      ],
+      "category": "fabrication",
       "outputRate": 0
     },
     {
-      "id": "craft-titanium-housing",
-      "name": "Craft Titanium Housing",
-      "category": "smelting",
+      "id": "craft-basic-building-materials",
+      "name": "Craft Basic Building Materials",
       "time": 2,
       "inputs": [
         {
-          "itemId": "titanium-beam",
-          "amount": 1
-        },
-        {
-          "itemId": "titanium-sheet",
-          "amount": 2
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "titanium-housing",
-          "amount": 1
-        }
-      ],
-      "producers": ["furnace"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-glass",
-      "name": "Craft Glass",
-      "category": "smelting",
-      "time": 3,
-      "inputs": [
-        {
-          "itemId": "helium-3",
-          "amount": 1
-        },
-        {
-          "itemId": "calcium-powder",
-          "amount": 2
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "glass",
-          "amount": 1
-        }
-      ],
-      "producers": ["furnace"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-inductor",
-      "name": "Craft Inductor",
-      "category": "smelting",
-      "time": 3,
-      "inputs": [
-        {
-          "itemId": "tube",
-          "amount": 2
-        },
-        {
-          "itemId": "tungsten-wire",
-          "amount": 1
-        },
-        {
-          "itemId": "ceramic",
-          "amount": 2
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "inductor",
-          "amount": 1
-        }
-      ],
-      "producers": ["furnace"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-heat-resistant-sheet",
-      "name": "Craft Heat Resistant Sheet",
-      "category": "smelting",
-      "time": 4,
-      "inputs": [
-        {
-          "itemId": "tungsten-template",
-          "amount": 1
-        },
-        {
-          "itemId": "titanium-sheet",
-          "amount": 2
-        },
-        {
-          "itemId": "glass",
-          "amount": 1
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "heat-resistant-sheet",
-          "amount": 1
-        }
-      ],
-      "producers": ["furnace"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-synthetic-silicon",
-      "name": "Craft Synthetic Silicon",
-      "category": "smelting",
-      "time": 2,
-      "inputs": [
-        {
-          "itemId": "calcium-powder",
-          "amount": 2
-        },
-        {
-          "itemId": "helium-3",
-          "amount": 1
-        },
-        {
-          "itemId": "ceramic",
-          "amount": 2
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "synthetic-silicon",
-          "amount": 2
-        }
-      ],
-      "producers": ["furnace"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-electronic-component",
-      "name": "Craft Electronic Component",
-      "category": "smelting",
-      "time": 5,
-      "inputs": [
-        {
-          "itemId": "synthetic-silicon",
-          "amount": 2
-        },
-        {
-          "itemId": "inductor",
-          "amount": 1
-        },
-        {
-          "itemId": "stator",
-          "amount": 1
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "electronic-component",
-          "amount": 1
-        }
-      ],
-      "producers": ["furnace"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-chemical-substance",
-      "name": "Craft Chemical Substance",
-      "category": "smelting",
-      "time": 2,
-      "inputs": [
-        {
-          "itemId": "synthetic-silicon",
-          "amount": 1
-        },
-        {
-          "itemId": "tungsten-powder",
-          "amount": 3
-        },
-        {
-          "itemId": "helium-3",
-          "amount": 1
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "chemical-substance",
-          "amount": 2
-        }
-      ],
-      "producers": ["furnace"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-hardener",
-      "name": "Craft Hardener",
-      "category": "smelting",
-      "time": 4,
-      "inputs": [
-        {
-          "itemId": "sulfur",
-          "amount": 5
-        },
-        {
-          "itemId": "synthetic-silicon",
-          "amount": 1
-        },
-        {
-          "itemId": "applicator",
-          "amount": 1
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "hardener",
-          "amount": 2
-        }
-      ],
-      "producers": ["furnace"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-superconducting-magnet",
-      "name": "Craft Superconducting Magnet",
-      "category": "smelting",
-      "time": 3,
-      "inputs": [
-        {
-          "itemId": "sulfur",
-          "amount": 5
-        },
-        {
-          "itemId": "tungsten-template",
-          "amount": 5
-        },
-        {
-          "itemId": "chemical-substance",
-          "amount": 2
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "superconducting-magnet",
-          "amount": 1
-        }
-      ],
-      "producers": ["furnace"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-impeller",
-      "name": "Craft Impeller",
-      "category": "crafting",
-      "time": 4,
-      "inputs": [
-        {
-          "itemId": "titanium-rod",
-          "amount": 2
-        },
-        {
-          "itemId": "heat-resistant-sheet",
-          "amount": 2
-        },
-        {
-          "itemId": "tungsten-template",
-          "amount": 1
-        },
-        {
-          "itemId": "stabilizer",
-          "amount": 1
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "impeller",
-          "amount": 1
-        }
-      ],
-      "producers": ["megapress"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-nozzle",
-      "name": "Craft Nozzle",
-      "category": "crafting",
-      "time": 5,
-      "inputs": [
-        {
-          "itemId": "heat-resistant-sheet",
-          "amount": 2
-        },
-        {
-          "itemId": "helium-3",
-          "amount": 1
-        },
-        {
-          "itemId": "stabilizer",
-          "amount": 2
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "nozzle",
-          "amount": 1
-        }
-      ],
-      "producers": ["megapress"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-battery",
-      "name": "Craft Battery",
-      "category": "crafting",
-      "time": 4,
-      "inputs": [
-        {
-          "itemId": "inductor",
-          "amount": 2
-        },
-        {
-          "itemId": "electronic-component",
-          "amount": 2
-        },
-        {
-          "itemId": "sulfur",
-          "amount": 1
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "battery",
-          "amount": 1
-        }
-      ],
-      "producers": ["megapress"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-turbine",
-      "name": "Craft Turbine",
-      "category": "crafting",
-      "time": 6,
-      "inputs": [
-        {
-          "itemId": "impeller",
-          "amount": 1
-        },
-        {
-          "itemId": "stator",
-          "amount": 1
-        },
-        {
-          "itemId": "rotor",
-          "amount": 2
-        },
-        {
-          "itemId": "sulfur",
-          "amount": 2
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "turbine",
-          "amount": 1
-        }
-      ],
-      "producers": ["megapress"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-valve",
-      "name": "Craft Valve",
-      "category": "crafting",
-      "time": 10,
-      "inputs": [
-        {
-          "itemId": "titanium-housing",
-          "amount": 1
-        },
-        {
-          "itemId": "titanium-beam",
-          "amount": 3
-        },
-        {
-          "itemId": "titanium-rod",
-          "amount": 2
-        },
-        {
-          "itemId": "nozzle",
-          "amount": 1
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "valve",
-          "amount": 1
-        }
-      ],
-      "producers": ["megapress"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-electromagnetic-coil",
-      "name": "Craft Electromagnetic Coil",
-      "category": "crafting",
-      "time": 4,
-      "inputs": [
-        {
-          "itemId": "inductor",
-          "amount": 1
-        },
-        {
-          "itemId": "pressurized-helium",
-          "amount": 1
-        },
-        {
-          "itemId": "tungsten-template",
-          "amount": 6
-        },
-        {
-          "itemId": "superconducting-magnet",
-          "amount": 1
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "electromagnetic-coil",
-          "amount": 1
-        }
-      ],
-      "producers": ["megapress"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-pump",
-      "name": "Craft Pump",
-      "category": "crafting",
-      "time": 10,
-      "inputs": [
-        {
-          "itemId": "valve",
-          "amount": 1
-        },
-        {
-          "itemId": "turbine",
-          "amount": 1
-        },
-        {
-          "itemId": "impeller",
-          "amount": 1
-        },
-        {
-          "itemId": "sulfur",
-          "amount": 3
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "pump",
-          "amount": 1
-        }
-      ],
-      "producers": ["megapress"],
-      "outputRate": 0
-    },
-    {
-      "id": "refine-sulfur",
-      "name": "Refine Sulfur",
-      "category": "refining",
-      "time": 0,
-      "inputs": [
-        {
-          "itemId": "sulfur-ore",
-          "amount": 2
-        },
-        {
-          "itemId": "chemical-substance",
-          "amount": 1
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "sulfur",
-          "amount": 1
-        }
-      ],
-      "producers": ["refinery"],
-      "outputRate": 0
-    },
-    {
-      "id": "pressurize-helium",
-      "name": "Pressurize Helium",
-      "category": "refining",
-      "time": 2,
-      "inputs": [
-        {
-          "itemId": "helium-3",
-          "amount": 1
-        },
-        {
-          "itemId": "sulfur-ore",
-          "amount": 1
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "pressurized-helium",
-          "amount": 1
-        }
-      ],
-      "producers": ["refinery"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-basic-structure",
-      "name": "Craft Basic Structure",
-      "category": "crafting",
-      "time": 2,
-      "inputs": [
-        {
-          "itemId": "tungsten-ore",
+          "itemId": "wolfram-ore",
           "amount": 1
         },
         {
@@ -949,141 +736,482 @@
       ],
       "outputs": [
         {
-          "itemId": "basic-structure",
+          "itemId": "basic-building-materials",
           "amount": 10
         }
       ],
-      "producers": ["fabricator"],
+      "producers": [
+        "fabricator"
+      ],
+      "category": "fabrication",
       "outputRate": 0
     },
     {
-      "id": "craft-pistol-ammunition",
-      "name": "Craft Pistol Ammunition",
-      "category": "crafting",
+      "id": "craft-stabilizer",
+      "name": "Craft Stabilizer",
+      "time": 6,
+      "inputs": [
+        {
+          "itemId": "rotor",
+          "amount": 1
+        },
+        {
+          "itemId": "titanium-rod",
+          "amount": 2
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "stabilizer",
+          "amount": 1
+        }
+      ],
+      "producers": [
+        "fabricator"
+      ],
+      "category": "fabrication",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-pistol-ammo",
+      "name": "Craft Pistol Ammo",
       "time": 4,
       "inputs": [
         {
-          "itemId": "basic-structure",
+          "itemId": "basic-building-materials",
           "amount": 14
         }
       ],
       "outputs": [
         {
-          "itemId": "pistol-ammunition",
+          "itemId": "pistol-ammo",
           "amount": 25
         }
       ],
-      "producers": ["fabricator"],
+      "producers": [
+        "fabricator"
+      ],
+      "category": "fabrication",
       "outputRate": 0
     },
     {
-      "id": "craft-medium-structure",
-      "name": "Craft Medium Structure",
-      "category": "crafting",
-      "time": 6,
+      "id": "craft-applicator",
+      "name": "Craft Applicator",
+      "time": 4,
       "inputs": [
         {
-          "itemId": "basic-structure",
-          "amount": 40
-        },
-        {
-          "itemId": "inductor",
-          "amount": 2
+          "itemId": "tube",
+          "amount": 8
         },
         {
           "itemId": "glass",
           "amount": 2
-        },
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "applicator",
+          "amount": 1
+        }
+      ],
+      "producers": [
+        "fabricator"
+      ],
+      "category": "fabrication",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-stator",
+      "name": "Craft Stator",
+      "time": 3,
+      "inputs": [
         {
           "itemId": "titanium-housing",
           "amount": 2
-        }
-      ],
-      "outputs": [
-        {
-          "itemId": "medium-structure",
-          "amount": 25
-        }
-      ],
-      "producers": ["megapress"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-standard-ammunition",
-      "name": "Craft Standard Ammunition",
-      "category": "crafting",
-      "time": 6,
-      "inputs": [
-        {
-          "itemId": "basic-structure",
-          "amount": 18
         },
         {
-          "itemId": "tungsten-powder",
-          "amount": 4
+          "itemId": "wolfram-wire",
+          "amount": 1
         }
       ],
       "outputs": [
         {
-          "itemId": "standard-ammunition",
-          "amount": 20
+          "itemId": "stator",
+          "amount": 1
         }
       ],
-      "producers": ["megapress"],
-      "outputRate": 0
-    },
-    {
-      "id": "craft-heavy-ammunition",
-      "name": "Craft Heavy Ammunition",
-      "category": "crafting",
-      "time": 6,
-      "inputs": [
-        {
-          "itemId": "basic-structure",
-          "amount": 24
-        },
-        {
-          "itemId": "titanium-rod",
-          "amount": 6
-        }
+      "producers": [
+        "fabricator"
       ],
-      "outputs": [
-        {
-          "itemId": "heavy-ammunition",
-          "amount": 15
-        }
-      ],
-      "producers": ["megapress"],
+      "category": "fabrication",
       "outputRate": 0
     },
     {
       "id": "extract-helium-3",
       "name": "Extract Helium-3",
-      "category": "extraction",
-      "time": 2,
+      "time": 60,
       "inputs": [],
       "outputs": [
         {
           "itemId": "helium-3",
-          "amount": 8
+          "amount": 240
         }
       ],
-      "producers": ["helium-3-extractor"],
+      "producers": [
+        "helium-3-extractor"
+      ],
+      "category": "extraction",
       "outputRate": 0
     },
     {
-      "id": "extract-sulfur-ore",
-      "name": "Extract Sulfur Ore",
-      "category": "extraction",
+      "id": "craft-battery",
+      "name": "Craft Battery",
+      "time": 60,
+      "inputs": [
+        {
+          "itemId": "inductor",
+          "amount": 30
+        },
+        {
+          "itemId": "electronics",
+          "amount": 30
+        },
+        {
+          "itemId": "sulphuric-acid",
+          "amount": 15
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "battery",
+          "amount": 15
+        }
+      ],
+      "producers": [
+        "mega-press"
+      ],
+      "category": "pressing",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-electromagnetic-coil",
+      "name": "Craft Electromagnetic Coil",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "inductor",
+          "amount": 15
+        },
+        {
+          "itemId": "pressurized-helium",
+          "amount": 15
+        },
+        {
+          "itemId": "wolfram-plate",
+          "amount": 90
+        },
+        {
+          "itemId": "supermagnet",
+          "amount": 15
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "electromagnetic-coil",
+          "amount": 15
+        }
+      ],
+      "producers": [
+        "mega-press"
+      ],
+      "category": "pressing",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-impeller",
+      "name": "Craft Impeller",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "titanium-rod",
+          "amount": 30
+        },
+        {
+          "itemId": "heat-resistant-sheet",
+          "amount": 30
+        },
+        {
+          "itemId": "wolfram-plate",
+          "amount": 15
+        },
+        {
+          "itemId": "stabilizer",
+          "amount": 15
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "impeller",
+          "amount": 15
+        }
+      ],
+      "producers": [
+        "mega-press"
+      ],
+      "category": "pressing",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-intermediate-building-material",
+      "name": "Craft Intermediate Building Material",
+      "time": 60,
+      "inputs": [
+        {
+          "itemId": "basic-building-materials",
+          "amount": 400
+        },
+        {
+          "itemId": "inductor",
+          "amount": 20
+        },
+        {
+          "itemId": "glass",
+          "amount": 20
+        },
+        {
+          "itemId": "titanium-housing",
+          "amount": 20
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "intermediate-building-material",
+          "amount": 250
+        }
+      ],
+      "producers": [
+        "mega-press"
+      ],
+      "category": "pressing",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-nozzle",
+      "name": "Craft Nozzle",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "heat-resistant-sheet",
+          "amount": 24
+        },
+        {
+          "itemId": "helium-3",
+          "amount": 12
+        },
+        {
+          "itemId": "stabilizer",
+          "amount": 24
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "nozzle",
+          "amount": 12
+        }
+      ],
+      "producers": [
+        "mega-press"
+      ],
+      "category": "pressing",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-pump",
+      "name": "Craft Pump",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "valve",
+          "amount": 1
+        },
+        {
+          "itemId": "turbine",
+          "amount": 1
+        },
+        {
+          "itemId": "impeller",
+          "amount": 1
+        },
+        {
+          "itemId": "sulphuric-acid",
+          "amount": 10
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "pump",
+          "amount": 1
+        }
+      ],
+      "producers": [
+        "mega-press"
+      ],
+      "category": "pressing",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-turbine",
+      "name": "Craft Turbine",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "impeller",
+          "amount": 10
+        },
+        {
+          "itemId": "stator",
+          "amount": 10
+        },
+        {
+          "itemId": "rotor",
+          "amount": 20
+        },
+        {
+          "itemId": "sulphuric-acid",
+          "amount": 20
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "turbine",
+          "amount": 10
+        }
+      ],
+      "producers": [
+        "mega-press"
+      ],
+      "category": "pressing",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-valve",
+      "name": "Craft Valve",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "titanium-housing",
+          "amount": 12
+        },
+        {
+          "itemId": "titanium-beam",
+          "amount": 12
+        },
+        {
+          "itemId": "titanium-rod",
+          "amount": 24
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "valve",
+          "amount": 12
+        }
+      ],
+      "producers": [
+        "mega-press"
+      ],
+      "category": "pressing",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-standard-ammo",
+      "name": "Craft Standard Ammo",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "basic-building-materials",
+          "amount": 100
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "standard-ammo",
+          "amount": 100
+        }
+      ],
+      "producers": [
+        "mega-press"
+      ],
+      "category": "pressing",
+      "outputRate": 0
+    },
+    {
+      "id": "pressurize-helium",
+      "name": "Pressurize Helium",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "helium-3",
+          "amount": 30
+        },
+        {
+          "itemId": "sulphur-ore",
+          "amount": 30
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "pressurized-helium",
+          "amount": 30
+        }
+      ],
+      "producers": [
+        "refinery"
+      ],
+      "category": "refining",
+      "outputRate": 0
+    },
+    {
+      "id": "refine-sulphuric-acid",
+      "name": "Refine Sulphuric Acid",
+      "time": 2,
+      "inputs": [
+        {
+          "itemId": "sulphur-ore",
+          "amount": 240
+        },
+        {
+          "itemId": "chemicals",
+          "amount": 120
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "sulphuric-acid",
+          "amount": 120
+        }
+      ],
+      "producers": [
+        "refinery"
+      ],
+      "category": "refining",
+      "outputRate": 0
+    },
+    {
+      "id": "mine-sulphur-ore",
+      "name": "Extract Sulphur Ore",
       "time": 2,
       "inputs": [],
       "outputs": [
         {
-          "itemId": "sulfur-ore",
-          "amount": 8
+          "itemId": "sulphur-ore",
+          "amount": 240
         }
       ],
-      "producers": ["sulfur-extractor"],
+      "producers": [
+        "sulfur-extractor"
+      ],
+      "category": "extraction",
       "outputRate": 0
     }
   ]
