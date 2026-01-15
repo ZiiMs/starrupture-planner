@@ -51,13 +51,13 @@
       "inputs": [
         {
           "itemId": "wolfram-ore",
-          "amount": 60
+          "amount": 2
         }
       ],
       "outputs": [
         {
           "itemId": "wolfram-bar",
-          "amount": 60
+          "amount": 2
         }
       ],
       "producers": [
