@@ -92,8 +92,6 @@ function BuildingNodeComponent({
     updateNodeInternals,
   ])
 
-  const BuildingIcon = getIcon(building.icon)
-
   const availableRecipes = useMemo(
     () =>
       Object.values(recipes).filter((r) =>
@@ -103,9 +101,9 @@ function BuildingNodeComponent({
   )
 
   const totalLeftHandles =
-    recipe.inputs.length + ((data as any).customInputs?.length || 0)
+    (recipe?.inputs?.length || 0) + ((data as any).customInputs?.length || 0)
   const totalRightHandles =
-    recipe.outputs.length + ((data as any).customOutputs?.length || 0)
+    (recipe?.outputs?.length || 0) + ((data as any).customOutputs?.length || 0)
 
   const efficiencyWarnings = useMemo(() => {
     if (!id) return []
@@ -195,6 +193,17 @@ function BuildingNodeComponent({
 
     return warnings
   }, [id, edges, items])
+
+  // Guard against missing data during hydration or invalid references
+  if (!building || !recipe) {
+    return (
+      <Card className="min-w-[300px] max-w-[320px] p-3">
+        <span className="text-muted-foreground text-sm">Loading...</span>
+      </Card>
+    )
+  }
+
+  const BuildingIcon = getIcon(building.icon)
 
   return (
     <Card
