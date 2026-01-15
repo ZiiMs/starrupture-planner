@@ -2,7 +2,10 @@
 
 import { usePlannerData } from '@/hooks/use-planner-data'
 import { useAutoLayout } from '@/hooks/useAutoLayout'
-import { calculateOutputRate, calculatePowerConsumption } from '@/lib/calculations'
+import {
+  calculateOutputRate,
+  calculatePowerConsumption,
+} from '@/lib/calculations'
 import { usePlannerStore } from '@/stores/planner-store'
 import {
   Background,
@@ -330,9 +333,9 @@ function PlannerCanvasInner() {
     (nodeId: string, newTargetRate: number) => {
       pushToHistory()
 
-      const targetNode = usePlannerStore.getState().present.nodes.find(
-        (n) => n.id === nodeId,
-      )
+      const targetNode = usePlannerStore
+        .getState()
+        .present.nodes.find((n) => n.id === nodeId)
       if (!targetNode || !plannerData) return
 
       const targetRecipe = plannerData.recipes[targetNode.data.recipeId]
@@ -360,10 +363,7 @@ function PlannerCanvasInner() {
       })
 
       // Recursively update upstream nodes using fresh state
-      const updateUpstream = (
-        currentNodeId: string,
-        requiredRate: number,
-      ) => {
+      const updateUpstream = (currentNodeId: string, requiredRate: number) => {
         const currentNodes = usePlannerStore.getState().present.nodes
         const currentEdges = usePlannerStore.getState().present.edges
 
@@ -371,7 +371,8 @@ function PlannerCanvasInner() {
         if (!currentNode) return
 
         const currentRecipe = plannerData.recipes[currentNode.data.recipeId]
-        const currentBuilding = plannerData.buildings[currentNode.data.buildingId]
+        const currentBuilding =
+          plannerData.buildings[currentNode.data.buildingId]
         if (!currentRecipe || !currentBuilding) return
 
         // Calculate count for this node
@@ -385,7 +386,11 @@ function PlannerCanvasInner() {
         // Update this node
         updateNode(currentNodeId, {
           count,
-          outputRate: calculateOutputRate(currentRecipe, currentBuilding, count),
+          outputRate: calculateOutputRate(
+            currentRecipe,
+            currentBuilding,
+            count,
+          ),
           powerConsumption: calculatePowerConsumption(currentBuilding, count),
         })
 
@@ -405,8 +410,7 @@ function PlannerCanvasInner() {
             )
             if (sourceNode) {
               // Calculate required rate for the source
-              const inputRate =
-                (input.amount / currentRecipe.time) * 60 * count
+              const inputRate = (input.amount / currentRecipe.time) * 60 * count
               updateUpstream(sourceNode.id, inputRate)
             }
           }
@@ -443,7 +447,9 @@ function PlannerCanvasInner() {
   // Compute output nodes (nodes with no outgoing edges) - before early returns
   const outputNodeIds = useMemo(() => {
     const nodeIdsWithOutgoingEdges = new Set(edges.map((e) => e.source))
-    return new Set(nodes.filter((n) => !nodeIdsWithOutgoingEdges.has(n.id)).map((n) => n.id))
+    return new Set(
+      nodes.filter((n) => !nodeIdsWithOutgoingEdges.has(n.id)).map((n) => n.id),
+    )
   }, [nodes, edges])
 
   if (isLoading) {

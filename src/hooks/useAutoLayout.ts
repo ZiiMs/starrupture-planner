@@ -21,7 +21,8 @@ export type LayoutDirection = 'LR' | 'TB'
  * - Integrates with Zustand store for state management
  */
 export function useAutoLayout(recipes?: Record<string, Recipe>) {
-  const [autoLayoutDirection, setAutoLayoutDirection] = useState<LayoutDirection>('LR')
+  const [autoLayoutDirection, setAutoLayoutDirection] =
+    useState<LayoutDirection>('LR')
 
   // Use refs to always get fresh state (avoid stale closures)
   const nodesRef = useRef(usePlannerStore.getState().present.nodes)
@@ -67,7 +68,8 @@ export function useAutoLayout(recipes?: Record<string, Recipe>) {
         console.log(`Direction: ${effectiveDirection}`)
         console.log(`Nodes: ${currentNodes.length}`)
         currentNodes.forEach((node, index) => {
-          const height = node.measured?.height ?? estimateNodeHeight(node, recipes)
+          const height =
+            node.measured?.height ?? estimateNodeHeight(node, recipes)
           console.log(`Node ${index + 1}: ${node.id} - height: ${height}px`)
         })
 

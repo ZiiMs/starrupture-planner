@@ -1,7 +1,21 @@
 'use client'
 
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
 import {
   Tooltip,
@@ -18,7 +32,7 @@ import {
   useEdges,
   useUpdateNodeInternals,
 } from '@xyflow/react'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, Check, ChevronsUpDown } from 'lucide-react'
 import { memo, useEffect, useMemo, useState } from 'react'
 
 interface BuildingNodeProps extends NodeProps {
@@ -56,6 +70,8 @@ function BuildingNodeComponent({
   const [rateInputValue, setRateInputValue] = useState<string>(
     formatRate((data as any).targetRate ?? (data as any).outputRate),
   )
+  const [openRecipes, setOpenRecipes] = useState(false)
+  const [currentRecipe, setCurrentRecipe] = useState<string | null>((data as any).recipeId || null)
 
   // Update local state when rate changes externally
   useEffect(() => {
@@ -63,16 +79,6 @@ function BuildingNodeComponent({
       formatRate((data as any).targetRate ?? (data as any).outputRate),
     )
   }, [(data as any).targetRate, (data as any).outputRate])
-
-  // Debug: log every render
-  console.log(
-    'BuildingNode render:',
-    building?.name,
-    '| Node ID:',
-    id,
-    '| Edges count:',
-    edges.length,
-  )
 
   // Update node internals when custom inputs/outputs change (required for dynamic handles)
   useEffect(() => {
@@ -278,7 +284,10 @@ function BuildingNodeComponent({
               <h3 className="font-bold text-sm text-muted-foreground">
                 {building.name}{' '}
                 <span className="font-bold text-foreground">
-                  {Number((data as any).count || 0).toFixed(1).replace(/\.0$/, '')}x
+                  {Number((data as any).count || 0)
+                    .toFixed(1)
+                    .replace(/\.0$/, '')}
+                  x
                 </span>
               </h3>
               {efficiencyWarnings.length > 0 && (
@@ -311,7 +320,9 @@ function BuildingNodeComponent({
             <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
               <div className="flex items-center gap-1">
                 <span className="font-medium">Power:</span>
-                <span>{Number((data as any).powerConsumption || 0).toFixed(0)} kW</span>
+                <span>
+                  {Number((data as any).powerConsumption || 0).toFixed(0)} kW
+                </span>
               </div>
               {isOutputNode && onRateChange && (
                 <div className="flex items-center gap-1">
@@ -334,7 +345,10 @@ function BuildingNodeComponent({
                       } else {
                         // Reset to current rate if invalid
                         setRateInputValue(
-                          formatRate((data as any).targetRate ?? (data as any).outputRate),
+                          formatRate(
+                            (data as any).targetRate ??
+                              (data as any).outputRate,
+                          ),
                         )
                       }
                     }}
@@ -353,19 +367,58 @@ function BuildingNodeComponent({
           <label className="text-xs font-medium text-muted-foreground mb-1 block">
             Recipe
           </label>
-          <select
-            value={(data as any).recipeId || ''}
-            onChange={(e) => onRecipeChange?.(id, e.target.value)}
-            className="h-8 text-xs rounded-none border border-input bg-transparent px-2 py-1 w-full cursor-pointer"
-            style={{ appearance: 'menulist' }}
-          >
-            <option value="">Select recipe</option>
-            {availableRecipes.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name}
-              </option>
-            ))}
-          </select>
+
+          <Popover open={openRecipes} onOpenChange={setOpenRecipes}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={openRecipes}
+                className="justify-between"
+              >
+                {currentRecipe
+                  ? availableRecipes.find((recipe) => recipe.id === currentRecipe)?.name
+                  : 'Select framework...'}
+                <ChevronsUpDown className="opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className=" p-0">
+              <Command>
+                <CommandInput
+                  placeholder="Search framework..."
+                  className="h-9"
+                />
+                <CommandList>
+                  <CommandEmpty>No framework found.</CommandEmpty>
+                  <CommandGroup>
+                    {availableRecipes.map((r) => (
+                      <CommandItem
+                        key={r.id}
+                        value={r.id}
+                        onSelect={(currentValue) => {
+                          setCurrentRecipe(
+                            currentValue === currentRecipe ? '' : currentValue,
+                          )
+                          setOpenRecipes(false)
+                          onRecipeChange?.(r.id, currentValue)
+                        }}
+                      >
+                        {r.name}
+                        <Check
+                          className={cn(
+                            'ml-auto',
+                            currentRecipe === r.id
+                              ? 'opacity-100'
+                              : 'opacity-0',
+                          )}
+                        />
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
 
         {recipe.inputs.length > 0 && (
@@ -377,7 +430,8 @@ function BuildingNodeComponent({
               {recipe.inputs.map((input) => {
                 const item = items[input.itemId]
                 const ItemIcon = getIcon(item.icon)
-                const inputRate = (input.amount / recipe.time) * 60 * ((data as any).count || 1)
+                const inputRate =
+                  (input.amount / recipe.time) * 60 * ((data as any).count || 1)
                 return (
                   <Badge
                     key={input.itemId}
@@ -389,7 +443,9 @@ function BuildingNodeComponent({
                       style={{ color: item.iconColor }}
                     />
                     <span>{item.name}</span>
-                    <span className="text-muted-foreground">({inputRate.toFixed(1)}/min)</span>
+                    <span className="text-muted-foreground">
+                      ({inputRate.toFixed(1)}/min)
+                    </span>
                   </Badge>
                 )
               })}
@@ -401,27 +457,30 @@ function BuildingNodeComponent({
           <div className="text-xs font-medium text-muted-foreground mb-1">
             Outputs
           </div>
-            <div className="flex gap-2 flex-wrap">
-              {recipe.outputs.map((output) => {
-                const item = items[output.itemId]
-                const ItemIcon = getIcon(item.icon)
-                const outputRate = (output.amount / recipe.time) * 60 * ((data as any).count || 1)
-                return (
-                  <Badge
-                    key={output.itemId}
-                    variant="secondary"
-                    className="h-7 px-2 gap-1.5 text-xs"
-                  >
-                    <ItemIcon
-                      className="w-3.5 h-3.5"
-                      style={{ color: item.iconColor }}
-                    />
-                    <span>{item.name}</span>
-                    <span className="text-muted-foreground">({outputRate.toFixed(1)}/min)</span>
-                  </Badge>
-                )
-              })}
-            </div>
+          <div className="flex gap-2 flex-wrap">
+            {recipe.outputs.map((output) => {
+              const item = items[output.itemId]
+              const ItemIcon = getIcon(item.icon)
+              const outputRate =
+                (output.amount / recipe.time) * 60 * ((data as any).count || 1)
+              return (
+                <Badge
+                  key={output.itemId}
+                  variant="secondary"
+                  className="h-7 px-2 gap-1.5 text-xs"
+                >
+                  <ItemIcon
+                    className="w-3.5 h-3.5"
+                    style={{ color: item.iconColor }}
+                  />
+                  <span>{item.name}</span>
+                  <span className="text-muted-foreground">
+                    ({outputRate.toFixed(1)}/min)
+                  </span>
+                </Badge>
+              )
+            })}
+          </div>
         </div>
       </CardContent>
     </Card>

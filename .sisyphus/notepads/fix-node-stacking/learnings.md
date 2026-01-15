@@ -79,7 +79,15 @@ function estimateNodeHeight(node: Node): number {
 
   const warningPadding = data.efficiencyWarnings?.length ? 24 : 0
 
-  return 180 + (customInputCount + customOutputCount + recipeInputCount + recipeOutputCount) * 28 + warningPadding
+  return (
+    180 +
+    (customInputCount +
+      customOutputCount +
+      recipeInputCount +
+      recipeOutputCount) *
+      28 +
+    warningPadding
+  )
 }
 ```
 
@@ -106,11 +114,11 @@ if (edgesToAdd.length !== expectedEdgeCount) {
 
 ## Files Modified
 
-| File                                          | Changes                                         |
-| --------------------------------------------- | ----------------------------------------------- |
-| `src/components/planner/BuildingSelector.tsx` | Edge creation loop, composite key, validation   |
-| `src/lib/dagre-layout.ts`                     | Complete rewrite of `estimateNodeHeight()`      |
-| `src/stores/__tests__/planner-store.test.ts`  | 5 new edge validation tests                     |
+| File                                          | Changes                                       |
+| --------------------------------------------- | --------------------------------------------- |
+| `src/components/planner/BuildingSelector.tsx` | Edge creation loop, composite key, validation |
+| `src/lib/dagre-layout.ts`                     | Complete rewrite of `estimateNodeHeight()`    |
+| `src/stores/__tests__/planner-store.test.ts`  | 5 new edge validation tests                   |
 
 ## Test Results
 

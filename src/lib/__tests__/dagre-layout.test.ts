@@ -2,10 +2,7 @@ import { describe, test, expect } from 'vitest'
 import type { Node } from '@xyflow/react'
 import { getLayoutedElements } from '../dagre-layout'
 
-const createMockNode = (
-  id: string,
-  overrides: Partial<Node> = {},
-): Node => ({
+const createMockNode = (id: string, overrides: Partial<Node> = {}): Node => ({
   id,
   type: 'planner-node',
   position: { x: 0, y: 0 },
@@ -137,8 +134,10 @@ describe('getLayoutedElements', () => {
     const { nodes: layoutedNodes } = getLayoutedElements(nodes, edges, 'TB')
 
     // Source node should be above target node
-    const sourceY = layoutedNodes.find((n) => n.id === 'source')?.position.y ?? 0
-    const targetY = layoutedNodes.find((n) => n.id === 'target')?.position.y ?? 0
+    const sourceY =
+      layoutedNodes.find((n) => n.id === 'source')?.position.y ?? 0
+    const targetY =
+      layoutedNodes.find((n) => n.id === 'target')?.position.y ?? 0
 
     // Target should be below source (positive Y difference)
     expect(targetY).toBeGreaterThan(sourceY)
@@ -200,8 +199,20 @@ describe('getLayoutedElements', () => {
     ]
 
     const edges = [
-      { id: 'e1', source: 'a', target: 'b', type: 'efficiency-edge' as const, data: {} },
-      { id: 'e2', source: 'b', target: 'c', type: 'efficiency-edge' as const, data: {} },
+      {
+        id: 'e1',
+        source: 'a',
+        target: 'b',
+        type: 'efficiency-edge' as const,
+        data: {},
+      },
+      {
+        id: 'e2',
+        source: 'b',
+        target: 'c',
+        type: 'efficiency-edge' as const,
+        data: {},
+      },
     ]
 
     const { nodes: layoutedNodes } = getLayoutedElements(nodes, edges, 'TB')
@@ -254,7 +265,13 @@ describe('getLayoutedElements', () => {
     ]
 
     const edges = [
-      { id: 'e1', source: 'tall', target: 'short', type: 'efficiency-edge' as const, data: {} },
+      {
+        id: 'e1',
+        source: 'tall',
+        target: 'short',
+        type: 'efficiency-edge' as const,
+        data: {},
+      },
     ]
 
     const { nodes: layoutedNodes } = getLayoutedElements(nodes, edges, 'TB')
@@ -276,7 +293,13 @@ describe('getLayoutedElements', () => {
     const nodes: Node[] = [createMockNode('n1'), createMockNode('n2')]
 
     const edges = [
-      { id: 'e1', source: 'n1', target: 'n2', type: 'efficiency-edge' as const, data: {} },
+      {
+        id: 'e1',
+        source: 'n1',
+        target: 'n2',
+        type: 'efficiency-edge' as const,
+        data: {},
+      },
     ]
 
     const { edges: resultEdges } = getLayoutedElements(nodes, edges, 'TB')

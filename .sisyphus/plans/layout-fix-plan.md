@@ -22,6 +22,7 @@ function estimateNodeHeight(node: Node): number {
 ```
 
 **Problems:**
+
 1. Only counts CUSTOM inputs/outputs, ignoring recipe inputs/outputs
 2. Recipe nodes can have 0-4+ inputs and 0-4+ outputs (each displayed as badges)
 3. BuildingNode component renders ALL recipe inputs/outputs as badges
@@ -42,6 +43,7 @@ function estimateNodeHeight(node: Node): number {
 ### Current Algorithm: Dagre Hierarchical Layout
 
 **What it does:**
+
 1. Builds a directed graph from nodes and edges
 2. Assigns each node a "rank" (vertical layer) based on dependencies
 3. Orders nodes within each rank (horizontal position)
@@ -65,6 +67,7 @@ center_to_center_distance = node_height + ranksep
 ```
 
 This means:
+
 - If node height = 200px and ranksep = 120px
 - Center distance = 320px
 - Gap between nodes = ranksep = 120px ✓
@@ -113,6 +116,7 @@ For our nodes (max ~344px height), we need:
 - `align: 'UL'` (optional: left-align nodes within each rank)
 
 **Why 360px?**
+
 ```
 Node A (344px tall) center: y = 172
 Node B center: y = 172 + 344 + 360 = 876
@@ -160,12 +164,14 @@ Gap between A bottom (344) and B top (676): 332px ✓
 ## Success Criteria
 
 ### Functional Requirements
+
 1. [ ] All nodes render without vertical overlap
 2. [ ] Height matches actual visual content within ±10px
 3. [ ] Edges route cleanly between nodes
 4. [ ] Layout remains stable (no jitter on re-render)
 
 ### Observable Behavior
+
 - Nodes with 4 inputs + 4 outputs should have ~344px height
 - Nodes with 1 input + 1 output should have ~204px height
 - Adjacent ranks should have clear vertical separation
@@ -173,16 +179,19 @@ Gap between A bottom (344) and B top (676): 332px ✓
 ### Test Plan
 
 **Test 1: Height Calculation Accuracy**
+
 - Input: Node with 3 recipe inputs, 2 recipe outputs, 1 custom input
 - Expected: Height = 140 + (3×32) + (2×32) + (1×32) = 140 + 192 = 332px
 - Verify: Rendered height matches within ±10px
 
 **Test 2: No Overlap with Maximal Nodes**
+
 - Input: 5 nodes with varying input/output counts (0-4 each)
 - Expected: No visual overlap between any nodes
 - Verify: Manual inspection or screenshot comparison
 
 **Test 3: Layout Stability**
+
 - Input: Trigger layout 10 times consecutively
 - Expected: Identical positions each time
 - Verify: Console log positions, compare equality

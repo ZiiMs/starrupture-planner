@@ -70,8 +70,7 @@ function BuildingSelectorComponent({
     return { x: centerX, y: centerY }
   }, [getViewport])
 
-  const { runAutoLayout } =
-    useAutoLayout()
+  const { runAutoLayout } = useAutoLayout()
 
   const [activeTab, setActiveTab] = useState<'buildings' | 'items'>('buildings')
   const [nodeCounter, setNodeCounter] = useState(0)

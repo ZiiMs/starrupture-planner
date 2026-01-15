@@ -13,7 +13,10 @@ export const NODE_WIDTH = 310
  * height = 140 + (recipe_inputs * 32) + (recipe_outputs * 32)
  *        + (custom_inputs * 32) + (custom_outputs * 32)
  */
-export function estimateNodeHeight(node: Node, recipes?: Record<string, Recipe>): number {
+export function estimateNodeHeight(
+  node: Node,
+  recipes?: Record<string, Recipe>,
+): number {
   const data = node.data as Record<string, unknown>
 
   // Try to get recipe inputs/outputs from node data first (populated by parent)
