@@ -607,6 +607,30 @@
       "description": "Intermediate building material",
       "icon": "Box",
       "iconColor": "#8B4513"
+    },
+    {
+      "id": "shotgun-ammo",
+      "name": "Shotgun Ammo",
+      "category": "component",
+      "description": "Ammunition for shotguns",
+      "icon": "Box",
+      "iconColor": "#8B0000"
+    },
+    {
+      "id": "hardening-agent",
+      "name": "Hardening Agent",
+      "category": "component",
+      "description": "Chemical hardening agent",
+      "icon": "Beaker",
+      "iconColor": "#FFD700"
+    },
+    {
+      "id": "condenser",
+      "name": "Condenser",
+      "category": "component",
+      "description": "Condenser component",
+      "icon": "Package",
+      "iconColor": "#708090"
     }
   ]
 }

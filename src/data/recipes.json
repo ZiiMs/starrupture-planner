@@ -216,13 +216,13 @@
       "inputs": [
         {
           "itemId": "wolfram-bar",
-          "amount": 30
+          "amount": 1
         }
       ],
       "outputs": [
         {
           "itemId": "wolfram-powder",
-          "amount": 90
+          "amount": 3
         }
       ],
       "producers": [
@@ -234,21 +234,21 @@
     {
       "id": "craft-titanium-housing",
       "name": "Craft Titanium Housing",
-      "time": 60,
+      "time": 2,
       "inputs": [
         {
           "itemId": "titanium-beam",
-          "amount": 30
+          "amount": 1
         },
         {
           "itemId": "titanium-sheet",
-          "amount": 60
+          "amount": 2
         }
       ],
       "outputs": [
         {
           "itemId": "titanium-housing",
-          "amount": 30
+          "amount": 1
         }
       ],
       "producers": [
@@ -264,17 +264,17 @@
       "inputs": [
         {
           "itemId": "calcite-sheet",
-          "amount": 30
+          "amount": 1
         },
         {
           "itemId": "wolfram-powder",
-          "amount": 30
+          "amount": 1
         }
       ],
       "outputs": [
         {
           "itemId": "ceramics",
-          "amount": 60
+          "amount": 2
         }
       ],
       "producers": [
@@ -286,17 +286,17 @@
     {
       "id": "craft-calcium-powder",
       "name": "Craft Calcium Powder",
-      "time": 2,
+      "time": 3,
       "inputs": [
         {
           "itemId": "calcium-block",
-          "amount": 20
+          "amount": 1
         }
       ],
       "outputs": [
         {
           "itemId": "calcium-powder",
-          "amount": 60
+          "amount": 3
         }
       ],
       "producers": [
@@ -308,25 +308,25 @@
     {
       "id": "craft-inductor",
       "name": "Craft Inductor",
-      "time": 2,
+      "time": 3,
       "inputs": [
         {
           "itemId": "tube",
-          "amount": 40
+          "amount": 2
         },
         {
           "itemId": "wolfram-wire",
-          "amount": 20
+          "amount": 1
         },
         {
           "itemId": "ceramics",
-          "amount": 40
+          "amount": 2
         }
       ],
       "outputs": [
         {
           "itemId": "inductor",
-          "amount": 20
+          "amount": 1
         }
       ],
       "producers": [
@@ -342,21 +342,21 @@
       "inputs": [
         {
           "itemId": "calcium-powder",
-          "amount": 60
+          "amount": 2
         },
         {
           "itemId": "helium-3",
-          "amount": 30
+          "amount": 1
         },
         {
           "itemId": "ceramics",
-          "amount": 60
+          "amount": 2
         }
       ],
       "outputs": [
         {
           "itemId": "synthetic-silicon",
-          "amount": 60
+          "amount": 2
         }
       ],
       "producers": [
@@ -368,25 +368,25 @@
     {
       "id": "craft-electronics",
       "name": "Craft Electronics",
-      "time": 2,
+      "time": 5,
       "inputs": [
         {
           "itemId": "synthetic-silicon",
-          "amount": 24
+          "amount": 2
         },
         {
           "itemId": "inductor",
-          "amount": 12
+          "amount": 1
         },
         {
           "itemId": "stator",
-          "amount": 12
+          "amount": 1
         }
       ],
       "outputs": [
         {
           "itemId": "electronics",
-          "amount": 12
+          "amount": 1
         }
       ],
       "producers": [
@@ -398,25 +398,25 @@
     {
       "id": "craft-supermagnet",
       "name": "Craft Supermagnet",
-      "time": 2,
+      "time": 3,
       "inputs": [
         {
           "itemId": "sulphuric-acid",
-          "amount": 100
+          "amount": 5
         },
         {
           "itemId": "wolfram-plate",
-          "amount": 100
+          "amount": 5
         },
         {
           "itemId": "chemicals",
-          "amount": 40
+          "amount": 2
         }
       ],
       "outputs": [
         {
           "itemId": "supermagnet",
-          "amount": 20
+          "amount": 1
         }
       ],
       "producers": [
@@ -428,21 +428,21 @@
     {
       "id": "craft-glass",
       "name": "Craft Glass",
-      "time": 2,
+      "time": 3,
       "inputs": [
         {
           "itemId": "helium-3",
-          "amount": 20
+          "amount": 1
         },
         {
           "itemId": "calcium-powder",
-          "amount": 40
+          "amount": 2
         }
       ],
       "outputs": [
         {
           "itemId": "glass",
-          "amount": 20
+          "amount": 1
         }
       ],
       "producers": [
@@ -458,21 +458,21 @@
       "inputs": [
         {
           "itemId": "synthetic-silicon",
-          "amount": 30
+          "amount": 1
         },
         {
           "itemId": "wolfram-powder",
-          "amount": 90
+          "amount": 3
         },
         {
           "itemId": "helium-3",
-          "amount": 30
+          "amount": 1
         }
       ],
       "outputs": [
         {
           "itemId": "chemicals",
-          "amount": 60
+          "amount": 2
         }
       ],
       "producers": [
@@ -484,25 +484,25 @@
     {
       "id": "craft-heat-resistant-sheet",
       "name": "Craft Heat Resistant Sheet",
-      "time": 2,
+      "time": 4,
       "inputs": [
         {
           "itemId": "wolfram-plate",
-          "amount": 15
+          "amount": 1
         },
         {
           "itemId": "titanium-sheet",
-          "amount": 30
+          "amount": 2
         },
         {
           "itemId": "glass",
-          "amount": 15
+          "amount": 1
         }
       ],
       "outputs": [
         {
           "itemId": "heat-resistant-sheet",
-          "amount": 15
+          "amount": 1
         }
       ],
       "producers": [
@@ -514,22 +514,27 @@
     {
       "id": "craft-hardening-agent",
       "name": "Craft Hardening Agent",
-      "time": 2,
+      "time": 4,
       "inputs": [
         {
           "itemId": "sulphuric-acid",
-          "amount": 75
+          "amount": 5
         },
         {
           "itemId": "synthetic-silicon",
-          "amount": 15
+          "amount": 1
         },
         {
           "itemId": "applicator",
-          "amount": 15
+          "amount": 1
         }
       ],
-      "outputs": [],
+      "outputs": [
+        {
+          "itemId": "hardening-agent",
+          "amount": 2
+        }
+      ],
       "producers": [
         "furnace"
       ],
@@ -849,12 +854,12 @@
     {
       "id": "extract-helium-3",
       "name": "Extract Helium-3",
-      "time": 60,
+      "time": 2,
       "inputs": [],
       "outputs": [
         {
           "itemId": "helium-3",
-          "amount": 240
+          "amount": 8
         }
       ],
       "producers": [
@@ -866,25 +871,25 @@
     {
       "id": "craft-battery",
       "name": "Craft Battery",
-      "time": 60,
+      "time": 4,
       "inputs": [
         {
           "itemId": "inductor",
-          "amount": 30
+          "amount": 2
         },
         {
           "itemId": "electronics",
-          "amount": 30
+          "amount": 2
         },
         {
           "itemId": "sulphuric-acid",
-          "amount": 15
+          "amount": 1
         }
       ],
       "outputs": [
         {
           "itemId": "battery",
-          "amount": 15
+          "amount": 1
         }
       ],
       "producers": [
@@ -896,29 +901,29 @@
     {
       "id": "craft-electromagnetic-coil",
       "name": "Craft Electromagnetic Coil",
-      "time": 2,
+      "time": 4,
       "inputs": [
         {
           "itemId": "inductor",
-          "amount": 15
+          "amount": 1
         },
         {
           "itemId": "pressurized-helium",
-          "amount": 15
+          "amount": 1
         },
         {
           "itemId": "wolfram-plate",
-          "amount": 90
+          "amount": 6
         },
         {
           "itemId": "supermagnet",
-          "amount": 15
+          "amount": 1
         }
       ],
       "outputs": [
         {
           "itemId": "electromagnetic-coil",
-          "amount": 15
+          "amount": 1
         }
       ],
       "producers": [
@@ -930,29 +935,29 @@
     {
       "id": "craft-impeller",
       "name": "Craft Impeller",
-      "time": 2,
+      "time": 4,
       "inputs": [
         {
           "itemId": "titanium-rod",
-          "amount": 30
+          "amount": 2
         },
         {
           "itemId": "heat-resistant-sheet",
-          "amount": 30
+          "amount": 2
         },
         {
           "itemId": "wolfram-plate",
-          "amount": 15
+          "amount": 1
         },
         {
           "itemId": "stabilizer",
-          "amount": 15
+          "amount": 1
         }
       ],
       "outputs": [
         {
           "itemId": "impeller",
-          "amount": 15
+          "amount": 1
         }
       ],
       "producers": [
@@ -964,29 +969,29 @@
     {
       "id": "craft-intermediate-building-material",
       "name": "Craft Intermediate Building Material",
-      "time": 60,
+      "time": 6,
       "inputs": [
         {
           "itemId": "basic-building-materials",
-          "amount": 400
+          "amount": 40
         },
         {
           "itemId": "inductor",
-          "amount": 20
+          "amount": 2
         },
         {
           "itemId": "glass",
-          "amount": 20
+          "amount": 2
         },
         {
           "itemId": "titanium-housing",
-          "amount": 20
+          "amount": 2
         }
       ],
       "outputs": [
         {
           "itemId": "intermediate-building-material",
-          "amount": 250
+          "amount": 25
         }
       ],
       "producers": [
@@ -998,25 +1003,25 @@
     {
       "id": "craft-nozzle",
       "name": "Craft Nozzle",
-      "time": 2,
+      "time": 5,
       "inputs": [
         {
           "itemId": "heat-resistant-sheet",
-          "amount": 24
+          "amount": 2
         },
         {
           "itemId": "helium-3",
-          "amount": 12
+          "amount": 1
         },
         {
           "itemId": "stabilizer",
-          "amount": 24
+          "amount": 2
         }
       ],
       "outputs": [
         {
           "itemId": "nozzle",
-          "amount": 12
+          "amount": 1
         }
       ],
       "producers": [
@@ -1028,7 +1033,7 @@
     {
       "id": "craft-pump",
       "name": "Craft Pump",
-      "time": 2,
+      "time": 10,
       "inputs": [
         {
           "itemId": "valve",
@@ -1044,7 +1049,7 @@
         },
         {
           "itemId": "sulphuric-acid",
-          "amount": 10
+          "amount": 3
         }
       ],
       "outputs": [
@@ -1062,29 +1067,29 @@
     {
       "id": "craft-turbine",
       "name": "Craft Turbine",
-      "time": 2,
+      "time": 6,
       "inputs": [
         {
           "itemId": "impeller",
-          "amount": 10
+          "amount": 1
         },
         {
           "itemId": "stator",
-          "amount": 10
+          "amount": 1
         },
         {
           "itemId": "rotor",
-          "amount": 20
+          "amount": 2
         },
         {
           "itemId": "sulphuric-acid",
-          "amount": 20
+          "amount": 2
         }
       ],
       "outputs": [
         {
           "itemId": "turbine",
-          "amount": 10
+          "amount": 1
         }
       ],
       "producers": [
@@ -1096,25 +1101,29 @@
     {
       "id": "craft-valve",
       "name": "Craft Valve",
-      "time": 2,
+      "time": 10,
       "inputs": [
         {
           "itemId": "titanium-housing",
-          "amount": 12
+          "amount": 1
         },
         {
           "itemId": "titanium-beam",
-          "amount": 12
+          "amount": 3
         },
         {
           "itemId": "titanium-rod",
-          "amount": 24
+          "amount": 2
+        },
+        {
+          "itemId": "nozzle",
+          "amount": 1
         }
       ],
       "outputs": [
         {
           "itemId": "valve",
-          "amount": 12
+          "amount": 1
         }
       ],
       "producers": [
@@ -1126,17 +1135,73 @@
     {
       "id": "craft-standard-ammo",
       "name": "Craft Standard Ammo",
-      "time": 2,
+      "time": 6,
       "inputs": [
         {
           "itemId": "basic-building-materials",
-          "amount": 100
+          "amount": 18
+        },
+        {
+          "itemId": "wolfram-powder",
+          "amount": 4
         }
       ],
       "outputs": [
         {
           "itemId": "standard-ammo",
-          "amount": 100
+          "amount": 20
+        }
+      ],
+      "producers": [
+        "mega-press"
+      ],
+      "category": "pressing",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-shotgun-ammo",
+      "name": "Craft Shotgun Ammo",
+      "time": 6,
+      "inputs": [
+        {
+          "itemId": "basic-building-materials",
+          "amount": 20
+        },
+        {
+          "itemId": "calcium-powder",
+          "amount": 6
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "shotgun-ammo",
+          "amount": 15
+        }
+      ],
+      "producers": [
+        "mega-press"
+      ],
+      "category": "pressing",
+      "outputRate": 0
+    },
+    {
+      "id": "craft-heavy-ammo",
+      "name": "Craft Heavy Ammo",
+      "time": 6,
+      "inputs": [
+        {
+          "itemId": "basic-building-materials",
+          "amount": 24
+        },
+        {
+          "itemId": "titanium-rod",
+          "amount": 6
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "heavy-ammo",
+          "amount": 15
         }
       ],
       "producers": [
@@ -1152,17 +1217,17 @@
       "inputs": [
         {
           "itemId": "helium-3",
-          "amount": 30
+          "amount": 1
         },
         {
           "itemId": "sulphur-ore",
-          "amount": 30
+          "amount": 1
         }
       ],
       "outputs": [
         {
           "itemId": "pressurized-helium",
-          "amount": 30
+          "amount": 1
         }
       ],
       "producers": [
@@ -1174,21 +1239,21 @@
     {
       "id": "refine-sulphuric-acid",
       "name": "Refine Sulphuric Acid",
-      "time": 2,
+      "time": 0.5,
       "inputs": [
         {
           "itemId": "sulphur-ore",
-          "amount": 240
+          "amount": 2
         },
         {
           "itemId": "chemicals",
-          "amount": 120
+          "amount": 1
         }
       ],
       "outputs": [
         {
           "itemId": "sulphuric-acid",
-          "amount": 120
+          "amount": 1
         }
       ],
       "producers": [
@@ -1205,7 +1270,7 @@
       "outputs": [
         {
           "itemId": "sulphur-ore",
-          "amount": 240
+          "amount": 8
         }
       ],
       "producers": [
@@ -1213,6 +1278,275 @@
       ],
       "category": "extraction",
       "outputRate": 0
+    },
+    {
+      "id": "craft-accumulator",
+      "name": "Craft Accumulator",
+      "time": 6,
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "accumulator",
+          "amount": 1
+        }
+      ],
+      "producers": [
+        "assembler"
+      ],
+      "category": "assembly",
+      "outputRate": 0,
+      "incomplete": true
+    },
+    {
+      "id": "craft-generator",
+      "name": "Craft Generator",
+      "time": 1,
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "generator",
+          "amount": 1
+        }
+      ],
+      "producers": [
+        "assembler"
+      ],
+      "category": "assembly",
+      "outputRate": 0,
+      "incomplete": true
+    },
+    {
+      "id": "craft-electromagnet",
+      "name": "Craft Electromagnet",
+      "time": 1,
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "electromagnet",
+          "amount": 1
+        }
+      ],
+      "producers": [
+        "assembler"
+      ],
+      "category": "assembly",
+      "outputRate": 0,
+      "incomplete": true
+    },
+    {
+      "id": "craft-pressure-tank",
+      "name": "Craft Pressure Tank",
+      "time": 12,
+      "inputs": [
+        {
+          "itemId": "heat-resistant-sheet",
+          "amount": 5
+        },
+        {
+          "itemId": "titanium-housing",
+          "amount": 3
+        },
+        {
+          "itemId": "pump",
+          "amount": 3
+        },
+        {
+          "itemId": "valve",
+          "amount": 2
+        }
+      ],
+      "outputs": [
+        {
+          "itemId": "pressure-tank",
+          "amount": 1
+        }
+      ],
+      "producers": [
+        "assembler"
+      ],
+      "category": "assembly",
+      "outputRate": 0,
+      "incomplete": true
+    },
+    {
+      "id": "craft-resonator",
+      "name": "Craft Resonator",
+      "time": 12,
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "resonator",
+          "amount": 1
+        }
+      ],
+      "producers": [
+        "assembler"
+      ],
+      "category": "assembly",
+      "outputRate": 0,
+      "incomplete": true
+    },
+    {
+      "id": "craft-condenser",
+      "name": "Craft Condenser",
+      "time": 15,
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "condenser",
+          "amount": 1
+        }
+      ],
+      "producers": [
+        "assembler"
+      ],
+      "category": "assembly",
+      "outputRate": 0,
+      "incomplete": true
+    },
+    {
+      "id": "craft-laser-emitter",
+      "name": "Craft Laser Emitter",
+      "time": 6,
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "laser-emitter",
+          "amount": 1
+        }
+      ],
+      "producers": [
+        "assembler"
+      ],
+      "category": "assembly",
+      "outputRate": 0,
+      "incomplete": true
+    },
+    {
+      "id": "craft-scanner",
+      "name": "Craft Scanner",
+      "time": 1,
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "scanner",
+          "amount": 1
+        }
+      ],
+      "producers": [
+        "assembler"
+      ],
+      "category": "assembly",
+      "outputRate": 0,
+      "incomplete": true
+    },
+    {
+      "id": "craft-synthetic-resin",
+      "name": "Craft Synthetic Resin",
+      "time": 3,
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "synthetic-resin",
+          "amount": 1
+        }
+      ],
+      "producers": [
+        "compounder"
+      ],
+      "category": "compounding",
+      "outputRate": 0,
+      "incomplete": true
+    },
+    {
+      "id": "craft-liquid-helium",
+      "name": "Craft Liquid Helium",
+      "time": 3,
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "liquid-helium",
+          "amount": 1
+        }
+      ],
+      "producers": [
+        "compounder"
+      ],
+      "category": "compounding",
+      "outputRate": 0,
+      "incomplete": true
+    },
+    {
+      "id": "craft-lens",
+      "name": "Craft Lens",
+      "time": 12,
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "lens",
+          "amount": 1
+        }
+      ],
+      "producers": [
+        "compounder"
+      ],
+      "category": "compounding",
+      "outputRate": 0,
+      "incomplete": true
+    },
+    {
+      "id": "craft-nanofiber",
+      "name": "Craft Nanofiber",
+      "time": 5,
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "nanofiber",
+          "amount": 1
+        }
+      ],
+      "producers": [
+        "compounder"
+      ],
+      "category": "compounding",
+      "outputRate": 0,
+      "incomplete": true
+    },
+    {
+      "id": "craft-ion-injector",
+      "name": "Craft Ion Injector",
+      "time": 12,
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "ion-injector",
+          "amount": 1
+        }
+      ],
+      "producers": [
+        "compounder"
+      ],
+      "category": "compounding",
+      "outputRate": 0,
+      "incomplete": true
+    },
+    {
+      "id": "craft-superconductor",
+      "name": "Craft Superconductor",
+      "time": 5,
+      "inputs": [],
+      "outputs": [
+        {
+          "itemId": "superconductor",
+          "amount": 1
+        }
+      ],
+      "producers": [
+        "compounder"
+      ],
+      "category": "compounding",
+      "outputRate": 0,
+      "incomplete": true
     }
   ]
 }
