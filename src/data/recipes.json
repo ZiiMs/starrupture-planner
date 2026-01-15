@@ -233,7 +233,7 @@
     {
       "id": "craft-titanium-housing",
       "name": "Craft Titanium Housing",
-      "time": 2,
+      "time": 60,
       "inputs": [
         {
           "itemId": "titanium-beam",
@@ -538,17 +538,17 @@
     {
       "id": "craft-wolfram-wire",
       "name": "Craft Wolfram Wire",
-      "time": 2,
+      "time": 4,
       "inputs": [
         {
           "itemId": "wolfram-bar",
-          "amount": 15
+          "amount": 1
         }
       ],
       "outputs": [
         {
           "itemId": "wolfram-wire",
-          "amount": 30
+          "amount": 2
         }
       ],
       "producers": [
@@ -560,17 +560,17 @@
     {
       "id": "craft-wolfram-plate",
       "name": "Craft Wolfram Plate",
-      "time": 2,
+      "time": 1,
       "inputs": [
         {
           "itemId": "wolfram-bar",
-          "amount": 60
+          "amount": 1
         }
       ],
       "outputs": [
         {
           "itemId": "wolfram-plate",
-          "amount": 60
+          "amount": 1
         }
       ],
       "producers": [
@@ -582,17 +582,17 @@
     {
       "id": "craft-titanium-beam",
       "name": "Craft Titanium Beam",
-      "time": 2,
+      "time": 3,
       "inputs": [
         {
           "itemId": "titanium-bar",
-          "amount": 20
+          "amount": 1
         }
       ],
       "outputs": [
         {
           "itemId": "titanium-beam",
-          "amount": 20
+          "amount": 1
         }
       ],
       "producers": [
@@ -608,13 +608,13 @@
       "inputs": [
         {
           "itemId": "titanium-bar",
-          "amount": 30
+          "amount": 1
         }
       ],
       "outputs": [
         {
           "itemId": "titanium-rod",
-          "amount": 30
+          "amount": 1
         }
       ],
       "producers": [
@@ -630,13 +630,13 @@
       "inputs": [
         {
           "itemId": "titanium-bar",
-          "amount": 30
+          "amount": 1
         }
       ],
       "outputs": [
         {
           "itemId": "titanium-sheet",
-          "amount": 60
+          "amount": 2
         }
       ],
       "producers": [
@@ -652,17 +652,17 @@
       "inputs": [
         {
           "itemId": "titanium-rod",
-          "amount": 30
+          "amount": 1
         },
         {
           "itemId": "titanium-sheet",
-          "amount": 30
+          "amount": 1
         }
       ],
       "outputs": [
         {
           "itemId": "tube",
-          "amount": 60
+          "amount": 2
         }
       ],
       "producers": [
@@ -674,21 +674,21 @@
     {
       "id": "craft-rotor",
       "name": "Craft Rotor",
-      "time": 2,
+      "time": 6,
       "inputs": [
         {
           "itemId": "titanium-rod",
-          "amount": 20
+          "amount": 2
         },
         {
           "itemId": "wolfram-wire",
-          "amount": 20
+          "amount": 2
         }
       ],
       "outputs": [
         {
           "itemId": "rotor",
-          "amount": 10
+          "amount": 1
         }
       ],
       "producers": [
@@ -704,13 +704,13 @@
       "inputs": [
         {
           "itemId": "calcium-block",
-          "amount": 30
+          "amount": 1
         }
       ],
       "outputs": [
         {
           "itemId": "calcite-sheet",
-          "amount": 60
+          "amount": 2
         }
       ],
       "producers": [
@@ -726,17 +726,17 @@
       "inputs": [
         {
           "itemId": "wolfram-ore",
-          "amount": 30
+          "amount": 1
         },
         {
           "itemId": "titanium-ore",
-          "amount": 30
+          "amount": 1
         }
       ],
       "outputs": [
         {
           "itemId": "basic-building-materials",
-          "amount": 300
+          "amount": 10
         }
       ],
       "producers": [
@@ -748,21 +748,21 @@
     {
       "id": "craft-stabilizer",
       "name": "Craft Stabilizer",
-      "time": 2,
+      "time": 6,
       "inputs": [
         {
           "itemId": "rotor",
-          "amount": 10
+          "amount": 1
         },
         {
           "itemId": "titanium-rod",
-          "amount": 20
+          "amount": 2
         }
       ],
       "outputs": [
         {
           "itemId": "stabilizer",
-          "amount": 10
+          "amount": 1
         }
       ],
       "producers": [
@@ -774,17 +774,17 @@
     {
       "id": "craft-pistol-ammo",
       "name": "Craft Pistol Ammo",
-      "time": 2,
+      "time": 4,
       "inputs": [
         {
           "itemId": "basic-building-materials",
-          "amount": 210
+          "amount": 14
         }
       ],
       "outputs": [
         {
           "itemId": "pistol-ammo",
-          "amount": 375
+          "amount": 25
         }
       ],
       "producers": [
@@ -796,21 +796,21 @@
     {
       "id": "craft-applicator",
       "name": "Craft Applicator",
-      "time": 2,
+      "time": 4,
       "inputs": [
         {
           "itemId": "tube",
-          "amount": 120
+          "amount": 8
         },
         {
           "itemId": "glass",
-          "amount": 30
+          "amount": 2
         }
       ],
       "outputs": [
         {
           "itemId": "applicator",
-          "amount": 15
+          "amount": 1
         }
       ],
       "producers": [
@@ -822,21 +822,21 @@
     {
       "id": "craft-stator",
       "name": "Craft Stator",
-      "time": 2,
+      "time": 3,
       "inputs": [
         {
           "itemId": "titanium-housing",
-          "amount": 40
+          "amount": 2
         },
         {
           "itemId": "wolfram-wire",
-          "amount": 20
+          "amount": 1
         }
       ],
       "outputs": [
         {
           "itemId": "stator",
-          "amount": 20
+          "amount": 1
         }
       ],
       "producers": [
@@ -848,7 +848,7 @@
     {
       "id": "extract-helium-3",
       "name": "Extract Helium-3",
-      "time": 2,
+      "time": 60,
       "inputs": [],
       "outputs": [
         {
@@ -865,7 +865,7 @@
     {
       "id": "craft-battery",
       "name": "Craft Battery",
-      "time": 2,
+      "time": 60,
       "inputs": [
         {
           "itemId": "inductor",
@@ -963,7 +963,7 @@
     {
       "id": "craft-intermediate-building-material",
       "name": "Craft Intermediate Building Material",
-      "time": 2,
+      "time": 60,
       "inputs": [
         {
           "itemId": "basic-building-materials",
