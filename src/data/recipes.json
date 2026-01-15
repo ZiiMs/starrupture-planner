@@ -62,7 +62,8 @@
       ],
       "producers": [
         "smelter"
-      ]
+      ],
+      "time": 2
     },
     {
       "id": "mine-calcium-ore-impure",
