@@ -72,7 +72,7 @@
       "outputs": [
         {
           "itemId": "impure-calcium-ore",
-          "amount": 60
+          "amount": 2
         }
       ],
       "producers": [
@@ -88,7 +88,7 @@
       "outputs": [
         {
           "itemId": "calcium-ore",
-          "amount": 120
+          "amount": 4
         }
       ],
       "producers": [
@@ -104,7 +104,7 @@
       "outputs": [
         {
           "itemId": "pure-calcium-ore",
-          "amount": 240
+          "amount": 8
         }
       ],
       "producers": [
@@ -120,7 +120,7 @@
       "outputs": [
         {
           "itemId": "impure-wolfram-ore",
-          "amount": 60
+          "amount": 2
         }
       ],
       "producers": [
@@ -136,7 +136,7 @@
       "outputs": [
         {
           "itemId": "wolfram-ore",
-          "amount": 120
+          "amount": 4
         }
       ],
       "producers": [
@@ -152,7 +152,7 @@
       "outputs": [
         {
           "itemId": "pure-wolfram-ore",
-          "amount": 240
+          "amount": 8
         }
       ],
       "producers": [
@@ -168,7 +168,7 @@
       "outputs": [
         {
           "itemId": "impure-titanium-ore",
-          "amount": 60
+          "amount": 2
         }
       ],
       "producers": [
@@ -184,7 +184,7 @@
       "outputs": [
         {
           "itemId": "titanium-ore",
-          "amount": 120
+          "amount": 4
         }
       ],
       "producers": [
@@ -200,7 +200,7 @@
       "outputs": [
         {
           "itemId": "pure-titanium-ore",
-          "amount": 240
+          "amount": 8
         }
       ],
       "producers": [
