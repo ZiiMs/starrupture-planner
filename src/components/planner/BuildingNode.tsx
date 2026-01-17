@@ -71,7 +71,9 @@ function BuildingNodeComponent({
     formatRate((data as any).targetRate ?? (data as any).outputRate),
   )
   const [openRecipes, setOpenRecipes] = useState(false)
-  const [currentRecipe, setCurrentRecipe] = useState<string | null>((data as any).recipeId || null)
+  const [currentRecipe, setCurrentRecipe] = useState<string | null>(
+    (data as any).recipeId || null,
+  )
 
   // Update local state when rate changes externally
   useEffect(() => {
@@ -377,45 +379,53 @@ function BuildingNodeComponent({
             Recipe
           </label>
 
-          <Popover open={openRecipes} onOpenChange={setOpenRecipes}>
-            <PopoverTrigger asChild>
+          <Popover
+            open={openRecipes}
+            onOpenChange={() => {
+              setOpenRecipes(!openRecipes)
+            }}
+          >
+            <PopoverTrigger>
               <Button
+                type="button"
                 variant="outline"
                 role="combobox"
                 aria-expanded={openRecipes}
-                className="justify-between"
+                className="w-full justify-between"
               >
                 {currentRecipe
-                  ? availableRecipes.find((recipe) => recipe.id === currentRecipe)?.name
-                  : 'Select framework...'}
-                <ChevronsUpDown className="opacity-50" />
+                  ? availableRecipes.find(
+                      (recipe) => recipe.id === currentRecipe,
+                    )?.name
+                  : 'Select recipe...'}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className=" p-0">
+            <PopoverContent
+              className="w-[280px] p-0"
+              align="start"
+              sideOffset={4}
+              collisionPadding={8}
+            >
               <Command>
-                <CommandInput
-                  placeholder="Search framework..."
-                  className="h-9"
-                />
+                <CommandInput placeholder="Search recipe..." className="h-9" />
                 <CommandList>
-                  <CommandEmpty>No framework found.</CommandEmpty>
+                  <CommandEmpty>No recipe found.</CommandEmpty>
                   <CommandGroup>
                     {availableRecipes.map((r) => (
                       <CommandItem
                         key={r.id}
                         value={r.id}
-                        onSelect={(currentValue) => {
-                          setCurrentRecipe(
-                            currentValue === currentRecipe ? '' : currentValue,
-                          )
+                        onSelect={() => {
+                          setCurrentRecipe(r.id)
                           setOpenRecipes(false)
-                          onRecipeChange?.(r.id, currentValue)
+                          onRecipeChange?.(id, r.id)
                         }}
                       >
                         {r.name}
                         <Check
                           className={cn(
-                            'ml-auto',
+                            'ml-auto h-4 w-4',
                             currentRecipe === r.id
                               ? 'opacity-100'
                               : 'opacity-0',

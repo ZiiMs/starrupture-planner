@@ -7,9 +7,15 @@ import {
   type EdgeChange,
 } from '@xyflow/react'
 import { toast } from 'sonner'
-import type { PlannerNode, PlannerEdge, HistoryState } from '@/types/planner'
+import type {
+  PlannerNode,
+  PlannerEdge,
+  HistoryState,
+  ProductionSource,
+} from '@/types/planner'
 
 interface PlannerState extends HistoryState {
+  productionSources: ProductionSource[]
   setNodes: (nodes: PlannerNode[]) => void
   setEdges: (edges: PlannerEdge[]) => void
   addNode: (node: PlannerNode) => void
@@ -25,6 +31,9 @@ interface PlannerState extends HistoryState {
   redo: () => void
   clearHistory: () => void
   clearAll: () => void
+  addProductionSource: (source: ProductionSource) => void
+  updateProductionSource: (id: string, data: Partial<ProductionSource>) => void
+  removeProductionSource: (id: string) => void
 }
 
 export const usePlannerStore = create<PlannerState>()(
@@ -33,6 +42,7 @@ export const usePlannerStore = create<PlannerState>()(
       past: [],
       present: { nodes: [], edges: [] },
       future: [],
+      productionSources: [],
 
       setNodes: (nodes) => {
         set({ present: { ...get().present, nodes } })
@@ -173,15 +183,39 @@ export const usePlannerStore = create<PlannerState>()(
           past: [],
           present: { nodes: [], edges: [] },
           future: [],
+          productionSources: [],
         })
         localStorage.removeItem('starrupture-planner')
+      },
+
+      addProductionSource: (source) => {
+        set((state) => ({
+          productionSources: [...state.productionSources, source],
+        }))
+      },
+
+      updateProductionSource: (id, data) => {
+        set((state) => ({
+          productionSources: state.productionSources.map((s) =>
+            s.id === id ? { ...s, ...data } : s,
+          ),
+        }))
+      },
+
+      removeProductionSource: (id) => {
+        set((state) => ({
+          productionSources: state.productionSources.filter((s) => s.id !== id),
+        }))
       },
     }),
     {
       name: 'starrupture-planner',
       storage: createJSONStorage(() => localStorage),
       skipHydration: true,
-      partialize: (state) => ({ present: state.present }),
+      partialize: (state) => ({
+        present: state.present,
+        productionSources: state.productionSources,
+      }),
       onRehydrateStorage: () => (state) => {
         if (state?.present?.nodes && state.present.nodes.length > 0) {
           toast.success('Saved state loaded')
@@ -195,3 +229,5 @@ export const selectCanUndo = (state: PlannerState) => state.past.length > 0
 export const selectCanRedo = (state: PlannerState) => state.future.length > 0
 export const selectNodes = (state: PlannerState) => state.present.nodes
 export const selectEdges = (state: PlannerState) => state.present.edges
+export const selectProductionSources = (state: PlannerState) =>
+  state.productionSources
