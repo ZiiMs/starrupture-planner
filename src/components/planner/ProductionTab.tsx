@@ -2,22 +2,15 @@
 
 import { Button } from '@/components/ui/button'
 import {
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command'
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { getIcon } from '@/lib/icons'
 import { getBaseItemName } from '@/lib/utils'
-import {
-  selectNodes,
-  selectProductionSources,
-  usePlannerStore,
-} from '@/stores/planner-store'
+import { usePlannerStore } from '@/stores/planner-store'
 import type {
   Building,
   Item,
@@ -25,9 +18,9 @@ import type {
   ProductionSourceRate,
   Recipe,
 } from '@/types/planner'
-import { Minus, Plus, Search, X as XIcon } from 'lucide-react'
+import { Minus, Plus } from 'lucide-react'
 import { nanoid } from 'nanoid'
-import { memo, useCallback, useMemo, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 
 interface ProductionTabProps {
   items: Record<string, Item>
@@ -42,17 +35,50 @@ function ProductionTabComponent({
 }: ProductionTabProps) {
   // buildings prop is preserved for interface compatibility (unused in this component)
   void buildings
-  const productionSources = usePlannerStore(selectProductionSources)
-  const nodes = usePlannerStore(selectNodes)
-  const addProductionSource = usePlannerStore(
-    (state) => state.addProductionSource,
+
+  // Use a version counter to force re-renders when store changes
+  const [version, setVersion] = useState(0)
+
+  // Force update on store changes
+  useEffect(() => {
+    const unsub = usePlannerStore.subscribe(() => {
+      setVersion(v => v + 1)
+    })
+    return unsub
+  }, [])
+
+  // Get store state - will update when version changes
+  const productionSources = useMemo(
+    () => usePlannerStore.getState()?.productionSources ?? [],
+    [version],
   )
-  const updateProductionSource = usePlannerStore(
-    (state) => state.updateProductionSource,
+  const nodes = useMemo(
+    () => usePlannerStore.getState()?.present?.nodes ?? [],
+    [version],
   )
-  const removeProductionSource = usePlannerStore(
-    (state) => state.removeProductionSource,
-  )
+
+  // Store action helpers
+  const addProductionSource = useCallback((source: import('@/types/planner').ProductionSource) => {
+    try {
+      usePlannerStore.getState()?.addProductionSource?.(source)
+    } catch (e) {
+      console.error('addProductionSource error:', e)
+    }
+  }, [])
+  const updateProductionSource = useCallback((id: string, data: Partial<import('@/types/planner').ProductionSource>) => {
+    try {
+      usePlannerStore.getState()?.updateProductionSource?.(id, data)
+    } catch (e) {
+      console.error('updateProductionSource error:', e)
+    }
+  }, [])
+  const removeProductionSource = useCallback((id: string) => {
+    try {
+      usePlannerStore.getState()?.removeProductionSource?.(id)
+    } catch (e) {
+      console.error('removeProductionSource error:', e)
+    }
+  }, [])
 
   // Add Production Source dialog state
   const [addDialogOpen, setAddDialogOpen] = useState(false)
@@ -62,24 +88,6 @@ function ProductionTabComponent({
   const [searchQuery, setSearchQuery] = useState('')
 
   // Get all extraction recipes
-  const extractionRecipes = useMemo(() => {
-    return Object.values(recipes).filter((r) => r.category === 'extraction')
-  }, [recipes])
-
-  // Group extraction recipes by base item name
-  const groupedRecipes = useMemo(() => {
-    const groups: Record<string, typeof extractionRecipes> = {}
-    extractionRecipes.forEach((recipe) => {
-      const baseName = recipe.outputs
-        .map((o) => getBaseItemName(o.itemId))
-        .filter((n): n is string => n !== undefined)[0]
-      if (baseName) {
-        if (!groups[baseName]) groups[baseName] = []
-        groups[baseName].push(recipe)
-      }
-    })
-    return groups
-  }, [extractionRecipes])
 
   // Get the item display info for a base item name
   const getItemInfo = useCallback(
@@ -94,44 +102,28 @@ function ProductionTabComponent({
     [items],
   )
 
-  // Get count for a specific recipe
-  const getRecipeCount = useCallback(
-    (itemBaseName: string, recipeId: string): number => {
-      const source = productionSources.find((s) => {
-        if (getBaseItemName(s.itemId) !== itemBaseName) return false
-        if (s.mode !== 'buildings') return false
-        const buildSource = s as ProductionSourceBuildings
-        return buildSource.buildings.some((b) => b.recipeId === recipeId)
-      })
-      if (!source) return 0
-      const buildSource = source as ProductionSourceBuildings
-      const building = buildSource.buildings.find(
-        (b) => b.recipeId === recipeId,
-      )
-      return building?.count || 0
-    },
-    [productionSources],
-  )
-
-  // Get total rate for an item
+  // Get total rate for an item (handles both rate mode and buildings mode)
   const getItemTotal = useCallback(
     (itemBaseName: string): number => {
       let total = 0
       productionSources.forEach((s) => {
         if (getBaseItemName(s.itemId) !== itemBaseName) return
-        if (s.mode !== 'buildings') return
-        const buildSource = s as ProductionSourceBuildings
-        buildSource.buildings.forEach((b) => {
-          const recipe = recipes[b.recipeId]
-          if (recipe) {
-            const output = recipe.outputs.find(
-              (o) => getBaseItemName(o.itemId) === itemBaseName,
-            )
-            if (output) {
-              total += (output.amount / recipe.time) * 60 * b.count
+        if (s.mode === 'rate') {
+          total += s.rate
+        } else if (s.mode === 'buildings') {
+          const buildSource = s as ProductionSourceBuildings
+          buildSource.buildings.forEach((b) => {
+            const recipe = recipes[b.recipeId]
+            if (recipe) {
+              const output = recipe.outputs.find(
+                (o) => getBaseItemName(o.itemId) === itemBaseName,
+              )
+              if (output) {
+                total += (output.amount / recipe.time) * 60 * b.count
+              }
             }
-          }
-        })
+          })
+        }
       })
       return Math.round(total * 100) / 100
     },
@@ -157,13 +149,18 @@ function ProductionTabComponent({
       demand[key] = Math.round(demand[key] * 100) / 100
     })
     return demand
-  }, [nodes, recipes])
+  }, [recipes])
 
   // Handle adding a building
   const handleAdd = useCallback(
     (itemBaseName: string, recipeId: string) => {
+      const state = usePlannerStore.getState()
+      const currentSources = state.productionSources ?? []
+      const recipe = recipes[recipeId]
+      if (!recipe) return
+
       // Find existing source for this item
-      const existingSource = productionSources.find((s) => {
+      const existingSource = currentSources.find((s) => {
         if (getBaseItemName(s.itemId) !== itemBaseName) return false
         if (s.mode !== 'buildings') return false
         const buildSource = s as ProductionSourceBuildings
@@ -180,8 +177,6 @@ function ProductionTabComponent({
           buildings: updatedBuildings,
         })
       } else {
-        // Create new source
-        const recipe = recipes[recipeId]
         const newSource: ProductionSourceBuildings = {
           id: nanoid(),
           mode: 'buildings',
@@ -191,13 +186,16 @@ function ProductionTabComponent({
         addProductionSource(newSource)
       }
     },
-    [productionSources, recipes, updateProductionSource, addProductionSource],
+    [recipes, updateProductionSource, addProductionSource],
   )
 
   // Handle removing a building
   const handleRemove = useCallback(
     (itemBaseName: string, recipeId: string) => {
-      const existingSource = productionSources.find((s) => {
+      const state = usePlannerStore.getState()
+      const currentSources = state.productionSources ?? []
+
+      const existingSource = currentSources.find((s) => {
         if (getBaseItemName(s.itemId) !== itemBaseName) return false
         if (s.mode !== 'buildings') return false
         const buildSource = s as ProductionSourceBuildings
@@ -233,7 +231,7 @@ function ProductionTabComponent({
         })
       }
     },
-    [productionSources, updateProductionSource, removeProductionSource],
+    [updateProductionSource, removeProductionSource],
   )
 
   // Reset add dialog state
@@ -254,8 +252,11 @@ function ProductionTabComponent({
     const baseItemName = getBaseItemName(selectedItemId)
     if (!baseItemName) return
 
+    const state = usePlannerStore.getState()
+    const currentSources = state.productionSources ?? []
+
     // Check if a rate source already exists for this item
-    const existingSource = productionSources.find(
+    const existingSource = currentSources.find(
       (s) => getBaseItemName(s.itemId) === baseItemName && s.mode === 'rate',
     ) as ProductionSourceRate | undefined
 
@@ -274,7 +275,7 @@ function ProductionTabComponent({
     }
 
     resetAddDialog()
-  }, [selectedItemId, rateValue, productionSources, updateProductionSource, addProductionSource, resetAddDialog])
+  }, [selectedItemId, rateValue, updateProductionSource, addProductionSource, resetAddDialog])
 
   // Handle adding a buildings-based production source for any item
   const handleAddBuildingsSource = useCallback(
@@ -282,8 +283,11 @@ function ProductionTabComponent({
       const recipe = recipes[recipeId]
       if (!recipe) return
 
+      const state = usePlannerStore.getState()
+      const currentSources = state.productionSources ?? []
+
       // Check if source already exists for this item
-      const existingSource = productionSources.find((s) => {
+      const existingSource = currentSources.find((s) => {
         if (getBaseItemName(s.itemId) !== itemBaseName) return false
         if (s.mode !== 'buildings') return false
         const buildSource = s as ProductionSourceBuildings
@@ -311,7 +315,7 @@ function ProductionTabComponent({
 
       resetAddDialog()
     },
-    [recipes, productionSources, updateProductionSource, addProductionSource, resetAddDialog],
+    [recipes, updateProductionSource, addProductionSource, resetAddDialog],
   )
 
   // Filter items based on search query
@@ -322,25 +326,22 @@ function ProductionTabComponent({
     return itemList.filter((item) => item.name.toLowerCase().includes(query))
   }, [items, searchQuery])
 
-  // Get extraction recipes for a specific item
-  const getItemExtractionRecipes = useCallback(
-    (itemBaseName: string) => {
-      return extractionRecipes.filter((recipe) => {
-        return recipe.outputs.some(
-          (output) => getBaseItemName(output.itemId) === itemBaseName,
-        )
-      })
+  // Get the recipe for a specific item by matching itemId directly
+  const getItemRecipe = useCallback(
+    (itemId: string) => {
+      // Find recipe that produces this exact item ID
+      return Object.values(recipes).find(recipe => {
+        return recipe.outputs.some(output => output.itemId === itemId)
+      }) || null
     },
-    [extractionRecipes],
+    [recipes],
   )
 
-  // Get available recipes for selected item (in buildings mode)
-  const selectedItemRecipes = useMemo(() => {
-    if (!selectedItemId) return []
-    const baseName = getBaseItemName(selectedItemId)
-    if (!baseName) return []
-    return getItemExtractionRecipes(baseName)
-  }, [selectedItemId, getItemExtractionRecipes])
+  // Get available recipe for selected item (in buildings mode)
+  const selectedItemRecipe = useMemo(() => {
+    if (!selectedItemId) return null
+    return getItemRecipe(selectedItemId)
+  }, [selectedItemId, getItemRecipe])
 
   return (
     <div className="space-y-3">
@@ -356,33 +357,54 @@ function ProductionTabComponent({
       </Button>
 
       {/* Add Production Source Dialog */}
-      <CommandDialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <div className="p-3 border-b">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="font-medium text-sm">Add Production Source</h3>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={resetAddDialog}
-            >
-              <XIcon className="h-3 w-3" />
-            </Button>
-          </div>
+      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-sm">Add Production Source</DialogTitle>
+          </DialogHeader>
 
           {!selectedItemId ? (
             /* Item selector */
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-              <Input
-                placeholder="Search items..."
-                className="pl-7"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+            <div className="space-y-3">
+              <div className="relative">
+                <Input
+                  placeholder="Search items..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <div className="max-h-60 overflow-y-auto space-y-1">
+                {filteredItems.map((item) => {
+                  const baseName = getBaseItemName(item.id)
+                  const ItemIcon = getIcon(item.icon)
+                  const hasExtractionRecipes = baseName && getItemRecipe(baseName) !== null
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="flex items-center gap-2 p-2 hover:bg-muted cursor-pointer rounded"
+                      onClick={() => {
+                        setSelectedItemId(item.id)
+                        if (baseName && !hasExtractionRecipes) {
+                          setMode('rate')
+                        }
+                      }}
+                    >
+                      {ItemIcon && (
+                        <ItemIcon className="h-4 w-4 shrink-0" style={{ color: item.iconColor }} />
+                      )}
+                      <span className="text-sm truncate">{item.name}</span>
+                      {!hasExtractionRecipes && (
+                        <span className="text-[10px] text-muted-foreground">Rate only</span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           ) : (
             /* Mode selector and input */
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex items-center gap-2">
                 {(() => {
                   const item = items[selectedItemId] || Object.values(items).find(i => getBaseItemName(i.id) === getBaseItemName(selectedItemId))
@@ -394,29 +416,28 @@ function ProductionTabComponent({
                     </>
                   )
                 })()}
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className="ml-auto"
-                  onClick={() => {
-                    setSelectedItemId(null)
-                    setSearchQuery('')
-                  }}
-                >
-                  <XIcon className="h-3 w-3" />
-                </Button>
               </div>
 
-              <RadioGroup value={mode} onValueChange={(v) => setMode(v as 'rate' | 'buildings')}>
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="rate" id="mode-rate" />
-                  <Label htmlFor="mode-rate">Rate Mode</Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="buildings" id="mode-buildings" />
-                  <Label htmlFor="mode-buildings">Buildings Mode</Label>
-                </div>
-              </RadioGroup>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="mode"
+                    checked={mode === 'rate'}
+                    onChange={() => setMode('rate')}
+                  />
+                  Rate Mode
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="mode"
+                    checked={mode === 'buildings'}
+                    onChange={() => setMode('buildings')}
+                  />
+                  Buildings Mode
+                </label>
+              </div>
 
               {mode === 'rate' ? (
                 <div className="flex items-center gap-2">
@@ -429,207 +450,212 @@ function ProductionTabComponent({
                   />
                   <span className="text-xs text-muted-foreground">/min</span>
                 </div>
-              ) : (
-                <div className="text-xs text-muted-foreground">
-                  {selectedItemRecipes.length > 0 ? (
-                    <div className="space-y-1">
-                      {selectedItemRecipes.map((recipe) => {
-                        const output = recipe.outputs.find(
-                          (o) => getBaseItemName(o.itemId) === getBaseItemName(selectedItemId),
-                        )
-                        const ratePerBuilding = output
-                          ? (output.amount / recipe.time) * 60
-                          : 0
-                        const recipeName =
-                          recipe.name.replace(items[selectedItemId]?.name || '', '').trim() ||
-                          'Normal'
-
-                        return (
-                          <div
-                            key={recipe.id}
-                            className="flex items-center gap-2 p-2 hover:bg-muted cursor-pointer"
-                            onClick={() => {
-                              const baseName = getBaseItemName(selectedItemId)
-                              if (baseName) handleAddBuildingsSource(baseName, recipe.id)
-                            }}
-                          >
-                            <span className="flex-1 truncate">{recipeName}</span>
-                            <span className="text-muted-foreground">{ratePerBuilding.toFixed(0)}/min</span>
-                            <Plus className="h-3 w-3" />
-                          </div>
-                        )
-                      })}
+                ) : selectedItemRecipe ? (
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap items-center gap-2 p-3 bg-muted rounded">
+                      <span className="text-sm font-medium">{selectedItemRecipe.name}</span>
+                      <span className="text-xs text-muted-foreground ml-auto">
+                        {(() => {
+                          const output = selectedItemRecipe.outputs.find(
+                            (o) => getBaseItemName(o.itemId) === getBaseItemName(selectedItemId),
+                          )
+                          return output ? `${((output.amount / selectedItemRecipe.time) * 60).toFixed(0)}/min` : '?'
+                        })()}
+                      </span>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          const baseName = getBaseItemName(selectedItemId)
+                          if (baseName) handleAddBuildingsSource(baseName, selectedItemRecipe.id)
+                        }}
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add
+                      </Button>
                     </div>
-                  ) : (
-                    <p className="py-2">No extraction recipes available for this item.</p>
-                  )}
-                </div>
-              )}
+                    <p className="text-xs text-muted-foreground">
+                      Adds an excavator producing {items[selectedItemId]?.name || selectedItemId}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No recipe available.</p>
+                )}
 
-              {mode === 'rate' && (
+              <div className="flex gap-2">
                 <Button
-                  className="w-full"
+                  variant="outline"
                   size="sm"
-                  disabled={!rateValue || isNaN(parseFloat(rateValue)) || parseFloat(rateValue) <= 0}
-                  onClick={handleAddRateSource}
+                  onClick={() => {
+                    setSelectedItemId(null)
+                    setSearchQuery('')
+                  }}
                 >
-                  Add Rate Source
+                  Back
                 </Button>
-              )}
+                {mode === 'rate' && (
+                  <Button
+                    className="flex-1"
+                    size="sm"
+                    disabled={!rateValue || isNaN(parseFloat(rateValue)) || parseFloat(rateValue) <= 0}
+                    onClick={handleAddRateSource}
+                  >
+                    Add Rate
+                  </Button>
+                )}
+              </div>
             </div>
           )}
-        </div>
+        </DialogContent>
+      </Dialog>
 
-        {/* Item list */}
-        {!selectedItemId && (
-          <CommandList className="max-h-60">
-            <CommandEmpty className="py-6 text-center text-xs text-muted-foreground">
-              No items found
-            </CommandEmpty>
-            <CommandGroup>
-              {filteredItems.map((item) => {
-                const baseName = getBaseItemName(item.id)
-                const ItemIcon = getIcon(item.icon)
-                const hasExtractionRecipes = baseName && getItemExtractionRecipes(baseName).length > 0
+      {/* Get all items that have production sources */}
+      {(() => {
+        const itemsWithSources = new Set(productionSources.map(s => getBaseItemName(s.itemId)).filter(Boolean))
+        
+        if (itemsWithSources.size === 0) {
+          return (
+            <div className="text-center py-4 text-xs text-muted-foreground">
+              No production sources. Click [+ Add Production Source] to add resources.
+            </div>
+          )
+        }
 
-                return (
-                  <CommandItem
-                    key={item.id}
-                    value={item.name}
-                    onSelect={() => {
-                      setSelectedItemId(item.id)
-                      // If item has no extraction recipes, default to rate mode
-                      if (baseName && !hasExtractionRecipes) {
-                        setMode('rate')
-                      }
-                    }}
-                  >
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      {ItemIcon && (
-                        <ItemIcon className="h-4 w-4 shrink-0" style={{ color: item.iconColor }} />
-                      )}
-                      <span className="truncate">{item.name}</span>
-                      {!hasExtractionRecipes && (
-                        <span className="text-[10px] text-muted-foreground ml-auto">Rate only</span>
-                      )}
-                    </div>
-                  </CommandItem>
-                )
-              })}
-            </CommandGroup>
-          </CommandList>
-        )}
-      </CommandDialog>
+        return Array.from(itemsWithSources).map(baseName => {
+          const itemInfo = getItemInfo(baseName)
+          const ItemIcon = itemInfo ? getIcon(itemInfo.icon) : null
+          const itemTotal = getItemTotal(baseName)
+          const itemDemand = demandByItem[baseName] || 0
+          const available = itemTotal - itemDemand
 
-      {Object.entries(groupedRecipes).map(([baseName, oreRecipes]) => {
-        const itemInfo = getItemInfo(baseName)
-        const ItemIcon = itemInfo ? getIcon(itemInfo.icon) : null
-        const itemTotal = getItemTotal(baseName)
-        const itemDemand = demandByItem[baseName] || 0
-        const available = itemTotal - itemDemand
+          // Get sources for this item
+          const sources = productionSources.filter(s => getBaseItemName(s.itemId) === baseName)
 
-        // Determine color and display for available
-        const availableColor =
-          available > 0
-            ? 'text-green-600'
-            : available < 0
-              ? 'text-red-600'
-              : 'text-muted-foreground'
-        const availablePrefix = available > 0 ? '+' : ''
+          // Determine color and display for available
+          const availableColor =
+            available > 0
+              ? 'text-green-600'
+              : available < 0
+                ? 'text-red-600'
+                : 'text-muted-foreground'
+          const availablePrefix = available > 0 ? '+' : ''
 
-        return (
-          <div key={baseName} className="space-y-1">
-            <div className="flex items-center gap-1.5">
-              {ItemIcon && (
-                <ItemIcon
-                  className="h-4 w-4"
-                  style={{ color: itemInfo?.iconColor }}
-                />
-              )}
-              <span className="font-medium text-xs w-16 truncate">
-                {itemInfo?.name || baseName}
-              </span>
-              <span className="text-xs text-muted-foreground w-12 text-right">
-                {itemTotal}/min
-              </span>
-              <span className="text-xs text-muted-foreground w-12 text-right">
-                {itemDemand > 0 ? `${itemDemand}/min` : '-'}
-              </span>
-              <span
-                className={`text-xs font-medium ml-auto w-16 text-right ${availableColor}`}
-              >
-                {available === 0 ? (
-                  '0/min'
-                ) : (
-                  <>
-                    {available > 0 ? '🟢' : '🔴'}
-                    {availablePrefix}
-                    {available.toFixed(0)}/min
-                  </>
+          return (
+            <div key={baseName} className="space-y-1">
+              {/* Header with totals */}
+              <div className="flex items-center gap-1.5">
+                {ItemIcon && (
+                  <ItemIcon
+                    className="h-4 w-4"
+                    style={{ color: itemInfo?.iconColor }}
+                  />
                 )}
-              </span>
+                <span className="font-medium text-xs min-w-0 flex-1">
+                  {itemInfo?.name || baseName}
+                </span>
+                <span className="text-xs text-muted-foreground w-12 text-right">
+                  {itemTotal > 0 ? `${itemTotal.toFixed(0)}/min` : '0/min'}
+                </span>
+                <span className="text-xs text-muted-foreground w-12 text-right">
+                  {itemDemand > 0 ? `${itemDemand.toFixed(0)}/min` : '-'}
+                </span>
+                <span
+                  className={`text-xs font-medium ml-auto w-20 text-right ${availableColor}`}
+                >
+                  {available === 0 ? (
+                    '0/min'
+                  ) : (
+                    <>
+                      {available > 0 ? '🟢' : '🔴'}
+                      {availablePrefix}
+                      {available.toFixed(0)}/min
+                    </>
+                  )}
+                </span>
+              </div>
+
+              {/* Show sources */}
+              <div className="ml-5 space-y-0.5">
+                {sources.map((source) => {
+                  if (source.mode === 'rate') {
+                    const rateSource = source as ProductionSourceRate
+                    return (
+                      <div
+                        key={source.id}
+                        className="flex items-center gap-2 text-xs"
+                      >
+                        <span className="text-muted-foreground">
+                          Rate: {rateSource.rate}/min
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-5 w-5"
+                          onClick={() => removeProductionSource(source.id)}
+                        >
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )
+                  } else {
+                    const buildSource = source as ProductionSourceBuildings
+                    return buildSource.buildings.map((building) => {
+                      const recipe = recipes[building.recipeId]
+                      const count = building.count
+                      const output = recipe?.outputs.find(
+                        (o) => getBaseItemName(o.itemId) === baseName,
+                      )
+                      const ratePerBuilding = output
+                        ? (output.amount / (recipe?.time || 1)) * 60
+                        : 0
+
+                      let recipeName = recipe?.name || building.recipeId
+                      if (itemInfo?.name) {
+                        recipeName = recipeName.replace(itemInfo.name, '').trim()
+                      }
+                      if (!recipeName) recipeName = 'Normal'
+
+                      return (
+                        <div
+                          key={`${source.id}-${building.recipeId}`}
+                          className="flex items-center gap-2 text-xs"
+                        >
+                          <span className="text-muted-foreground min-w-0 flex-1">
+                            {recipeName}
+                          </span>
+
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-5 w-5"
+                            onClick={() => handleRemove(baseName, building.recipeId)}
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+
+                          <span className="w-6 text-center font-medium">{count}</span>
+
+                          <Button
+                            variant="default"
+                            size="icon"
+                            className="h-5 w-5 bg-green-600 hover:bg-green-700"
+                            onClick={() => handleAdd(baseName, building.recipeId)}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+
+                          <span className="text-muted-foreground ml-auto text-[10px]">
+                            {count > 0 && `${(count * ratePerBuilding).toFixed(0)}/min`}
+                          </span>
+                        </div>
+                      )
+                    })
+                  }
+                })}
+              </div>
             </div>
-
-            <div className="space-y-0.5 ml-5">
-              {oreRecipes.map((recipe) => {
-                const count = getRecipeCount(baseName, recipe.id)
-                const output = recipe.outputs.find(
-                  (o) => getBaseItemName(o.itemId) === baseName,
-                )
-                const ratePerBuilding = output
-                  ? (output.amount / recipe.time) * 60
-                  : 0
-                const recipeName =
-                  recipe.name.replace(itemInfo?.name || '', '').trim() ||
-                  'Normal'
-
-                return (
-                  <div
-                    key={recipe.id}
-                    className="flex items-center gap-2 text-xs"
-                  >
-                    <span className="w-12 text-muted-foreground truncate">
-                      {recipeName}
-                    </span>
-
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => handleRemove(baseName, recipe.id)}
-                      disabled={count === 0}
-                    >
-                      <Minus className="h-3 w-3" />
-                    </Button>
-
-                    <span className="w-6 text-center font-medium">{count}</span>
-
-                    <Button
-                      variant="default"
-                      size="icon"
-                      className="h-6 w-6 bg-green-600 hover:bg-green-700"
-                      onClick={() => handleAdd(baseName, recipe.id)}
-                    >
-                      <Plus className="h-3 w-3" />
-                    </Button>
-
-                    <span className="text-muted-foreground ml-auto text-[10px]">
-                      {count > 0 &&
-                        `${(count * ratePerBuilding).toFixed(0)}/min`}
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )
-      })}
-
-      {Object.keys(groupedRecipes).length === 0 && (
-        <div className="text-center py-4 text-xs text-muted-foreground">
-          No extraction recipes found
-        </div>
-      )}
+          )
+        })
+      })()}
     </div>
   )
 }
