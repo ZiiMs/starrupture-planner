@@ -29,6 +29,7 @@ import { useReactFlow } from '@xyflow/react'
 import { nanoid } from 'nanoid'
 import { memo, useCallback, useMemo, useState } from 'react'
 import ElementSelector from './ElementSelector'
+import { ProductionTab } from './ProductionTab'
 
 interface BuildingSelectorProps {
   buildings: Record<string, Building>
@@ -72,7 +73,9 @@ function BuildingSelectorComponent({
 
   const { runAutoLayout } = useAutoLayout()
 
-  const [activeTab, setActiveTab] = useState<'buildings' | 'items'>('buildings')
+  const [activeTab, setActiveTab] = useState<
+    'buildings' | 'items' | 'production'
+  >('buildings')
   const [nodeCounter, setNodeCounter] = useState(0)
 
   // Item selection state
@@ -357,7 +360,7 @@ function BuildingSelectorComponent({
         <Tabs
           value={activeTab}
           onValueChange={(v) => {
-            setActiveTab(v as 'buildings' | 'items')
+            setActiveTab(v as 'buildings' | 'items' | 'production')
             setSelectedItemId(null)
             setItemsPerMinute('60')
             setBuildingSearch('')
@@ -368,6 +371,7 @@ function BuildingSelectorComponent({
           <TabsList className="w-full">
             <TabsTrigger value="buildings">Buildings</TabsTrigger>
             <TabsTrigger value="items">Items</TabsTrigger>
+            <TabsTrigger value="production">Production</TabsTrigger>
           </TabsList>
 
           <TabsContent
@@ -475,6 +479,17 @@ function BuildingSelectorComponent({
                 onSearchChange={setItemSearch}
               />
             )}
+          </TabsContent>
+
+          <TabsContent
+            value="production"
+            className="flex-1 overflow-hidden mt-3"
+          >
+            <ProductionTab
+              items={items}
+              buildings={buildings}
+              recipes={recipes}
+            />
           </TabsContent>
         </Tabs>
       </CardContent>

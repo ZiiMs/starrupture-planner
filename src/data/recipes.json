@@ -16,9 +16,7 @@
           "amount": 2
         }
       ],
-      "producers": [
-        "smelter"
-      ],
+      "producers": ["smelter"],
       "category": "smelting",
       "outputRate": 0
     },
@@ -38,9 +36,7 @@
           "amount": 2
         }
       ],
-      "producers": [
-        "smelter"
-      ],
+      "producers": ["smelter"],
       "category": "smelting",
       "outputRate": 0
     },
@@ -60,9 +56,7 @@
           "amount": 2
         }
       ],
-      "producers": [
-        "smelter"
-      ],
+      "producers": ["smelter"],
       "time": 2
     },
     {
@@ -76,9 +70,7 @@
           "amount": 2
         }
       ],
-      "producers": [
-        "ore-excavator"
-      ],
+      "producers": ["ore-excavator"],
       "time": 2
     },
     {
@@ -92,9 +84,7 @@
           "amount": 4
         }
       ],
-      "producers": [
-        "ore-excavator"
-      ],
+      "producers": ["ore-excavator"],
       "time": 2
     },
     {
@@ -108,9 +98,7 @@
           "amount": 8
         }
       ],
-      "producers": [
-        "ore-excavator"
-      ],
+      "producers": ["ore-excavator"],
       "time": 2
     },
     {
@@ -124,9 +112,7 @@
           "amount": 2
         }
       ],
-      "producers": [
-        "ore-excavator"
-      ],
+      "producers": ["ore-excavator"],
       "time": 2
     },
     {
@@ -140,9 +126,7 @@
           "amount": 4
         }
       ],
-      "producers": [
-        "ore-excavator"
-      ],
+      "producers": ["ore-excavator"],
       "time": 2
     },
     {
@@ -156,9 +140,7 @@
           "amount": 8
         }
       ],
-      "producers": [
-        "ore-excavator"
-      ],
+      "producers": ["ore-excavator"],
       "time": 2
     },
     {
@@ -172,9 +154,7 @@
           "amount": 2
         }
       ],
-      "producers": [
-        "ore-excavator"
-      ],
+      "producers": ["ore-excavator"],
       "time": 2
     },
     {
@@ -188,9 +168,7 @@
           "amount": 4
         }
       ],
-      "producers": [
-        "ore-excavator"
-      ],
+      "producers": ["ore-excavator"],
       "time": 2
     },
     {
@@ -204,9 +182,7 @@
           "amount": 8
         }
       ],
-      "producers": [
-        "ore-excavator"
-      ],
+      "producers": ["ore-excavator"],
       "time": 2
     },
     {
@@ -225,9 +201,7 @@
           "amount": 3
         }
       ],
-      "producers": [
-        "furnace"
-      ],
+      "producers": ["furnace"],
       "category": "furnace",
       "outputRate": 0
     },
@@ -251,9 +225,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "furnace"
-      ],
+      "producers": ["furnace"],
       "category": "furnace",
       "outputRate": 0
     },
@@ -277,9 +249,7 @@
           "amount": 2
         }
       ],
-      "producers": [
-        "furnace"
-      ],
+      "producers": ["furnace"],
       "category": "furnace",
       "outputRate": 0
     },
@@ -299,9 +269,7 @@
           "amount": 3
         }
       ],
-      "producers": [
-        "furnace"
-      ],
+      "producers": ["furnace"],
       "category": "furnace",
       "outputRate": 0
     },
@@ -329,9 +297,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "furnace"
-      ],
+      "producers": ["furnace"],
       "category": "furnace",
       "outputRate": 0
     },
@@ -359,9 +325,7 @@
           "amount": 2
         }
       ],
-      "producers": [
-        "furnace"
-      ],
+      "producers": ["furnace"],
       "category": "furnace",
       "outputRate": 0
     },
@@ -389,9 +353,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "furnace"
-      ],
+      "producers": ["furnace"],
       "category": "furnace",
       "outputRate": 0
     },
@@ -419,9 +381,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "furnace"
-      ],
+      "producers": ["furnace"],
       "category": "furnace",
       "outputRate": 0
     },
@@ -445,9 +405,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "furnace"
-      ],
+      "producers": ["furnace"],
       "category": "furnace",
       "outputRate": 0
     },
@@ -475,9 +433,7 @@
           "amount": 2
         }
       ],
-      "producers": [
-        "furnace"
-      ],
+      "producers": ["furnace"],
       "category": "furnace",
       "outputRate": 0
     },
@@ -505,9 +461,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "furnace"
-      ],
+      "producers": ["furnace"],
       "category": "furnace",
       "outputRate": 0
     },
@@ -535,9 +489,7 @@
           "amount": 2
         }
       ],
-      "producers": [
-        "furnace"
-      ],
+      "producers": ["furnace"],
       "category": "furnace",
       "outputRate": 0
     },
@@ -557,9 +509,7 @@
           "amount": 2
         }
       ],
-      "producers": [
-        "fabricator"
-      ],
+      "producers": ["fabricator"],
       "category": "fabrication",
       "outputRate": 0
     },
@@ -579,9 +529,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "fabricator"
-      ],
+      "producers": ["fabricator"],
       "category": "fabrication",
       "outputRate": 0
     },
@@ -601,9 +549,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "fabricator"
-      ],
+      "producers": ["fabricator"],
       "category": "fabrication",
       "outputRate": 0
     },
@@ -623,9 +569,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "fabricator"
-      ],
+      "producers": ["fabricator"],
       "category": "fabrication",
       "outputRate": 0
     },
@@ -645,9 +589,7 @@
           "amount": 2
         }
       ],
-      "producers": [
-        "fabricator"
-      ],
+      "producers": ["fabricator"],
       "category": "fabrication",
       "outputRate": 0
     },
@@ -671,9 +613,7 @@
           "amount": 2
         }
       ],
-      "producers": [
-        "fabricator"
-      ],
+      "producers": ["fabricator"],
       "category": "fabrication",
       "outputRate": 0
     },
@@ -697,9 +637,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "fabricator"
-      ],
+      "producers": ["fabricator"],
       "category": "fabrication",
       "outputRate": 0
     },
@@ -719,9 +657,7 @@
           "amount": 2
         }
       ],
-      "producers": [
-        "fabricator"
-      ],
+      "producers": ["fabricator"],
       "category": "fabrication",
       "outputRate": 0
     },
@@ -745,9 +681,7 @@
           "amount": 10
         }
       ],
-      "producers": [
-        "fabricator"
-      ],
+      "producers": ["fabricator"],
       "category": "fabrication",
       "outputRate": 0
     },
@@ -771,9 +705,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "fabricator"
-      ],
+      "producers": ["fabricator"],
       "category": "fabrication",
       "outputRate": 0
     },
@@ -793,9 +725,7 @@
           "amount": 25
         }
       ],
-      "producers": [
-        "fabricator"
-      ],
+      "producers": ["fabricator"],
       "category": "fabrication",
       "outputRate": 0
     },
@@ -819,9 +749,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "fabricator"
-      ],
+      "producers": ["fabricator"],
       "category": "fabrication",
       "outputRate": 0
     },
@@ -845,9 +773,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "fabricator"
-      ],
+      "producers": ["fabricator"],
       "category": "fabrication",
       "outputRate": 0
     },
@@ -862,9 +788,7 @@
           "amount": 8
         }
       ],
-      "producers": [
-        "helium-3-extractor"
-      ],
+      "producers": ["helium-3-extractor"],
       "category": "extraction",
       "outputRate": 0
     },
@@ -892,9 +816,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "mega-press"
-      ],
+      "producers": ["mega-press"],
       "category": "pressing",
       "outputRate": 0
     },
@@ -926,9 +848,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "mega-press"
-      ],
+      "producers": ["mega-press"],
       "category": "pressing",
       "outputRate": 0
     },
@@ -960,9 +880,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "mega-press"
-      ],
+      "producers": ["mega-press"],
       "category": "pressing",
       "outputRate": 0
     },
@@ -994,9 +912,7 @@
           "amount": 25
         }
       ],
-      "producers": [
-        "mega-press"
-      ],
+      "producers": ["mega-press"],
       "category": "pressing",
       "outputRate": 0
     },
@@ -1024,9 +940,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "mega-press"
-      ],
+      "producers": ["mega-press"],
       "category": "pressing",
       "outputRate": 0
     },
@@ -1058,9 +972,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "mega-press"
-      ],
+      "producers": ["mega-press"],
       "category": "pressing",
       "outputRate": 0
     },
@@ -1092,9 +1004,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "mega-press"
-      ],
+      "producers": ["mega-press"],
       "category": "pressing",
       "outputRate": 0
     },
@@ -1126,9 +1036,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "mega-press"
-      ],
+      "producers": ["mega-press"],
       "category": "pressing",
       "outputRate": 0
     },
@@ -1152,9 +1060,7 @@
           "amount": 20
         }
       ],
-      "producers": [
-        "mega-press"
-      ],
+      "producers": ["mega-press"],
       "category": "pressing",
       "outputRate": 0
     },
@@ -1178,9 +1084,7 @@
           "amount": 15
         }
       ],
-      "producers": [
-        "mega-press"
-      ],
+      "producers": ["mega-press"],
       "category": "pressing",
       "outputRate": 0
     },
@@ -1204,9 +1108,7 @@
           "amount": 15
         }
       ],
-      "producers": [
-        "mega-press"
-      ],
+      "producers": ["mega-press"],
       "category": "pressing",
       "outputRate": 0
     },
@@ -1230,9 +1132,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "refinery"
-      ],
+      "producers": ["refinery"],
       "category": "refining",
       "outputRate": 0
     },
@@ -1256,9 +1156,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "refinery"
-      ],
+      "producers": ["refinery"],
       "category": "refining",
       "outputRate": 0
     },
@@ -1273,9 +1171,7 @@
           "amount": 8
         }
       ],
-      "producers": [
-        "sulfur-extractor"
-      ],
+      "producers": ["sulfur-extractor"],
       "category": "extraction",
       "outputRate": 0
     },
@@ -1290,9 +1186,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "assembler"
-      ],
+      "producers": ["assembler"],
       "category": "assembly",
       "outputRate": 0,
       "incomplete": true
@@ -1308,9 +1202,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "assembler"
-      ],
+      "producers": ["assembler"],
       "category": "assembly",
       "outputRate": 0,
       "incomplete": true
@@ -1326,9 +1218,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "assembler"
-      ],
+      "producers": ["assembler"],
       "category": "assembly",
       "outputRate": 0,
       "incomplete": true
@@ -1361,9 +1251,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "assembler"
-      ],
+      "producers": ["assembler"],
       "category": "assembly",
       "outputRate": 0,
       "incomplete": true
@@ -1379,9 +1267,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "assembler"
-      ],
+      "producers": ["assembler"],
       "category": "assembly",
       "outputRate": 0,
       "incomplete": true
@@ -1397,9 +1283,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "assembler"
-      ],
+      "producers": ["assembler"],
       "category": "assembly",
       "outputRate": 0,
       "incomplete": true
@@ -1415,9 +1299,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "assembler"
-      ],
+      "producers": ["assembler"],
       "category": "assembly",
       "outputRate": 0,
       "incomplete": true
@@ -1433,9 +1315,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "assembler"
-      ],
+      "producers": ["assembler"],
       "category": "assembly",
       "outputRate": 0,
       "incomplete": true
@@ -1451,9 +1331,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "compounder"
-      ],
+      "producers": ["compounder"],
       "category": "compounding",
       "outputRate": 0,
       "incomplete": true
@@ -1469,9 +1347,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "compounder"
-      ],
+      "producers": ["compounder"],
       "category": "compounding",
       "outputRate": 0,
       "incomplete": true
@@ -1487,9 +1363,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "compounder"
-      ],
+      "producers": ["compounder"],
       "category": "compounding",
       "outputRate": 0,
       "incomplete": true
@@ -1505,9 +1379,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "compounder"
-      ],
+      "producers": ["compounder"],
       "category": "compounding",
       "outputRate": 0,
       "incomplete": true
@@ -1523,9 +1395,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "compounder"
-      ],
+      "producers": ["compounder"],
       "category": "compounding",
       "outputRate": 0,
       "incomplete": true
@@ -1541,9 +1411,7 @@
           "amount": 1
         }
       ],
-      "producers": [
-        "compounder"
-      ],
+      "producers": ["compounder"],
       "category": "compounding",
       "outputRate": 0,
       "incomplete": true

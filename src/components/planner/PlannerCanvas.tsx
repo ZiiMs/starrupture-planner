@@ -304,28 +304,119 @@ function PlannerCanvasInner() {
     (nodeId: string, newRecipeId: string) => {
       pushToHistory()
 
-      const recipe = plannerData?.recipes[newRecipeId]
-      const building = nodes.find((n) => n.id === nodeId)?.data.buildingId
-      const oldBuilding = nodes.find((n) => n.id === nodeId)
+      const currentNode = nodes.find((n) => n.id === nodeId)
+      if (!currentNode || !plannerData) return
 
-      if (!recipe || !building || !oldBuilding) return
+      const oldRecipe = plannerData.recipes[currentNode.data.recipeId]
+      const newRecipe = plannerData.recipes[newRecipeId]
+      if (!oldRecipe || !newRecipe) return
 
-      const buildingData = plannerData?.buildings[building]
-      if (!buildingData) return
+      // Helper: Check if two items are compatible (same base item or same item)
+      // Treats impure-X, pure-X, and X as compatible
+      const areItemsCompatible = (itemA: string, itemB: string): boolean => {
+        if (itemA === itemB) return true
+        // Extract base name by removing impure-/pure- prefixes
+        const getBaseName = (item: string) =>
+          item.replace(/^(impure-|pure-)/, '')
+        return getBaseName(itemA) === getBaseName(itemB)
+      }
 
+      // Get old and new output items
+      const oldOutputItems = oldRecipe.outputs.map((o) => o.itemId)
+      const newOutputItems = newRecipe.outputs.map((o) => o.itemId)
+
+      // Check if output items changed (using compatibility check)
+      const outputItemsChanged =
+        oldOutputItems.some(
+          (oldItem) =>
+            !newOutputItems.some((newItem) =>
+              areItemsCompatible(oldItem, newItem),
+            ),
+        ) ||
+        newOutputItems.some(
+          (newItem) =>
+            !oldOutputItems.some((oldItem) =>
+              areItemsCompatible(oldItem, newItem),
+            ),
+        )
+
+      // Find edges to potentially disconnect (only if output items changed)
+      const currentEdges = usePlannerStore.getState().present.edges
+      const edgesToRemove: string[] = []
+
+      if (outputItemsChanged) {
+        // Outputs changed to different items - disconnect incompatible edges
+        currentEdges.forEach((edge) => {
+          if (edge.source === nodeId) {
+            // This edge comes from our node
+            const targetNode = nodes.find((n) => n.id === edge.target)
+            if (targetNode) {
+              const targetRecipe = plannerData.recipes[targetNode.data.recipeId]
+              // Check if target accepts any of our new outputs (using compatibility)
+              const targetAcceptsNewOutput = newOutputItems.some((newItem) =>
+                targetRecipe.inputs.some((input) =>
+                  areItemsCompatible(input.itemId, newItem),
+                ),
+              )
+              if (!targetAcceptsNewOutput) {
+                edgesToRemove.push(edge.id)
+              }
+            }
+          }
+        })
+
+        // Remove incompatible edges
+        edgesToRemove.forEach((edgeId) => removeEdge(edgeId))
+      } else {
+        // Same output item(s) - keep connections but recalculate our count
+        // If we have a targetRate, recalculate count based on new output rate
+        const targetRate =
+          currentNode.data.targetRate ?? currentNode.data.outputRate
+        if (targetRate > 0) {
+          const buildingData =
+            plannerData.buildings[currentNode.data.buildingId]
+          const newOutputPerBuilding = calculateOutputRate(
+            newRecipe,
+            buildingData,
+            1,
+          )
+          if (newOutputPerBuilding > 0) {
+            const newCount = targetRate / newOutputPerBuilding
+            updateNode(nodeId, {
+              recipeId: newRecipeId,
+              count: newCount,
+              outputRate: calculateOutputRate(
+                newRecipe,
+                buildingData,
+                newCount,
+              ),
+              powerConsumption: calculatePowerConsumption(
+                buildingData,
+                newCount,
+              ),
+            })
+            // Re-layout and return early (don't do default update)
+            runAutoLayout()
+            return
+          }
+        }
+      }
+
+      // Default update for when no special handling needed
+      const buildingData = plannerData.buildings[currentNode.data.buildingId]
       updateNode(nodeId, {
         recipeId: newRecipeId,
         outputRate: calculateOutputRate(
-          recipe,
+          newRecipe,
           buildingData,
-          oldBuilding.data.count || 1,
+          currentNode.data.count || 1,
         ),
       })
 
       // Re-layout to account for height changes
       runAutoLayout()
     },
-    [plannerData, nodes, pushToHistory, updateNode, runAutoLayout],
+    [plannerData, nodes, pushToHistory, updateNode, removeEdge, runAutoLayout],
   )
 
   // Handle rate changes on output nodes - recalculate upstream chain

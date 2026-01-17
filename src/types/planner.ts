@@ -70,6 +70,35 @@ export interface PlannerEdgeData extends Record<string, unknown> {
 
 export type PlannerEdge = Edge<PlannerEdgeData>
 
+export type ProductionMode = 'rate' | 'buildings'
+
+export interface ProductionSourceRate {
+  id: string
+  mode: 'rate'
+  itemId: string
+  rate: number
+}
+
+export interface ProductionSourceBuildings {
+  id: string
+  mode: 'buildings'
+  itemId: string
+  buildings: Array<{
+    buildingId: string
+    recipeId: string
+    count: number
+  }>
+}
+
+export type ProductionSource = ProductionSourceRate | ProductionSourceBuildings
+
+export interface SupplyDemandInfo {
+  itemId: string
+  supply: number
+  demand: number
+  available: number // positive = surplus, negative = deficit
+}
+
 export interface HistoryState {
   past: Array<{ nodes: PlannerNode[]; edges: PlannerEdge[] }>
   present: { nodes: PlannerNode[]; edges: PlannerEdge[] }
